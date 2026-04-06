@@ -112,6 +112,26 @@ export function Header() {
               {t(item.labelKey)}
             </motion.a>
           ))}
+          <motion.a
+            href="/challenges"
+            className={cn(
+              'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
+              'text-sm font-light tracking-wider transition-colors',
+            )}
+            whileHover={{ y: -2 }}
+          >
+            🎮 Challenges
+          </motion.a>
+          <motion.a
+            href="/community"
+            className={cn(
+              'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
+              'text-sm font-light tracking-wider transition-colors',
+            )}
+            whileHover={{ y: -2 }}
+          >
+            💬 ชุมชน
+          </motion.a>
         </div>
 
         {/* ── Right controls ────────────────────────── */}
