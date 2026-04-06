@@ -810,7 +810,7 @@ vercel --prod
 - [x] SEO optimization + sitemap + OG images
 - [x] Mascot (Panda-Duck) component — idle/excited/sleeping/waving states
 - [x] PWA support (installable app)
-- [ ] OAuth: Google, Line, Facebook
+- [x] OAuth: Google ✅ (LINE/Facebook — optional future)
 - [x] Challenges & Games system (quiz + vote + social share)
 
 ---
@@ -856,7 +856,7 @@ vercel --prod
 | **Schedule / Events** | ✅ เสร็จ | Phase 5 |
 | **Awards** | ✅ เสร็จ | Phase 5 |
 | **Homepage Previews** | ✅ เสร็จ | Schedule + Awards + Live Stats |
-| OAuth (Google/Line) | ❌ ยังไม่มี | Phase 6 |
+| OAuth (Google/Line) | ✅ Google เสร็จ | Phase 6 — LINE/Facebook future |
 | Challenges/Games | ✅ เสร็จ | Phase 6 — quiz + vote + social share |
 | Mascot (Panda-Duck) | ✅ เสร็จ | Phase 6 — 4 animation states |
 | PWA | ✅ เสร็จ | Phase 6 |

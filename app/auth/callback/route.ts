@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseBrowser } from '@/lib/supabase';
+import { cookies } from 'next/headers';
+import { createSupabaseServer } from '@/lib/supabase';
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
+  const { searchParams, origin } = new URL(req.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') || '/';
 
   if (code) {
-    const supabase = createSupabaseBrowser();
-    await supabase.auth.exchangeCodeForSession(code);
+    const cookieStore = await cookies();
+    const supabase = createSupabaseServer(cookieStore as any);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error) {
+      // Redirect to the intended page after successful login
+      return NextResponse.redirect(`${origin}${next}`);
+    }
+
+    // Auth exchange failed
+    console.error('[OAuth callback] exchangeCodeForSession error:', error.message);
   }
 
-  return NextResponse.redirect(new URL(next, req.url));
+  // Something went wrong — redirect to login with an error flag
+  return NextResponse.redirect(`${origin}/auth/login?error=oauth_failed`);
 }
