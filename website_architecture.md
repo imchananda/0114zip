@@ -803,15 +803,15 @@ vercel --prod
 - [x] **Homepage integration:** [SchedulePreview](file:///d:/_DEV/namtanfilm-website/components/sections/SchedulePreview.tsx#22-99) (4 upcoming events) + [AwardsPreview](file:///d:/_DEV/namtanfilm-website/components/sections/AwardsPreview.tsx#21-83) (6 trophy cards)
 
 ### Phase 6 — Polish & Security
-- [ ] Rate limiting (Upstash)
+- [x] Rate limiting (Upstash)
 - [x] Security headers hardening
 - [x] Performance optimization (Image CDN, ISR)
 - [ ] Full 3-language content
 - [x] SEO optimization + sitemap + OG images
-- [ ] Mascot Lottie animations
+- [x] Mascot (Panda-Duck) component — idle/excited/sleeping/waving states
 - [x] PWA support (installable app)
 - [ ] OAuth: Google, Line, Facebook
-- [ ] Challenges & Games system
+- [x] Challenges & Games system (quiz + vote + social share)
 
 ---
 
@@ -857,7 +857,7 @@ vercel --prod
 | **Awards** | ✅ เสร็จ | Phase 5 |
 | **Homepage Previews** | ✅ เสร็จ | Schedule + Awards + Live Stats |
 | OAuth (Google/Line) | ❌ ยังไม่มี | Phase 6 |
-| Challenges/Games | ❌ ยังไม่มี | Phase 6 |
-| Mascot animations | ❌ ยังไม่มี | Phase 6 |
+| Challenges/Games | ✅ เสร็จ | Phase 6 — quiz + vote + social share |
+| Mascot (Panda-Duck) | ✅ เสร็จ | Phase 6 — 4 animation states |
 | PWA | ✅ เสร็จ | Phase 6 |
 | Security hardening | ✅ เสร็จ | Phase 6 |
