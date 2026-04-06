@@ -1,0 +1,222 @@
+/* ============================================================
+   Light-mode — targeted overrides only
+   Broad [class*="bg-black"] rules removed; each section
+   now uses CSS var() directly in JSX.
+   ============================================================ */
+
+/* Header จัดการ bg เองผ่าน useTheme() ใน JSX — ไม่มี global override */
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   CSS Custom Properties — theme-aware tokens
+   ============================================================ */
+:root {
+  --font-display: var(--font-inter), var(--font-noto-thai), 'Inter', 'Noto Sans Thai', sans-serif;
+  --font-thai:    var(--font-inter), var(--font-noto-thai), 'Inter', 'Noto Sans Thai', sans-serif;
+  --font-body:    var(--font-inter), var(--font-noto-thai), 'Inter', 'Noto Sans Thai', sans-serif;
+
+  /* Brand */
+  --namtan-blue:   #1E88E5;
+  --film-yellow:   #FDD835;
+  --nf-gradient:   linear-gradient(135deg, #1E88E5 0%, #FDD835 100%);
+}
+
+/* ============================================================
+   DARK THEME (default)
+   ============================================================ */
+:root,
+.dark {
+  --color-bg:           #0A0A0F;
+  --color-surface:      #12121A;
+  --color-panel:        #1A1A26;
+  --color-border:       rgba(255, 255, 255, 0.08);
+  --color-text-primary: #F5F5F5;
+  --color-text-secondary: rgba(245, 245, 245, 0.70);
+  --color-text-muted:   rgba(245, 245, 245, 0.40);
+  --skeleton-from:      rgba(255, 255, 255, 0.05);
+  --skeleton-mid:       rgba(255, 255, 255, 0.10);
+  --skeleton-to:        rgba(255, 255, 255, 0.05);
+  --selection-bg:       rgba(30, 136, 229, 0.30);
+}
+
+/* ============================================================
+   LIGHT THEME
+   ============================================================ */
+.light {
+  --color-bg:           #F8F9FF;
+  --color-surface:      #FFFFFF;
+  --color-panel:        #EEF2FF;
+  --color-border:       rgba(0, 0, 0, 0.08);
+  --color-text-primary: #0F172A;
+  --color-text-secondary: rgba(15, 23, 42, 0.70);
+  --color-text-muted:   rgba(15, 23, 42, 0.45);
+  --skeleton-from:      rgba(0, 0, 0, 0.04);
+  --skeleton-mid:       rgba(0, 0, 0, 0.08);
+  --skeleton-to:        rgba(0, 0, 0, 0.04);
+  --selection-bg:       rgba(30, 136, 229, 0.20);
+}
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    @apply scroll-smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  section[id] {
+    scroll-margin-top: 80px;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-body);
+    @apply antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+
+  .font-display { font-family: var(--font-display); }
+  .font-thai    { font-family: var(--font-thai); }
+  .font-body    { font-family: var(--font-body); }
+}
+
+/* ============================================================
+   Utility classes
+   ============================================================ */
+@layer utilities {
+
+  /* ---- Theme-aware surfaces ---- */
+  .bg-surface          { background-color: var(--color-surface); }
+  .bg-panel            { background-color: var(--color-panel); }
+  .text-primary        { color: var(--color-text-primary); }
+  .text-secondary      { color: var(--color-text-secondary); }
+  .text-muted          { color: var(--color-text-muted); }
+  .border-theme        { border-color: var(--color-border); }
+
+  /* ---- NamtanFilm gradient helpers ---- */
+  .nf-gradient-bg {
+    background: linear-gradient(135deg, #1E88E5 0%, #FDD835 100%);
+  }
+  .nf-gradient-text {
+    background: linear-gradient(90deg, #1E88E5, #FDD835);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .nf-gradient-border {
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+  }
+  .nf-gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, #1E88E5, #FDD835);
+    z-index: -1;
+  }
+
+  /* ---- Sparkle / Lunar shimmer ---- */
+  .lunar-shimmer {
+    background: linear-gradient(
+      135deg,
+      #1E88E5 0%,
+      #64B5F6 30%,
+      #FDD835 70%,
+      #FFF176 100%
+    );
+    background-size: 200% 200%;
+    animation: lunarShift 4s ease-in-out infinite;
+  }
+
+  /* ---- Scrollbar ---- */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+  /* ---- Accessibility ---- */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;
+  }
+
+  /* ---- Safe area ---- */
+  .pb-safe      { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .pt-safe      { padding-top:    env(safe-area-inset-top, 0px); }
+  .mb-safe      { margin-bottom:  env(safe-area-inset-bottom, 0px); }
+  .pb-safe-plus { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 2rem); }
+
+  /* ---- Touch target ---- */
+  .touch-target { min-width: 44px; min-height: 44px; }
+
+  /* ---- Skeleton ---- */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--skeleton-from) 25%,
+      var(--skeleton-mid)  50%,
+      var(--skeleton-to)   75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+  }
+
+  /* ---- Noise overlay ---- */
+  .noise-overlay { position: relative; }
+  .noise-overlay::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 1;
+  }
+}
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes lunarShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ============================================================
+   Reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:       0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration:      0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   Selection color
+   ============================================================ */
+::selection      { background: var(--selection-bg); color: var(--color-text-primary); }
+::-moz-selection { background: var(--selection-bg); color: var(--color-text-primary); }

@@ -1,0 +1,40 @@
+import { Magazine } from '@/types';
+
+export const magazines: Magazine[] = [
+    {
+        contentType: 'magazine',
+        id: 'duo-5',
+        title: 'Magazine Cover',
+        titleThai: 'ปกนิตยสาร Praew',
+        year: 2024,
+        actors: ['namtan', 'film'],
+        magazineName: 'Praew',
+        description: 'ขึ้นปก Praew คู่กัน',
+        image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=600&fit=crop',
+        link: 'https://praew.me/namtanfilm-cover',
+    },
+    {
+        contentType: 'magazine',
+        id: 'namtan-5',
+        title: 'Cosmopolitan Cover',
+        titleThai: 'ปกนิตยสาร Cosmopolitan',
+        year: 2023,
+        actors: ['namtan'],
+        magazineName: 'Cosmopolitan',
+        description: 'Cover Girl',
+        image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop',
+        link: 'https://cosmopolitan.co.th/namtan',
+    },
+    {
+        contentType: 'magazine',
+        id: 'film-5',
+        title: 'GQ Thailand Cover',
+        titleThai: 'ปกนิตยสาร GQ Thailand',
+        year: 2024,
+        actors: ['film'],
+        magazineName: 'GQ Thailand',
+        description: 'Cover Boy',
+        image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
+        link: 'https://gqthailand.com/film',
+    },
+];
