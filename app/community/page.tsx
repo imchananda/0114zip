@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { createSupabaseBrowser } from '@/lib/supabase';
+import { Mascot } from '@/components/mascot/Mascot';
 
 interface Post {
   id: string;
@@ -132,7 +133,7 @@ export default function CommunityPage() {
           <div className="text-center text-[var(--color-muted)] py-8">กำลังโหลด...</div>
         ) : posts.length === 0 ? (
           <div className="text-center text-[var(--color-muted)] py-8">
-            <p className="text-4xl mb-2">🐼🦆</p>
+            <Mascot state="waving" size={80} showCaption className="mx-auto mb-2" />
             <p>ยังไม่มีโพส — เป็นคนแรกเลย!</p>
           </div>
         ) : (

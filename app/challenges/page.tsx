@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
+import { Mascot } from '@/components/mascot/Mascot';
 
 interface Challenge {
   id: string;
@@ -95,7 +96,7 @@ export default function ChallengesPage() {
           </div>
         ) : challenges.length === 0 ? (
           <div className="text-center py-16 text-[var(--color-muted)]">
-            <p className="text-5xl mb-4">🎮</p>
+            <Mascot state="sleeping" size={90} showCaption className="mx-auto mb-4" />
             <p className="text-lg font-medium">ยังไม่มีกิจกรรมเปิดอยู่ตอนนี้</p>
             <p className="text-sm mt-1">กลับมาเช็กใหม่เร็วๆ นี้นะครับ!</p>
           </div>

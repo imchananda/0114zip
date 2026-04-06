@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Mascot } from '@/components/mascot/Mascot';
 
 export default function NotFound() {
   return (
@@ -26,8 +27,9 @@ export default function NotFound() {
           <h1 className="text-9xl md:text-[150px] font-black text-transparent bg-clip-text bg-gradient-to-r from-[#1E88E5] to-[#FDD835] drop-shadow-2xl opacity-90 tracking-tighter">
             404
           </h1>
-          <div className="absolute -top-4 -right-8 text-6xl animate-bounce">
-            🔭
+          {/* Mascot on top-right of 404 */}
+          <div className="absolute -top-8 -right-12">
+            <Mascot state="excited" size={80} />
           </div>
         </motion.div>
 
