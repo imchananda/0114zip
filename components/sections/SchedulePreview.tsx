@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/context/LanguageContext';
 
 const TYPE_STYLES: Record<string, { icon: string; color: string; label: string }> = {
   event:    { icon: '📅', color: '#1E88E5', label: 'Event' },
@@ -20,6 +21,8 @@ const UPCOMING = [
 ];
 
 export function SchedulePreview() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-6 md:px-12">
@@ -30,14 +33,14 @@ export function SchedulePreview() {
           viewport={{ once: true }}
         >
           <div>
-            <h2 className="text-2xl md:text-3xl font-medium text-[var(--color-text)]">📅 กิจกรรมที่กำลังจะมา</h2>
-            <p className="text-[var(--color-muted)] text-sm mt-1">อัปเดตล่าสุด — {UPCOMING.length} รายการ</p>
+            <h2 className="text-2xl md:text-3xl font-medium text-[var(--color-text)]">📅 {t('preview.schedule.title')}</h2>
+            <p className="text-[var(--color-muted)] text-sm mt-1">{t('preview.schedule.sub')} — {UPCOMING.length} รายการ</p>
           </div>
           <Link
             href="/schedule"
             className="text-sm text-[#1E88E5] hover:underline hidden sm:block"
           >
-            ดูทั้งหมด →
+            {t('preview.all')} →
           </Link>
         </motion.div>
 
@@ -89,7 +92,7 @@ export function SchedulePreview() {
 
         <div className="text-center mt-6 sm:hidden">
           <Link href="/schedule" className="text-sm text-[#1E88E5] hover:underline">
-            ดูตารางงานทั้งหมด →
+            {t('preview.all')} →
           </Link>
         </div>
       </div>

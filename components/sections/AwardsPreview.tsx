@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/context/LanguageContext';
 
 const HIGHLIGHTS = [
   { title: 'คู่จิ้นแห่งปี', show: 'Kazz Awards 2026', artist: 'both' as const, result: 'won' as const },
@@ -19,6 +20,8 @@ const ARTIST_COLORS = {
 };
 
 export function AwardsPreview() {
+  const { t } = useLanguage();
+
   return (
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-6 md:px-12">
@@ -29,13 +32,13 @@ export function AwardsPreview() {
           viewport={{ once: true }}
         >
           <div>
-            <h2 className="text-2xl md:text-3xl font-medium text-[var(--color-text)]">🏆 รางวัลที่ได้รับ</h2>
+            <h2 className="text-2xl md:text-3xl font-medium text-[var(--color-text)]">🏆 {t('preview.awards.title')}</h2>
             <p className="text-[var(--color-muted)] text-sm mt-1">
-              <span className="text-[#FDD835]">8</span> รางวัล · <span className="text-[var(--color-muted)]">2</span> เสนอชื่อเข้าชิง
+              {t('preview.awards.sub')}
             </p>
           </div>
           <Link href="/awards" className="text-sm text-[#1E88E5] hover:underline hidden sm:block">
-            ดูทั้งหมด →
+            {t('preview.all')} →
           </Link>
         </motion.div>
 
@@ -73,7 +76,7 @@ export function AwardsPreview() {
 
         <div className="text-center mt-6 sm:hidden">
           <Link href="/awards" className="text-sm text-[#1E88E5] hover:underline">
-            ดูรางวัลทั้งหมด →
+            {t('preview.all')} →
           </Link>
         </div>
       </div>

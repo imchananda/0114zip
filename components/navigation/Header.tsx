@@ -120,7 +120,7 @@ export function Header() {
             )}
             whileHover={{ y: -2 }}
           >
-            🎮 Challenges
+            🎮 {t('nav.challenges')}
           </motion.a>
           <motion.a
             href="/community"
@@ -130,7 +130,7 @@ export function Header() {
             )}
             whileHover={{ y: -2 }}
           >
-            💬 ชุมชน
+            💬 {t('nav.community')}
           </motion.a>
         </div>
 
@@ -218,13 +218,37 @@ export function Header() {
               className={cn(
                 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]',
                 'text-xl font-light py-4 min-h-[48px] flex items-center',
-                'border-b border-[var(--color-border)] last:border-0 transition-colors',
+                'border-b border-[var(--color-border)] transition-colors',
                 language === 'th' ? 'font-thai' : '',
               )}
             >
               {t(item.labelKey)}
             </a>
           ))}
+          <a
+            href="/challenges"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={cn(
+              'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]',
+              'text-xl font-light py-4 min-h-[48px] flex items-center',
+              'border-b border-[var(--color-border)] transition-colors',
+              language === 'th' ? 'font-thai' : '',
+            )}
+          >
+            🎮 {t('nav.challenges')}
+          </a>
+          <a
+            href="/community"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={cn(
+              'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]',
+              'text-xl font-light py-4 min-h-[48px] flex items-center',
+              'border-b border-[var(--color-border)] last:border-0 transition-colors',
+              language === 'th' ? 'font-thai' : '',
+            )}
+          >
+            💬 {t('nav.community')}
+          </a>
         </div>
       </motion.div>
     </header>

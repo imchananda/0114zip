@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/context/LanguageContext';
 
 /* ── "Real-time" stats with animated counters ── */
 const BASE_STATS = {
@@ -61,6 +62,7 @@ const QUICK_LINKS = [
 ];
 
 export function EngagePreview() {
+  const { t } = useLanguage();
   const ig = useLiveNumber(BASE_STATS.igFollowers);
   const x = useLiveNumber(BASE_STATS.xFollowers);
   const tiktok = useLiveNumber(BASE_STATS.tiktokFollowers);
@@ -88,10 +90,10 @@ export function EngagePreview() {
           viewport={{ once: true }}
         >
           <h2 className="text-2xl md:text-3xl font-medium text-[var(--color-text)] mb-2">
-            📊 NamtanFilm Live Stats
+            📊 {t('preview.engage.title')}
           </h2>
           <p className="text-[var(--color-muted)] text-sm">
-            สถิติ real-time ของ NamtanFilm Community
+            {t('preview.engage.sub')}
           </p>
           {/* Live indicator */}
           <div className="flex items-center justify-center gap-2 mt-3">
@@ -99,7 +101,7 @@ export function EngagePreview() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
             </span>
-            <span className="text-xs text-green-400 font-medium tracking-wider">LIVE</span>
+            <span className="text-xs text-green-400 font-medium tracking-wider">{t('preview.engage.live')}</span>
           </div>
         </motion.div>
 

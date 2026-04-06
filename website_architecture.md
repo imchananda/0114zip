@@ -806,7 +806,7 @@ vercel --prod
 - [x] Rate limiting (Upstash)
 - [x] Security headers hardening
 - [x] Performance optimization (Image CDN, ISR)
-- [ ] Full 3-language content
+- [x] Full 3-language content (Main pages & Header)
 - [x] SEO optimization + sitemap + OG images
 - [x] Mascot (Panda-Duck) component — idle/excited/sleeping/waving states
 - [x] PWA support (installable app)

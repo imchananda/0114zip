@@ -17,11 +17,17 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // Navigation
-    'nav.works':    'Works',
-    'nav.gallery':  'Gallery',
-    'nav.timeline': 'Timeline',
-    'nav.profile':  'Profile',
-    'nav.about':    'About',
+    'nav.works':      'Works',
+    'nav.gallery':    'Gallery',
+    'nav.timeline':   'Timeline',
+    'nav.profile':    'Profile',
+    'nav.about':      'About',
+    'nav.community':  'Community',
+    'nav.challenges': 'Challenges',
+    'nav.engage':     'Engage Hub',
+    'nav.schedule':   'Schedule',
+    'nav.awards':     'Awards',
+    'nav.stats':      'Stats',
 
     // Hero
     'hero.scroll':    'SCROLL',
@@ -85,6 +91,16 @@ const translations: Record<Language, Record<string, string>> = {
     'about.disclaimer':  '🎬 This website is fan-made and is not officially affiliated with the agency.',
     'about.imageRights': 'All images belong to their respective owners',
 
+    // Previews (Home)
+    'preview.engage.title': 'Engagement Hub',
+    'preview.engage.sub':   'Join the Trend',
+    'preview.engage.live':  'LIVE',
+    'preview.schedule.title': 'Upcoming Events',
+    'preview.schedule.sub': 'Save the Date',
+    'preview.awards.title': 'Recent Awards',
+    'preview.awards.sub':   'Hall of Fame',
+    'preview.all':          'View All',
+
     // Footer
     'footer.fanmade': 'Fan-Made Website',
     'footer.rights':  'Not affiliated with any agency',
@@ -96,11 +112,17 @@ const translations: Record<Language, Record<string, string>> = {
 
   th: {
     // Navigation
-    'nav.works':    'ผลงาน',
-    'nav.gallery':  'แกลเลอรี่',
-    'nav.timeline': 'ไทม์ไลน์',
-    'nav.profile':  'ประวัติส่วนตัว',
-    'nav.about':    'เกี่ยวกับ',
+    'nav.works':      'ผลงาน',
+    'nav.gallery':    'แกลเลอรี่',
+    'nav.timeline':   'ไทม์ไลน์',
+    'nav.profile':    'ประวัติส่วนตัว',
+    'nav.about':      'เกี่ยวกับ',
+    'nav.community':  'ชุมชน',
+    'nav.challenges': 'ชาเลนจ์',
+    'nav.engage':     'เอ็นเกจเมนท์',
+    'nav.schedule':   'ตารางงาน',
+    'nav.awards':     'รางวัล',
+    'nav.stats':      'สถิติ',
 
     // Hero
     'hero.scroll':    'เลื่อนลง',
@@ -164,6 +186,16 @@ const translations: Record<Language, Record<string, string>> = {
     'about.disclaimer':  '🎬 เว็บไซต์นี้สร้างโดยแฟนคลับ ไม่ได้เกี่ยวข้องกับต้นสังกัดอย่างเป็นทางการ',
     'about.imageRights': 'All images belong to their respective owners',
 
+    // Previews (Home)
+    'preview.engage.title': 'ภารกิจของแฟนคลับ',
+    'preview.engage.sub':   'มาร่วมสร้างเทรนด์',
+    'preview.engage.live':  'กำลังจัดขึ้น',
+    'preview.schedule.title': 'ตารางงานล่าสุด',
+    'preview.schedule.sub': 'อย่าลืมบันทึกวัน',
+    'preview.awards.title': 'ความสำเร็จล่าสุด',
+    'preview.awards.sub':   'รางวัลแห่งความภาคภูมิใจ',
+    'preview.all':          'ดูทั้งหมด',
+
     // Footer
     'footer.fanmade': 'เว็บไซต์แฟนเมด',
     'footer.rights':  'ไม่ได้เกี่ยวข้องกับต้นสังกัด',
@@ -175,11 +207,17 @@ const translations: Record<Language, Record<string, string>> = {
 
   zh: {
     // Navigation
-    'nav.works':    '作品',
-    'nav.gallery':  '图库',
-    'nav.timeline': '时间轴',
-    'nav.profile':  '个人资料',
-    'nav.about':    '关于',
+    'nav.works':      '作品',
+    'nav.gallery':    '图库',
+    'nav.timeline':   '时间轴',
+    'nav.profile':    '个人资料',
+    'nav.about':      '关于',
+    'nav.community':  '社区',
+    'nav.challenges': '挑战',
+    'nav.engage':     '互动中心',
+    'nav.schedule':   '行程表',
+    'nav.awards':     '奖项',
+    'nav.stats':      '数据统计',
 
     // Hero
     'hero.scroll':    '向下滚动',
@@ -242,6 +280,16 @@ const translations: Record<Language, Record<string, string>> = {
     'about.description': '本网站由粉丝创建，收集了 Namtan Tipnaree 和 Film Rachanun 的作品与精彩故事。',
     'about.disclaimer':  '🎬 本网站为粉丝自制，与经纪公司无官方关联。',
     'about.imageRights': '图片版权归各自所有者所有',
+
+    // Previews (Home)
+    'preview.engage.title': '粉丝互动任务',
+    'preview.engage.sub':   '加入热点',
+    'preview.engage.live':  '进行中',
+    'preview.schedule.title': '近期行程',
+    'preview.schedule.sub': '敬请期待',
+    'preview.awards.title': '最近奖项',
+    'preview.awards.sub':   '荣誉殿堂',
+    'preview.all':          '查看全部',
 
     // Footer
     'footer.fanmade': '粉丝自制网站',
