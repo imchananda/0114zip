@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -158,7 +158,7 @@ export function NotificationBell() {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="text-[10px] text-[#1E88E5] hover:underline"
+                  className="text-[10px] text-[#6cbfd0] hover:underline"
                 >
                   อ่านทั้งหมด
                 </button>
@@ -177,7 +177,7 @@ export function NotificationBell() {
                   <div
                     key={notif.id}
                     className={`px-4 py-3 border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-bg)] transition-colors cursor-pointer ${
-                      !notif.is_read ? 'bg-[#1E88E5]/5' : ''
+                      !notif.is_read ? 'bg-[#6cbfd0]/5' : ''
                     }`}
                     onClick={() => {
                       if (!notif.is_read) markRead(notif.id);
@@ -195,7 +195,7 @@ export function NotificationBell() {
                             {notif.title}
                           </h4>
                           {!notif.is_read && (
-                            <span className="w-2 h-2 rounded-full bg-[#1E88E5] flex-shrink-0 mt-1" />
+                            <span className="w-2 h-2 rounded-full bg-[#6cbfd0] flex-shrink-0 mt-1" />
                           )}
                         </div>
                         {notif.body && (
@@ -214,7 +214,7 @@ export function NotificationBell() {
               <Link
                 href="/notifications"
                 onClick={() => setIsOpen(false)}
-                className="text-xs text-[#1E88E5] hover:underline block text-center"
+                className="text-xs text-[#6cbfd0] hover:underline block text-center"
               >
                 ดูทั้งหมด →
               </Link>

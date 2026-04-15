@@ -8,6 +8,7 @@ export interface TimelineEvent {
     category: 'debut' | 'work' | 'award' | 'event' | 'milestone';
     actor: 'both' | 'namtan' | 'film';
     icon: string;
+    image?: string;
 }
 
 export const timelineEvents: TimelineEvent[] = [
@@ -21,6 +22,7 @@ export const timelineEvents: TimelineEvent[] = [
         category: 'debut',
         actor: 'film',
         icon: '⭐',
+        image: 'https://images.unsplash.com/photo-1516280440504-45ea0f81d11b?q=80&w=800&auto=format&fit=crop'
     },
 
     // 2018
@@ -33,6 +35,7 @@ export const timelineEvents: TimelineEvent[] = [
         category: 'work',
         actor: 'namtan',
         icon: '🎬',
+        image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=800&auto=format&fit=crop'
     },
     {
         id: 't3',
@@ -77,6 +80,7 @@ export const timelineEvents: TimelineEvent[] = [
         category: 'award',
         actor: 'namtan',
         icon: '🏆',
+        image: 'https://images.unsplash.com/photo-1622037022824-0c71d511ef3c?q=80&w=800&auto=format&fit=crop'
     },
 
     // 2023
@@ -90,6 +94,7 @@ export const timelineEvents: TimelineEvent[] = [
         category: 'milestone',
         actor: 'both',
         icon: '💫',
+        image: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=800&auto=format&fit=crop'
     },
     {
         id: 't8',
@@ -122,6 +127,7 @@ export const timelineEvents: TimelineEvent[] = [
         category: 'work',
         actor: 'both',
         icon: '📺',
+        image: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=800&auto=format&fit=crop'
     },
     {
         id: 't11',
@@ -142,6 +148,7 @@ export const timelineEvents: TimelineEvent[] = [
         category: 'event',
         actor: 'both',
         icon: '🎉',
+        image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=800&auto=format&fit=crop'
     },
 ];
 

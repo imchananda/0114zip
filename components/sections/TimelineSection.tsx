@@ -1,17 +1,38 @@
-'use client';
+﻿'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useViewState } from '@/context/ViewStateContext';
-import { useLanguage } from '@/context/LanguageContext';
-import { timelineEvents, TimelineEvent } from '@/data/timeline';
-import { actors } from '@/data/actors';
+import { useTranslations, useLocale } from 'next-intl';
+import { timelineEvents as defaultEvents, TimelineEvent } from '@/data/timeline';
 
 export function TimelineSection() {
-    const { reducedMotion } = useViewState();
-    const { t, language } = useLanguage();
+    const { state, reducedMotion } = useViewState();
+    const t = useTranslations();
+    const language = useLocale();
+    const [events, setEvents] = useState<TimelineEvent[]>(defaultEvents);
+
+    useEffect(() => {
+        const saved = localStorage.getItem('ntf_timeline_events');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setEvents(parsed);
+                }
+            } catch {}
+        }
+    }, []);
+
+    // Filter events
+    const filteredEvents = events.filter((event) => {
+        if (state === 'both') return event.actor === 'both' || event.actor === 'namtan' || event.actor === 'film';
+        if (state === 'lunar') return true;
+        return event.actor === state || event.actor === 'both';
+    });
 
     // Group events by year
-    const eventsByYear = timelineEvents.reduce((acc, event) => {
+    const eventsByYear = filteredEvents.reduce((acc, event) => {
         if (!acc[event.year]) acc[event.year] = [];
         acc[event.year].push(event);
         return acc;
@@ -20,25 +41,24 @@ export function TimelineSection() {
     const years = Object.keys(eventsByYear).map(Number).sort((a, b) => a - b);
 
     const getActorColor = (actor: string) => {
-        if (actor === 'both') return 'linear-gradient(135deg, #1E88E5, #FDD835)';
-        if (actor === 'namtan') return '#1E88E5';
-        return '#FDD835';
+        if (actor === 'both') return 'linear-gradient(135deg, var(--namtan-teal), var(--film-gold))';
+        if (actor === 'namtan') return 'var(--namtan-teal)';
+        return 'var(--film-gold)';
     };
 
     const getCategoryStyle = (category: string) => {
         switch (category) {
-            case 'debut': return { bg: 'bg-purple-500/20', text: 'text-purple-400' };
-            case 'work': return { bg: 'bg-blue-500/20', text: 'text-blue-400' };
-            case 'award': return { bg: 'bg-yellow-500/20', text: 'text-yellow-400' };
-            case 'event': return { bg: 'bg-green-500/20', text: 'text-green-400' };
-            case 'milestone': return { bg: 'bg-pink-500/20', text: 'text-pink-400' };
-            default: return { bg: 'bg-white/10', text: 'text-white/60' };
+            case 'debut': return { bg: 'bg-purple-500/20', text: 'text-purple-600' };
+            case 'work': return { bg: 'bg-[#6cbfd0]/20', text: 'text-[#6cbfd0]' };
+            case 'award': return { bg: 'bg-[#fbdf74]/20', text: 'text-[#fbdf74]' };
+            case 'event': return { bg: 'bg-green-500/20', text: 'text-green-600' };
+            case 'milestone': return { bg: 'bg-pink-500/20', text: 'text-pink-600' };
+            default: return { bg: 'bg-neutral-500/10', text: 'text-neutral-600' };
         }
     };
 
     return (
-        <section id="timeline" className="py-24 transition-colors duration-300"
-             style={{ background: 'linear-gradient(to bottom, var(--color-panel), var(--color-bg), var(--color-panel))' }}>
+        <section id="timeline" className="py-24 transition-colors duration-300">
             <div className="container mx-auto px-6 md:px-12 lg:px-20">
                 {/* Section Header */}
                 <motion.div
@@ -51,7 +71,7 @@ export function TimelineSection() {
                     <p className="text-[var(--color-text-muted)] text-sm tracking-[0.3em] uppercase mb-3 font-light">
                         {t('timeline.sub')}
                     </p>
-                    <h2 className={`text-[var(--color-text-primary)] text-4xl md:text-5xl font-light tracking-wide ${language === 'th' ? 'font-thai' : ''}`}>
+                    <h2 className={`text-[var(--color-text-primary)] text-4xl md:text-5xl font-display tracking-wide ${language === 'th' ? 'font-thai' : ''}`}>
                         {t('timeline.title')}
                     </h2>
                 </motion.div>
@@ -97,8 +117,8 @@ export function TimelineSection() {
                                         >
                                             {/* Content Card */}
                                             <div className={`flex-1 ${isLeft ? 'md:text-right' : 'md:text-left'}`}>
-                                                <div className={`inline-block p-5 rounded-xl backdrop-blur-sm
-                          border border-[var(--color-border)] hover:border-[var(--color-border)] transition-all duration-300
+                                                <div className={`inline-block p-5 rounded-2xl backdrop-blur-sm
+                          border hover:shadow-md border-[var(--color-border)] transition-all duration-300
                           group max-w-md
                           ${isLeft ? 'md:ml-auto' : 'md:mr-auto'}`}
                                                      style={{ background: 'var(--color-surface)' }}
@@ -107,7 +127,7 @@ export function TimelineSection() {
                                                     <div className={`flex items-center gap-3 mb-3
                             ${isLeft ? 'md:justify-end' : 'md:justify-start'}`}>
                                                         <span className="text-2xl">{event.icon}</span>
-                                                        <span className={`text-xs tracking-wider uppercase px-2 py-1 rounded-full
+                                                        <span className={`text-[9px] tracking-wider uppercase px-2 py-1 rounded-full
                               ${style.bg} ${style.text}`}>
                                                             {event.category === 'debut' && 'เดบิวต์'}
                                                             {event.category === 'work' && 'ผลงาน'}
@@ -118,12 +138,12 @@ export function TimelineSection() {
                                                     </div>
 
                                                     {/* Title */}
-                                                    <h3 className="text-[var(--color-text-primary)] text-lg font-light mb-2 font-thai">
+                                                    <h3 className="text-[var(--color-text-primary)] text-lg font-medium mb-1 font-thai tracking-wide">
                                                         {event.titleThai}
                                                     </h3>
 
                                                     {/* Description */}
-                                                    <p className="text-[var(--color-text-muted)] text-sm font-light font-thai">
+                                                    <p className="text-[var(--color-text-secondary)] text-sm font-light font-thai">
                                                         {event.description}
                                                     </p>
 
@@ -134,7 +154,7 @@ export function TimelineSection() {
                                                             className="w-2 h-2 rounded-full"
                                                             style={{ background: getActorColor(event.actor) }}
                                                         />
-                                                        <span className="text-[var(--color-text-muted)] text-xs tracking-wider">
+                                                        <span className="text-[var(--color-text-muted)] text-[10px] uppercase tracking-wider">
                                                             {event.actor === 'both' && 'NamtanFilm'}
                                                             {event.actor === 'namtan' && 'Namtan'}
                                                             {event.actor === 'film' && 'Film'}
@@ -145,11 +165,11 @@ export function TimelineSection() {
 
                                             {/* Center Dot (Desktop) */}
                                             <div
-                                                className="hidden md:flex w-4 h-4 rounded-full border-2 border-white/30
+                                                className="hidden md:flex w-4 h-4 rounded-full border-2 border-[var(--color-border)]
                           items-center justify-center flex-shrink-0"
                                                 style={{ background: getActorColor(event.actor) }}
                                             >
-                                                <div className="w-2 h-2 rounded-full bg-black" />
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-bg)]" />
                                             </div>
 
                                             {/* Spacer */}
@@ -160,18 +180,6 @@ export function TimelineSection() {
                             </div>
                         </div>
                     ))}
-
-                    {/* End Decoration */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        className="flex justify-center"
-                    >
-                        <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center">
-                            <span className="text-2xl">💕</span>
-                        </div>
-                    </motion.div>
                 </div>
             </div>
         </section>

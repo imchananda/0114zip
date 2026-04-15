@@ -18,7 +18,6 @@ const translations: Record<Language, Record<string, string>> = {
   en: {
     // Navigation
     'nav.works':      'Works',
-    'nav.gallery':    'Gallery',
     'nav.timeline':   'Timeline',
     'nav.profile':    'Profile',
     'nav.about':      'About',
@@ -63,15 +62,6 @@ const translations: Record<Language, Record<string, string>> = {
     'category.award':  'Awards',
     'category.event':  'Events',
 
-    // Gallery
-    'gallery.title':    'Gallery',
-    'gallery.sub':      'Photo Gallery',
-    'gallery.all':      'All',
-    'gallery.together': 'Together',
-    'gallery.namtan':   'Namtan',
-    'gallery.film':     'Film',
-    'gallery.lunar':    'Lunar',
-
     // Timeline
     'timeline.title': 'Timeline',
     'timeline.sub':   'Their Journey',
@@ -113,7 +103,6 @@ const translations: Record<Language, Record<string, string>> = {
   th: {
     // Navigation
     'nav.works':      'ผลงาน',
-    'nav.gallery':    'แกลเลอรี่',
     'nav.timeline':   'ไทม์ไลน์',
     'nav.profile':    'ประวัติส่วนตัว',
     'nav.about':      'เกี่ยวกับ',
@@ -158,15 +147,6 @@ const translations: Record<Language, Record<string, string>> = {
     'category.award':  'รางวัล',
     'category.event':  'อีเว้นท์',
 
-    // Gallery
-    'gallery.title':    'แกลเลอรี่',
-    'gallery.sub':      'Photo Gallery',
-    'gallery.all':      'ทั้งหมด',
-    'gallery.together': 'คู่กัน',
-    'gallery.namtan':   'น้ำตาล',
-    'gallery.film':     'ฟิล์ม',
-    'gallery.lunar':    'ลูน่า',
-
     // Timeline
     'timeline.title': 'ไทม์ไลน์',
     'timeline.sub':   'เส้นทางของพวกเขา',
@@ -208,7 +188,6 @@ const translations: Record<Language, Record<string, string>> = {
   zh: {
     // Navigation
     'nav.works':      '作品',
-    'nav.gallery':    '图库',
     'nav.timeline':   '时间轴',
     'nav.profile':    '个人资料',
     'nav.about':      '关于',
@@ -252,15 +231,6 @@ const translations: Record<Language, Record<string, string>> = {
     'category.acting': '表演',
     'category.award':  '奖项',
     'category.event':  '活动',
-
-    // Gallery
-    'gallery.title':    '图库',
-    'gallery.sub':      '照片库',
-    'gallery.all':      '全部',
-    'gallery.together': '合照',
-    'gallery.namtan':   'Namtan',
-    'gallery.film':     'Film',
-    'gallery.lunar':    '月光',
 
     // Timeline
     'timeline.title': '时间轴',

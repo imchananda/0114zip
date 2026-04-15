@@ -30,37 +30,37 @@ const config: Config = {
         '9xl': ['10rem',    { lineHeight: '1' }],
       },
       colors: {
-        // ---- Brand: Namtan = Blue ----
+        // ---- Brand: Namtan = Teal ----
         namtan: {
-          primary:   '#1E88E5',
-          secondary: '#1565C0',
-          light:     '#64B5F6',
-          glow:      'rgba(30, 136, 229, 0.35)',
+          primary:   '#6cbfd0',
+          secondary: '#4a9aab',
+          light:     '#8ed0dd',
+          glow:      'rgba(108, 191, 208, 0.35)',
         },
-        // ---- Brand: Film = Yellow ----
+        // ---- Brand: Film = Gold ----
         film: {
-          primary:   '#FDD835',
-          secondary: '#F9A825',
-          light:     '#FFF176',
-          glow:      'rgba(253, 216, 53, 0.35)',
+          primary:   '#fbdf74',
+          secondary: '#d4b84e',
+          light:     '#fce89a',
+          glow:      'rgba(251, 223, 116, 0.35)',
         },
         // Legacy aliases
         brand: {
-          blue:   '#1E88E5',
-          yellow: '#FDD835',
-          dark:   '#0A0A0F',
-          pink:   '#1E88E5',   // remap old pink → namtan blue
+          blue:   '#6cbfd0',
+          yellow: '#fbdf74',
+          dark:   '#141413',
+          pink:   '#6cbfd0',   // remap old pink → namtan
         },
       },
       backgroundImage: {
         // NamtanFilm gradient (Both / Lunar)
-        'nf-gradient':        'linear-gradient(135deg, #1E88E5 0%, #FDD835 100%)',
-        'nf-gradient-r':      'linear-gradient(135deg, #FDD835 0%, #1E88E5 100%)',
-        'nf-gradient-h':      'linear-gradient(90deg,  #1E88E5 0%, #FDD835 100%)',
-        'nf-gradient-subtle': 'linear-gradient(135deg, rgba(30,136,229,0.15) 0%, rgba(253,216,53,0.15) 100%)',
+        'nf-gradient':        'linear-gradient(135deg, #6cbfd0 0%, #fbdf74 100%)',
+        'nf-gradient-r':      'linear-gradient(135deg, #fbdf74 0%, #6cbfd0 100%)',
+        'nf-gradient-h':      'linear-gradient(90deg,  #6cbfd0 0%, #fbdf74 100%)',
+        'nf-gradient-subtle': 'linear-gradient(135deg, rgba(108,191,208,0.15) 0%, rgba(251,223,116,0.15) 100%)',
         // Glow halos
-        'namtan-glow': 'radial-gradient(ellipse at center, rgba(30,136,229,0.30) 0%, transparent 70%)',
-        'film-glow':   'radial-gradient(ellipse at center, rgba(253,216,53,0.30) 0%, transparent 70%)',
+        'namtan-glow': 'radial-gradient(ellipse at center, rgba(108,191,208,0.30) 0%, transparent 70%)',
+        'film-glow':   'radial-gradient(ellipse at center, rgba(251,223,116,0.30) 0%, transparent 70%)',
       },
       animation: {
         'fade-in':    'fadeIn 0.8s ease-out forwards',

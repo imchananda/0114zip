@@ -1,6 +1,5 @@
-import { ImageResponse } from 'next/og';
+﻿import { ImageResponse } from 'next/og';
 
-export const runtime = 'edge';
 export const alt = 'NamtanFilm — คู่จิ้นขวัญใจ น้ำตาล × ฟิล์ม';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
@@ -16,7 +15,7 @@ export default async function Image() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0A0A0F 0%, #12121A 50%, #0A0A0F 100%)',
+          background: '#141413',
           position: 'relative',
         }}
       >
@@ -29,7 +28,7 @@ export default async function Image() {
             width: '400px',
             height: '400px',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(30,136,229,0.3) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(108,191,208,0.3) 0%, transparent 70%)',
           }}
         />
         <div
@@ -40,7 +39,7 @@ export default async function Image() {
             width: '400px',
             height: '400px',
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(253,216,53,0.3) 0%, transparent 70%)',
+            background: 'radial-gradient(circle, rgba(251,223,116,0.3) 0%, transparent 70%)',
           }}
         />
 
@@ -61,7 +60,7 @@ export default async function Image() {
           style={{
             fontSize: '72px',
             fontWeight: 700,
-            background: 'linear-gradient(90deg, #1E88E5, #64B5F6, #FDD835, #FFF176)',
+            background: 'linear-gradient(90deg, #6cbfd0, #8ed0dd, #fbdf74, #fce89a)',
             backgroundClip: 'text',
             color: 'transparent',
             letterSpacing: '-2px',
@@ -98,7 +97,7 @@ export default async function Image() {
           style={{
             width: '200px',
             height: '3px',
-            background: 'linear-gradient(90deg, #1E88E5, #FDD835)',
+            background: 'linear-gradient(90deg, #6cbfd0, #fbdf74)',
             borderRadius: '2px',
             marginTop: '32px',
           }}

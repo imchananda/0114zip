@@ -22,7 +22,7 @@ interface ViewStateContextType {
   reducedMotion: boolean;
 }
 
-const ViewStateContext = createContext<ViewStateContextType | null>(null);
+export const ViewStateContext = createContext<ViewStateContextType | null>(null);
 
 const announcements: Record<ViewState, string> = {
   both: `กำลังแสดงผลงานคู่ของ ${actors.namtan.nameThai} และ ${actors.film.nameThai}`,
@@ -31,11 +31,22 @@ const announcements: Record<ViewState, string> = {
   lunar: 'Lunar Space',
 };
 
-export function ViewStateProvider({ children }: { children: React.ReactNode }) {
-  const [state, setStateInternal] = useState<ViewState>('both');
+export function ViewStateProvider({
+  children,
+  initialState = 'both',
+}: {
+  children: React.ReactNode;
+  initialState?: ViewState;
+}) {
+  const [state, setStateInternal] = useState<ViewState>(initialState);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hoveredActor, setHoveredActor] = useState<'namtan' | 'film' | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+
+  // Sync state if initialState changes via URL navigation
+  useEffect(() => {
+    setStateInternal(initialState);
+  }, [initialState]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -84,4 +95,9 @@ export function useViewState() {
     throw new Error('useViewState must be used within ViewStateProvider');
   }
   return context;
+}
+
+/** Returns null when called outside a ViewStateProvider (safe for shared components). */
+export function useViewStateSafe() {
+  return useContext(ViewStateContext);
 }

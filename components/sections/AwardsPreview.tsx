@@ -1,8 +1,9 @@
-'use client';
+﻿'use client';
 
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { motion } from 'framer-motion';
-import { useLanguage } from '@/context/LanguageContext';
+import { useTranslations, useLocale } from 'next-intl';
+import { useViewState } from '@/context/ViewStateContext';
 
 const HIGHLIGHTS = [
   { title: 'คู่จิ้นแห่งปี', show: 'Kazz Awards 2026', artist: 'both' as const, result: 'won' as const },
@@ -14,13 +15,20 @@ const HIGHLIGHTS = [
 ];
 
 const ARTIST_COLORS = {
-  namtan: '#1E88E5',
-  film: '#FDD835',
-  both: '#1E88E5',
+  namtan: '#6cbfd0',
+  film: '#fbdf74',
+  both: '#6cbfd0',
 };
 
 export function AwardsPreview() {
-  const { t } = useLanguage();
+  const t = useTranslations();
+  const { state } = useViewState();
+
+  const filteredAwards = HIGHLIGHTS.filter((award) => {
+    if (state === 'both') return award.artist === 'both' || award.artist === 'namtan' || award.artist === 'film';
+    if (state === 'lunar') return true;
+    return award.artist === state || award.artist === 'both';
+  });
 
   return (
     <section className="py-16 md:py-24">
@@ -37,14 +45,14 @@ export function AwardsPreview() {
               {t('preview.awards.sub')}
             </p>
           </div>
-          <Link href="/awards" className="text-sm text-[#1E88E5] hover:underline hidden sm:block">
+          <Link href="/awards" className="text-sm text-[#6cbfd0] hover:underline hidden sm:block">
             {t('preview.all')} →
           </Link>
         </motion.div>
 
         {/* Trophy showcase */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {HIGHLIGHTS.map((award, i) => (
+          {filteredAwards.map((award, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -53,7 +61,7 @@ export function AwardsPreview() {
               transition={{ delay: i * 0.08 }}
             >
               <Link href="/awards" className="block group">
-                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 group-hover:border-[#FDD835]/40 transition-all group-hover:translate-y-[-1px] h-full">
+                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 group-hover:border-[#fbdf74]/40 transition-all group-hover:translate-y-[-1px] h-full">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xl">🏆</span>
                     <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400">Won</span>
@@ -75,7 +83,7 @@ export function AwardsPreview() {
         </div>
 
         <div className="text-center mt-6 sm:hidden">
-          <Link href="/awards" className="text-sm text-[#1E88E5] hover:underline">
+          <Link href="/awards" className="text-sm text-[#6cbfd0] hover:underline">
             {t('preview.all')} →
           </Link>
         </div>

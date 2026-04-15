@@ -1,55 +1,35 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
-import { useViewState } from '@/context/ViewStateContext';
-import { useLanguage } from '@/context/LanguageContext';
+import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 import { actors } from '@/data/actors';
 
 export function HeroBanner() {
-  const { state, transitionTo, hoveredActor, setHoveredActor, reducedMotion } = useViewState();
-  const { t, language } = useLanguage();
+  const [hoveredActor, setHoveredActor] = useState<'namtan' | 'film' | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const t = useTranslations();
+  const language = useLocale();
+  const router = useRouter();
   const { resolvedTheme } = useTheme();
-  const isLight = resolvedTheme === 'light';
+  const isLight = mounted && resolvedTheme === 'light';
+
+  useEffect(() => { setMounted(true); }, []);
+  const reducedMotion = false;
 
   // Custom slow scroll function
-  const smoothScrollTo = (elementId: string) => {
-    const element = document.getElementById(elementId);
-    if (!element) return;
-
-    const targetPosition = element.getBoundingClientRect().top + window.pageYOffset - 80;
-    const startPosition = window.pageYOffset;
-    const distance = targetPosition - startPosition;
-    const duration = 1200;
-    let startTime: number | null = null;
-
-    const easeInOutCubic = (t: number) => {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-    };
-
-    const animation = (currentTime: number) => {
-      if (!startTime) startTime = currentTime;
-      const timeElapsed = currentTime - startTime;
-      const progress = Math.min(timeElapsed / duration, 1);
-      window.scrollTo(0, startPosition + distance * easeInOutCubic(progress));
-      if (progress < 1) requestAnimationFrame(animation);
-    };
-
-    requestAnimationFrame(animation);
-  };
-
   // ── Theme-aware values ──────────────────────────────────────
-  // Light mode: ลด overlay ให้เบาลง รูปจะสว่างขึ้น
   const overlayL  = isLight ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.40)';
   const overlayB  = isLight ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.60)';
   const overlayT  = isLight ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.30)';
   const textShadow = 'none';
-  // Text: dark ใน light mode, white ใน dark mode
-  const nameClass  = isLight ? 'text-neutral-900' : 'text-white';
+  const nameClass  = isLight ? 'text-neutral-900 font-georgia' : 'text-white font-georgia';
   const valueCls   = isLight ? 'text-neutral-800' : 'text-white/90';
-  // Labels ใช้ brand colors ที่เข้มพอในทุก background
-  const namtanLabel = isLight ? 'text-[#1565C0]' : 'text-[#1E88E5]'; // เข้มขึ้นใน light
-  const filmLabel   = isLight ? 'text-[#F57F17]' : 'text-[#FDD835]'; // เปลี่ยนเป็น amber ใน light
+  const namtanLabel = 'text-namtan-primary';
+  const filmLabel   = 'text-film-primary';
   // Social link
   const socialCls   = isLight
     ? 'text-neutral-600 hover:text-neutral-900 transition-colors text-xs tracking-wide'
@@ -66,38 +46,53 @@ export function HeroBanner() {
   const sepCls      = isLight ? 'text-neutral-500' : 'text-white/50';
 
   return (
-    <section id="hero" className="relative min-h-[70dvh] h-[70dvh] landscape:min-h-dvh landscape:h-dvh md:min-h-dvh md:h-dvh w-full overflow-hidden">
+    <section id="hero" className="relative min-h-[67dvh] h-[67dvh] landscape:min-h-[67dvh] landscape:h-[67dvh] md:min-h-[67dvh] md:h-[67dvh] w-full overflow-hidden">
       {/* Full-screen Couple Photo Background */}
       <div className="absolute inset-0">
-        {/* Base Image (Couple) */}
-        <img
+        {/* Base Image (Couple) — priority for LCP */}
+        <Image
           src="/images/banners/banner.png"
           alt="Namtan and Film together"
-          className="absolute inset-0 w-full h-full object-cover object-center landscape:object-top md:object-top"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center landscape:object-top md:object-top"
           style={{ filter: isLight ? 'brightness(1.1) saturate(1.05)' : 'none' }}
         />
 
         {/* Namtan Image */}
-        <motion.img
-          src="/images/banners/nt.png"
-          alt="Namtan"
-          className="absolute inset-0 w-full h-full object-cover object-center landscape:object-top md:object-top"
+        <motion.div
+          className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: hoveredActor === 'namtan' ? 1 : 0 }}
           transition={{ duration: reducedMotion ? 0 : 0.5 }}
-          style={{ filter: isLight ? 'brightness(1.1) saturate(1.05)' : 'none' }}
-        />
+        >
+          <Image
+            src="/images/banners/nt.png"
+            alt="Namtan"
+            fill
+            sizes="100vw"
+            className="object-cover object-center landscape:object-top md:object-top"
+            style={{ filter: isLight ? 'brightness(1.1) saturate(1.05)' : 'none' }}
+          />
+        </motion.div>
 
         {/* Film Image */}
-        <motion.img
-          src="/images/banners/f.png"
-          alt="Film"
-          className="absolute inset-0 w-full h-full object-cover object-center landscape:object-top md:object-top"
+        <motion.div
+          className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: hoveredActor === 'film' ? 1 : 0 }}
           transition={{ duration: reducedMotion ? 0 : 0.5 }}
-          style={{ filter: isLight ? 'brightness(1.1) saturate(1.05)' : 'none' }}
-        />
+        >
+          <Image
+            src="/images/banners/f.png"
+            alt="Film"
+            fill
+            sizes="100vw"
+            className="object-cover object-center landscape:object-top md:object-top"
+            style={{ filter: isLight ? 'brightness(1.1) saturate(1.05)' : 'none' }}
+          />
+        </motion.div>
 
         {/* Persistent Gradient Overlays — ปรับตาม theme */}
         <div
@@ -122,17 +117,7 @@ export function HeroBanner() {
           onMouseEnter={() => setHoveredActor('namtan')}
           onMouseLeave={() => setHoveredActor(null)}
           onClick={() => {
-            transitionTo(state === 'namtan' ? 'both' : 'namtan');
-            if (window.innerWidth < 768) {
-              if (hoveredActor === 'namtan') {
-                smoothScrollTo('works');
-              } else {
-                setHoveredActor('namtan');
-                setTimeout(() => smoothScrollTo('works'), 800);
-              }
-            } else {
-              smoothScrollTo('works');
-            }
+            router.push('/artist/namtan');
           }}
         >
           {/* Highlight Overlay */}
@@ -140,10 +125,10 @@ export function HeroBanner() {
             className="absolute inset-0 transition-all duration-700 ease-out"
             animate={{
               background: hoveredActor === 'namtan'
-                ? 'linear-gradient(to right, rgba(30, 136, 229, 0.20), transparent)'
+                ? 'linear-gradient(to right, rgba(108, 191, 208, 0.20), transparent)'
                 : 'transparent'
             }}
-            transition={{ duration: reducedMotion ? 0 : 0.7 }}
+            transition={{ duration: 0.7 }}
           />
 
           {/* Actor Info */}
@@ -158,12 +143,12 @@ export function HeroBanner() {
           >
             {/* Color Bar */}
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-1 h-16 rounded-full" style={{ backgroundColor: '#1E88E5' }} />
-              <div className="w-12 h-px" style={{ backgroundColor: 'rgba(30,136,229,0.5)' }} />
+              <div className="w-1 h-16 rounded-full" style={{ backgroundColor: 'var(--namtan-teal)' }} />
+              <div className="w-12 h-px" style={{ backgroundColor: 'rgba(108, 191, 208, 0.5)' }} />
             </div>
 
             {/* Name */}
-            <h2 className={`${nameClass} text-4xl md:text-6xl font-extralight tracking-wider mb-3 ${language === 'th' ? 'font-thai' : 'font-display'}`}>
+            <h2 className={`${nameClass} text-4xl md:text-6xl font-normal tracking-wider mb-3 ${language === 'th' ? 'font-thai' : 'font-display'}`}>
               {language === 'th' ? (actors.namtan.nicknameThai || actors.namtan.nickname) : actors.namtan.nickname}
             </h2>
 
@@ -210,14 +195,13 @@ export function HeroBanner() {
             )}
 
             {/* CTA Button */}
-            <a
-              href="#works"
-              onClick={(e) => { e.preventDefault(); smoothScrollTo('works'); }}
+            <button
+              onClick={() => router.push('/artist/namtan')}
               className={`mt-6 group flex items-center gap-3 px-6 py-2.5 w-fit ${ctaCls} ${language === 'th' ? 'font-thai' : ''}`}
             >
               <span className="text-sm tracking-wider">{t('hero.viewWorks')}</span>
               <span className="group-hover:translate-x-1 transition-transform">→</span>
-            </a>
+            </button>
           </motion.div>
         </motion.div>
 
@@ -227,17 +211,7 @@ export function HeroBanner() {
           onMouseEnter={() => setHoveredActor('film')}
           onMouseLeave={() => setHoveredActor(null)}
           onClick={() => {
-            transitionTo(state === 'film' ? 'both' : 'film');
-            if (window.innerWidth < 768) {
-              if (hoveredActor === 'film') {
-                smoothScrollTo('works');
-              } else {
-                setHoveredActor('film');
-                setTimeout(() => smoothScrollTo('works'), 800);
-              }
-            } else {
-              smoothScrollTo('works');
-            }
+            router.push('/artist/film');
           }}
         >
           {/* Highlight Overlay */}
@@ -245,10 +219,10 @@ export function HeroBanner() {
             className="absolute inset-0 transition-all duration-700 ease-out"
             animate={{
               background: hoveredActor === 'film'
-                ? 'linear-gradient(to left, rgba(253, 216, 53, 0.20), transparent)'
+                ? 'linear-gradient(to left, rgba(251, 223, 116, 0.20), transparent)'
                 : 'transparent'
             }}
-            transition={{ duration: reducedMotion ? 0 : 0.7 }}
+            transition={{ duration: 0.7 }}
           />
 
           {/* Actor Info */}
@@ -263,12 +237,12 @@ export function HeroBanner() {
           >
             {/* Color Bar */}
             <div className="flex items-center justify-end gap-4 mb-4">
-              <div className="w-12 h-px" style={{ backgroundColor: 'rgba(253,216,53,0.5)' }} />
-              <div className="w-1 h-16 rounded-full" style={{ backgroundColor: '#FDD835' }} />
+              <div className="w-12 h-px" style={{ backgroundColor: 'rgba(251, 223, 116, 0.5)' }} />
+              <div className="w-1 h-16 rounded-full" style={{ backgroundColor: 'var(--film-gold)' }} />
             </div>
 
             {/* Name */}
-            <h2 className={`${nameClass} text-4xl md:text-6xl font-extralight tracking-wider mb-3 ${language === 'th' ? 'font-thai' : 'font-display'}`}>
+            <h2 className={`${nameClass} text-4xl md:text-6xl font-normal tracking-wider mb-3 ${language === 'th' ? 'font-thai' : 'font-display'}`}>
               {language === 'th' ? (actors.film.nicknameThai || actors.film.nickname) : actors.film.nickname}
             </h2>
 
@@ -315,14 +289,13 @@ export function HeroBanner() {
             )}
 
             {/* CTA Button */}
-            <a
-              href="#works"
-              onClick={(e) => { e.preventDefault(); smoothScrollTo('works'); }}
+            <button
+              onClick={() => router.push('/artist/film')}
               className={`mt-6 group flex items-center gap-3 px-6 py-2.5 ml-auto w-fit ${ctaCls} ${language === 'th' ? 'font-thai' : ''}`}
             >
               <span className="group-hover:-translate-x-1 transition-transform">←</span>
               <span className="text-sm tracking-wider">{t('hero.viewWorks')}</span>
-            </a>
+            </button>
           </motion.div>
         </motion.div>
       </div>

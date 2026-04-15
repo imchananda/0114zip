@@ -15,14 +15,14 @@
    CSS Custom Properties — theme-aware tokens
    ============================================================ */
 :root {
-  --font-display: var(--font-inter), var(--font-noto-thai), 'Inter', 'Noto Sans Thai', sans-serif;
-  --font-thai:    var(--font-inter), var(--font-noto-thai), 'Inter', 'Noto Sans Thai', sans-serif;
+  --font-display: var(--font-georgia), var(--font-noto-thai), 'Georgia', serif;
+  --font-thai:    var(--font-noto-thai), 'Noto Sans Thai', sans-serif;
   --font-body:    var(--font-inter), var(--font-noto-thai), 'Inter', 'Noto Sans Thai', sans-serif;
 
   /* Brand */
-  --namtan-blue:   #1E88E5;
-  --film-yellow:   #FDD835;
-  --nf-gradient:   linear-gradient(135deg, #1E88E5 0%, #FDD835 100%);
+  --namtan-teal:   #6cbfd0;
+  --film-gold:     #fbdf74;
+  --nf-gradient:   linear-gradient(135deg, #6cbfd0 0%, #fbdf74 100%);
 }
 
 /* ============================================================
@@ -30,34 +30,34 @@
    ============================================================ */
 :root,
 .dark {
-  --color-bg:           #0A0A0F;
-  --color-surface:      #12121A;
-  --color-panel:        #1A1A26;
-  --color-border:       rgba(255, 255, 255, 0.08);
-  --color-text-primary: #F5F5F5;
-  --color-text-secondary: rgba(245, 245, 245, 0.70);
-  --color-text-muted:   rgba(245, 245, 245, 0.40);
-  --skeleton-from:      rgba(255, 255, 255, 0.05);
-  --skeleton-mid:       rgba(255, 255, 255, 0.10);
-  --skeleton-to:        rgba(255, 255, 255, 0.05);
-  --selection-bg:       rgba(30, 136, 229, 0.30);
+  --color-bg:           #141413; /* Deep Dark */
+  --color-surface:      #30302e; /* Dark Surface */
+  --color-panel:        #141413; /* Deep Dark Panel */
+  --color-border:       #30302e; /* Border Dark */
+  --color-text-primary: #faf9f5; /* Ivory / Near White */
+  --color-text-secondary: #b0aea5; /* Warm Silver */
+  --color-text-muted:   #87867f; /* Stone Gray */
+  --skeleton-from:      #30302e;
+  --skeleton-mid:       #3d3d3a;
+  --skeleton-to:        #30302e;
+  --selection-bg:       rgba(108, 191, 208, 0.30); /* Namtan Glow */
 }
 
 /* ============================================================
    LIGHT THEME
    ============================================================ */
 .light {
-  --color-bg:           #F8F9FF;
-  --color-surface:      #FFFFFF;
-  --color-panel:        #EEF2FF;
-  --color-border:       rgba(0, 0, 0, 0.08);
-  --color-text-primary: #0F172A;
-  --color-text-secondary: rgba(15, 23, 42, 0.70);
-  --color-text-muted:   rgba(15, 23, 42, 0.45);
-  --skeleton-from:      rgba(0, 0, 0, 0.04);
-  --skeleton-mid:       rgba(0, 0, 0, 0.08);
-  --skeleton-to:        rgba(0, 0, 0, 0.04);
-  --selection-bg:       rgba(30, 136, 229, 0.20);
+  --color-bg:           #f5f4ed; /* Parchment */
+  --color-surface:      #faf9f5; /* Ivory */
+  --color-panel:        #e8e6dc; /* Warm Sand */
+  --color-border:       #f0eee6; /* Border Cream */
+  --color-text-primary: #141413; /* Near Black */
+  --color-text-secondary: #5e5d59; /* Olive Gray */
+  --color-text-muted:   #87867f; /* Stone Gray */
+  --skeleton-from:      #f0eee6;
+  --skeleton-mid:       #e8e6dc;
+  --skeleton-to:        #f0eee6;
+  --selection-bg:       rgba(108, 191, 208, 0.20);
 }
 
 /* ============================================================
@@ -69,8 +69,13 @@
   }
 
   html {
-    @apply scroll-smooth;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 
   section[id] {
@@ -109,10 +114,10 @@
 
   /* ---- NamtanFilm gradient helpers ---- */
   .nf-gradient-bg {
-    background: linear-gradient(135deg, #1E88E5 0%, #FDD835 100%);
+    background: linear-gradient(135deg, #6cbfd0 0%, #fbdf74 100%);
   }
   .nf-gradient-text {
-    background: linear-gradient(90deg, #1E88E5, #FDD835);
+    background: linear-gradient(90deg, #6cbfd0, #fbdf74);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -127,7 +132,7 @@
     position: absolute;
     inset: -2px;
     border-radius: inherit;
-    background: linear-gradient(135deg, #1E88E5, #FDD835);
+    background: linear-gradient(135deg, #6cbfd0, #fbdf74);
     z-index: -1;
   }
 
@@ -135,10 +140,10 @@
   .lunar-shimmer {
     background: linear-gradient(
       135deg,
-      #1E88E5 0%,
-      #64B5F6 30%,
-      #FDD835 70%,
-      #FFF176 100%
+      #6cbfd0 0%,
+      #8ed0dd 30%,
+      #fbdf74 70%,
+      #fce89a 100%
     );
     background-size: 200% 200%;
     animation: lunarShift 4s ease-in-out infinite;

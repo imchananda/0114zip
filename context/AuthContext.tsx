@@ -9,6 +9,7 @@ interface UserProfile {
   email: string;
   display_name: string;
   avatar_url: string | null;
+  banner_url: string | null;
   role: string;
   points: number;
   level: number;
@@ -38,7 +39,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = createSupabaseBrowser();
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase.from('users').select('*').eq('id', userId).single();
+    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+    if (error) {
+      console.error('Failed to fetch user profile:', error.message);
+      return;
+    }
     if (data) setProfile(data as UserProfile);
   };
 

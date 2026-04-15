@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PWA Icon Generator — creates NamtanFilm branded icons as SVG→PNG
  * Run: node scripts/generate-pwa-icons.js
  */
@@ -28,16 +28,16 @@ function generateSVG(size) {
       <stop offset="100%" style="stop-color:#12121A"/>
     </linearGradient>
     <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1E88E5"/>
-      <stop offset="100%" style="stop-color:#FDD835"/>
+      <stop offset="0%" style="stop-color:#6cbfd0"/>
+      <stop offset="100%" style="stop-color:#fbdf74"/>
     </linearGradient>
     <linearGradient id="glow-blue" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1E88E5;stop-opacity:0.4"/>
-      <stop offset="100%" style="stop-color:#1E88E5;stop-opacity:0"/>
+      <stop offset="0%" style="stop-color:#6cbfd0;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#6cbfd0;stop-opacity:0"/>
     </linearGradient>
     <linearGradient id="glow-yellow" x1="100%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" style="stop-color:#FDD835;stop-opacity:0.3"/>
-      <stop offset="100%" style="stop-color:#FDD835;stop-opacity:0"/>
+      <stop offset="0%" style="stop-color:#fbdf74;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#fbdf74;stop-opacity:0"/>
     </linearGradient>
   </defs>
   <!-- Background -->

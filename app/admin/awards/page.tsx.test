@@ -1,0 +1,36 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Plus, Edit2, Trash2, Save, X, Trophy } from 'lucide-react';
+
+interface Award {
+  id: string;
+  title: string;
+  title_thai: string | null;
+  show: string;
+  year: number;
+  category: string;
+  artist: 'namtan' | 'film' | 'both';
+  result: 'won' | 'nominated';
+}
+
+const EMPTY_FORM: Partial<Award> = {
+  title: '',
+  title_thai: '',
+  show: '',
+  year: new Date().getFullYear(),
+  category: '',
+  artist: 'both',
+  result: 'won',
+};
+
+const ARTIST_LABELS: Record<string, string> = {
+  namtan: '💙 น้ำตาล',
+  film: '💛 ฟิล์ม',
+  both: '💙💛 คู่จิ้น',
+};
+const RESULT_LABELS: Record<string, string> = {
+  won: '🏆 Won',
+  nominated: '🎯 Nominated',
+};

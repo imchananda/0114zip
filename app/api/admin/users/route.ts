@@ -94,8 +94,18 @@ export async function PUT(req: NextRequest) {
   
   // Update password in Supabase Auth if provided
   if (updates.password && typeof updates.password === 'string') {
+    const pwd = updates.password;
+    if (pwd.length < 8) {
+      return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
+    }
+    if (!/[A-Z]/.test(pwd)) {
+      return NextResponse.json({ error: 'Password must contain at least one uppercase letter' }, { status: 400 });
+    }
+    if (!/[0-9]/.test(pwd)) {
+      return NextResponse.json({ error: 'Password must contain at least one number' }, { status: 400 });
+    }
     const { error: pwdError } = await admin.auth.admin.updateUserById(id, {
-      password: updates.password
+      password: pwd
     });
     if (pwdError) {
       return NextResponse.json({ error: `Password Error: ${pwdError.message}` }, { status: 500 });

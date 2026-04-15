@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useLanguage } from '@/context/LanguageContext';
+import { useTranslations, useLocale } from 'next-intl';
 
 /* ── "Real-time" stats with animated counters ── */
 const BASE_STATS = {
@@ -55,14 +55,14 @@ function formatNum(n: number) {
 }
 
 const QUICK_LINKS = [
-  { icon: '📋', label: 'Hashtags', href: '/engage/hashtags', desc: 'Copy & ใช้ได้เลย' },
-  { icon: '🔗', label: 'Social Links', href: '/engage/links', desc: 'ติดตามทุกช่อง' },
+  { icon: '', label: 'Media', href: '/engage/media', desc: 'โพสต์ & Engagement' },
+  { icon: '🔗', label: 'Social', href: '/engage/links', desc: 'ติดตามทุกช่อง' },
   { icon: '📊', label: 'Stats', href: '/stats', desc: 'สถิติ & กราฟ' },
   { icon: '💬', label: 'Community', href: '/community', desc: 'คุยกับ Fam' },
 ];
 
 export function EngagePreview() {
-  const { t } = useLanguage();
+  const t = useTranslations();
   const ig = useLiveNumber(BASE_STATS.igFollowers);
   const x = useLiveNumber(BASE_STATS.xFollowers);
   const tiktok = useLiveNumber(BASE_STATS.tiktokFollowers);
@@ -111,7 +111,7 @@ export function EngagePreview() {
             { icon: '📷', label: 'Instagram', value: igDisplay, growth: '+23%', color: '#E4405F' },
             { icon: '𝕏', label: 'X (Twitter)', value: xDisplay, growth: '+18%', color: '#1DA1F2' },
             { icon: '🎵', label: 'TikTok', value: tiktokDisplay, growth: '+31%', color: '#FF0050' },
-            { icon: '👥', label: 'Community', value: membersDisplay, growth: '+12%', color: '#1E88E5' },
+            { icon: '👥', label: 'Community', value: membersDisplay, growth: '+12%', color: '#6cbfd0' },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -119,7 +119,7 @@ export function EngagePreview() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-4 md:p-5 group hover:border-[#1E88E5]/40 transition-all"
+              className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-4 md:p-5 group hover:border-[#6cbfd0]/40 transition-all"
             >
               <div className="text-xl mb-2">{stat.icon}</div>
               <div className="text-2xl md:text-3xl font-light text-[var(--color-text)] tabular-nums">
@@ -161,7 +161,7 @@ export function EngagePreview() {
         </motion.div>
 
         {/* Quick links */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           {QUICK_LINKS.map((link, i) => (
             <motion.div
               key={link.href}
@@ -171,7 +171,7 @@ export function EngagePreview() {
               transition={{ delay: i * 0.08 }}
             >
               <Link href={link.href} className="block group">
-                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 hover:border-[#1E88E5]/50 transition-all group-hover:translate-y-[-2px] group-hover:shadow-md">
+                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 hover:border-[#6cbfd0]/50 transition-all group-hover:translate-y-[-2px] group-hover:shadow-md">
                   <span className="text-xl">{link.icon}</span>
                   <h3 className="text-sm font-medium text-[var(--color-text)] mt-2">{link.label}</h3>
                   <p className="text-[10px] text-[var(--color-muted)] mt-0.5">{link.desc}</p>
@@ -181,15 +181,7 @@ export function EngagePreview() {
           ))}
         </div>
 
-        {/* Main CTA */}
-        <div className="text-center mt-8">
-          <Link
-            href="/engage"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1E88E5] to-[#FDD835] text-white rounded-full font-medium hover:opacity-90 transition-opacity shadow-lg"
-          >
-            🚀 Engagement Hub
-          </Link>
-        </div>
+
       </div>
     </section>
   );

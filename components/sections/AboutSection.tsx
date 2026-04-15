@@ -2,12 +2,13 @@
 
 import { motion } from 'framer-motion';
 import { useViewState } from '@/context/ViewStateContext';
-import { useLanguage } from '@/context/LanguageContext';
+import { useTranslations, useLocale } from 'next-intl';
 import { actors } from '@/data/actors';
 
 export function AboutSection() {
     const { reducedMotion } = useViewState();
-    const { t, language } = useLanguage();
+    const t = useTranslations();
+  const language = useLocale();
 
     const socialLinks = [
         { name: 'Twitter', url: '#', icon: '𝕏' },

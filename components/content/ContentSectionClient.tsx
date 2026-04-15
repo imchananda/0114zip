@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useViewState } from '@/context/ViewStateContext';
-import { useLanguage } from '@/context/LanguageContext';
+import { useTranslations, useLocale } from 'next-intl';
 import { ContentRow } from './ContentRow';
 import { ViewState, ContentItem, Series, Variety, Event, Magazine, Award, DisplayItem } from '@/types';
 
@@ -17,22 +17,22 @@ const sectionInfo: Record<ViewState, SectionInfo> = {
     both: {
         titleKey: 'content.togetherTitle',
         subKey: 'content.togetherSub',
-        gradient: 'from-[#1E88E5] to-[#FDD835]',
+        gradient: 'from-[#6cbfd0] to-[#fbdf74]',
     },
     namtan: {
         titleKey: 'content.namtanJourney',
         subKey: 'content.filmography',
-        gradient: 'from-[#1E88E5] to-[#64B5F6]',
+        gradient: 'from-[#6cbfd0] to-[#8ed0dd]',
     },
     film: {
         titleKey: 'content.filmJourney',
         subKey: 'content.filmography',
-        gradient: 'from-[#FDD835] to-[#FFF176]',
+        gradient: 'from-[#fbdf74] to-[#fce89a]',
     },
     lunar: {
         titleKey: 'content.lunarSpace',
         subKey: 'content.memories',
-        gradient: 'from-[#1E88E5] to-[#FDD835]',
+        gradient: 'from-[#6cbfd0] to-[#fbdf74]',
     },
 };
 
@@ -85,7 +85,8 @@ function contentToDisplayItem(item: ContentItem): DisplayItem {
 
 export function ContentSectionClient({ initialContent }: ContentSectionClientProps) {
     const { state, transitionTo, reducedMotion } = useViewState();
-    const { t, language } = useLanguage();
+    const t = useTranslations();
+  const language = useLocale();
 
     const filteredContent = useMemo(() => {
         return initialContent.filter(item => {
@@ -124,18 +125,24 @@ export function ContentSectionClient({ initialContent }: ContentSectionClientPro
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: reducedMotion ? 0 : 0.4 }}
                     >
-                        <div className="flex items-center gap-6">
-                            <div
-                                className={`w-1.5 h-20 rounded-full bg-gradient-to-b ${info.gradient}`}
-                            />
-                            <div>
-                                <p className="text-[var(--color-text-muted)] text-sm tracking-[0.3em] uppercase mb-2 font-light">
-                                    {t(info.subKey)}
-                                </p>
-                                <h2 className={`text-[var(--color-text-primary)] text-4xl md:text-5xl font-light tracking-wide ${language === 'th' ? 'font-thai' : ''}`}>
-                                    {t(info.titleKey)}
-                                </h2>
+                        <div className="flex items-center justify-between gap-6">
+                            <div className="flex items-center gap-6">
+                                <div
+                                    className={`w-1.5 h-20 rounded-full bg-gradient-to-b ${info.gradient}`}
+                                />
+                                <div>
+                                    <p className="text-[var(--color-text-muted)] text-sm tracking-[0.3em] uppercase mb-2 font-light">
+                                        {t(info.subKey)}
+                                    </p>
+                                    <h2 className={`text-[var(--color-text-primary)] text-4xl md:text-5xl font-light tracking-wide ${language === 'th' ? 'font-thai' : ''}`}>
+                                        {t(info.titleKey)}
+                                    </h2>
+                                </div>
                             </div>
+                            
+                            <a href="/works" className="hidden md:flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-medium text-[var(--color-text-primary)] transition-all hover:scale-105 active:scale-95">
+                                {language === 'th' ? 'ดูผลงานทั้งหมด' : 'View All Works'} →
+                            </a>
                         </div>
                     </motion.div>
                 </AnimatePresence>

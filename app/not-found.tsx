@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -9,8 +9,8 @@ export default function NotFound() {
     <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg)] overflow-hidden relative">
 
       {/* Decorative Blur Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#1E88E5]/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#FDD835]/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#6cbfd0]/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#fbdf74]/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -24,7 +24,7 @@ export default function NotFound() {
           transition={{ type: 'spring', bounce: 0.5, delay: 0.2 }}
           className="relative inline-block"
         >
-          <h1 className="text-9xl md:text-[150px] font-black text-transparent bg-clip-text bg-gradient-to-r from-[#1E88E5] to-[#FDD835] drop-shadow-2xl opacity-90 tracking-tighter">
+          <h1 className="text-9xl md:text-[150px] font-black text-transparent bg-clip-text bg-gradient-to-r from-[#6cbfd0] to-[#fbdf74] drop-shadow-2xl opacity-90 tracking-tighter">
             404
           </h1>
           {/* Mascot on top-right of 404 */}
@@ -45,7 +45,7 @@ export default function NotFound() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-gradient-to-r from-[#1E88E5] to-[#FDD835] text-gray-900 font-bold rounded-full shadow-xl shadow-[#1E88E5]/20 hover:shadow-2xl hover:shadow-[#FDD835]/30 transition-all"
+            className="px-8 py-4 bg-gradient-to-r from-[#6cbfd0] to-[#fbdf74] text-[#141413] font-bold rounded-full shadow-xl shadow-[#6cbfd0]/20 hover:shadow-2xl hover:shadow-[#fbdf74]/30 transition-all"
           >
             ← กลับสู่หน้าแรก (Home)
           </motion.button>

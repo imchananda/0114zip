@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
@@ -21,12 +21,12 @@ export function UserMenu() {
 
   if (!user) {
     return (
-      <Link
+      <a
         href="/auth/login"
-        className="px-4 py-2 text-sm bg-gradient-to-r from-[#1E88E5] to-[#1565C0] text-white rounded-full hover:opacity-90 transition-opacity"
+        className="px-4 py-2 text-sm bg-gradient-to-r from-[#6cbfd0] to-[#4a9aab] text-[#141413] rounded-full hover:opacity-90 transition-opacity"
       >
         เข้าสู่ระบบ
-      </Link>
+      </a>
     );
   }
 
@@ -36,7 +36,7 @@ export function UserMenu() {
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1E88E5] to-[#FDD835] flex items-center justify-center text-white text-sm font-medium hover:scale-105 transition-transform overflow-hidden"
+        className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6cbfd0] to-[#fbdf74] flex items-center justify-center text-[#141413] text-sm font-medium hover:scale-105 transition-transform overflow-hidden"
       >
         {profile?.avatar_url ? (
           <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -54,7 +54,7 @@ export function UserMenu() {
             </p>
             <p className="text-xs text-[var(--color-muted)] truncate">{user.email}</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs text-[#FDD835]">⭐ {profile?.points || 0} pts</span>
+              <span className="text-xs text-[#fbdf74]">⭐ {profile?.points || 0} pts</span>
               <span className="text-xs text-[var(--color-muted)]">Lv.{profile?.level || 1}</span>
             </div>
           </div>
@@ -79,7 +79,7 @@ export function UserMenu() {
             <Link
               href="/admin/dashboard"
               onClick={() => setOpen(false)}
-              className="block px-4 py-2.5 text-sm text-[#1E88E5] hover:bg-[var(--color-bg)] transition-colors"
+              className="block px-4 py-2.5 text-sm text-[#6cbfd0] hover:bg-[var(--color-bg)] transition-colors"
             >
               ⚙️ Admin
             </Link>

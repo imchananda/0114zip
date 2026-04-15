@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -44,8 +44,11 @@ const platformConfig: Record<string, { icon: string; label: string; color: strin
 export function ContentCard({ work }: ContentCardProps) {
   const { reducedMotion } = useViewState();
   const { resolvedTheme } = useTheme();
-  const isLight = resolvedTheme === 'light';
+  const [mounted, setMounted] = useState(false);
+  const isLight = mounted && resolvedTheme === 'light';
   const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
   const [showOverlay, setShowOverlay] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -124,6 +127,7 @@ export function ContentCard({ work }: ContentCardProps) {
         )}
       >
         {/* Image */}
+        {work.image ? (
         <Image
           src={work.image}
           alt={work.title}
@@ -142,6 +146,7 @@ export function ContentCard({ work }: ContentCardProps) {
             console.error(`Failed to load image for ${work.title}:`, work.image);
           }}
         />
+        ) : null}
 
         {/* Loading Skeleton */}
         {!imageLoaded && (
@@ -202,12 +207,12 @@ export function ContentCard({ work }: ContentCardProps) {
           >
             <div
               className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: '#1E88E5' }}
+              style={{ backgroundColor: '#6cbfd0' }}
             />
             <span className="text-white/40 text-[10px]">×</span>
             <div
               className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: '#FDD835' }}
+              style={{ backgroundColor: '#fbdf74' }}
             />
           </motion.div>
         )}

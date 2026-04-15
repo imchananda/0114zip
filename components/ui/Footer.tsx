@@ -1,8 +1,38 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+
+interface FooterSettings {
+  titleLeft: string;
+  titleRight: string;
+  tagline: string;
+  copyright: string;
+  socialLinks: { name: string; url: string }[];
+}
+
+const DEFAULT_FOOTER: FooterSettings = {
+  titleLeft: 'Namtan',
+  titleRight: 'Film',
+  tagline: 'สร้างด้วยความรักจากแฟนคลับ',
+  copyright: '© 2024 Fan Project · ไม่ได้เกี่ยวข้องกับต้นสังกัด',
+  socialLinks: [
+    { name: 'Twitter', url: '#' },
+    { name: 'Instagram', url: '#' },
+    { name: 'TikTok', url: '#' },
+  ],
+};
 
 export function Footer() {
+  const [data, setData] = useState<FooterSettings>(DEFAULT_FOOTER);
+
+  useEffect(() => {
+    fetch('/api/admin/footer')
+      .then(r => r.json())
+      .then((d: FooterSettings) => setData({ ...DEFAULT_FOOTER, ...d }))
+      .catch(() => {/* keep defaults */});
+  }, []);
+
   return (
     <footer
       className="border-t border-[var(--color-border)] py-20 transition-colors duration-300"
@@ -10,34 +40,25 @@ export function Footer() {
     >
       <div className="container mx-auto px-6 md:px-12 text-center">
         <h3 className="text-[var(--color-text-primary)] text-3xl font-light tracking-[0.2em] mb-4">
-          Namtan
-          <span
-            className="mx-2"
-            style={{
-              background: 'linear-gradient(135deg, #1E88E5, #FDD835)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            ×
-          </span>
-          Film
+          {data.titleLeft}
+          <span className="nf-gradient-text mx-2">×</span>
+          {data.titleRight}
         </h3>
 
         <p className="text-[var(--color-text-muted)] text-sm font-light tracking-wider mb-8 font-thai">
-          สร้างด้วยความรักจากแฟนคลับ
+          {data.tagline}
         </p>
 
         {/* Social Links */}
         <div className="flex items-center justify-center gap-8 mb-8">
-          {['Twitter', 'Instagram', 'TikTok'].map((social) => (
+          {data.socialLinks.map((link) => (
             <motion.a
-              key={social}
-              href="#"
+              key={link.name}
+              href={link.url}
               className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-xs tracking-widest transition-colors"
               whileHover={{ y: -2 }}
             >
-              {social}
+              {link.name}
             </motion.a>
           ))}
         </div>
@@ -52,7 +73,7 @@ export function Footer() {
 
         {/* Copyright */}
         <p className="text-[var(--color-text-muted)] text-xs tracking-wider font-thai opacity-60">
-          © 2024 Fan Project · ไม่ได้เกี่ยวข้องกับต้นสังกัด
+          {data.copyright}
         </p>
       </div>
     </footer>

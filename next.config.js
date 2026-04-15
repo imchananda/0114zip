@@ -1,4 +1,7 @@
 /** @type {import('next').NextConfig} */
+const createNextIntlPlugin = require('next-intl/plugin');
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -49,6 +52,7 @@ const nextConfig = {
     ],
     // Image optimization enabled (removed unoptimized: true)
     formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000, // 1 year — cache optimized images aggressively
   },
 
   // ── Security Headers ──────────────────────────────
@@ -118,4 +122,4 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   },
 });
 
-module.exports = withPWA(nextConfig);
+module.exports = withNextIntl(withPWA(nextConfig));

@@ -1,58 +1,35 @@
-import { ViewStateProvider } from '@/context/ViewStateContext';
-import { Header } from '@/components/navigation/Header';
-import { HeroBanner } from '@/components/hero/HeroBanner';
-import { StateIndicator } from '@/components/navigation/StateIndicator';
-import { ContentSection } from '@/components/content/ContentSection';
-import { GallerySection } from '@/components/sections/GallerySection';
-import { TimelineSection } from '@/components/sections/TimelineSection';
-import { ProfileSection } from '@/components/sections/ProfileSection';
-import { AboutSection } from '@/components/sections/AboutSection';
-import { EngagePreview } from '@/components/sections/EngagePreview';
-import { SchedulePreview } from '@/components/sections/SchedulePreview';
-import { AwardsPreview } from '@/components/sections/AwardsPreview';
-import { Footer } from '@/components/ui/Footer';
-import { ScrollToTop } from '@/components/ui/ScrollToTop';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-export default function HomePage() {
-  return (
-    <ViewStateProvider>
-      <main className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)' }}>
-        {/* Sticky Header */}
-        <Header />
+export const dynamic = 'force-dynamic';
 
-        {/* Netflix-style Hero Banner */}
-        <HeroBanner />
+const supportedLocales = ['th', 'en', 'zh'];
+const defaultLocale = 'th';
 
-        {/* State Indicator Pills */}
-        <StateIndicator />
+function getPreferredLocale(acceptLanguage: string | null) {
+  if (!acceptLanguage) return defaultLocale;
 
-        {/* Content Rows */}
-        <ContentSection />
+  const localeCandidates = acceptLanguage
+    .split(',')
+    .map((part) => part.split(';')[0].trim().toLowerCase());
 
-        {/* Profile Section */}
-        <ProfileSection />
+  for (const candidate of localeCandidates) {
+    if (supportedLocales.includes(candidate)) {
+      return candidate;
+    }
 
-        {/* Timeline Section */}
-        <TimelineSection />
+    const baseLocale = candidate.split('-')[0];
+    if (supportedLocales.includes(baseLocale)) {
+      return baseLocale;
+    }
+  }
 
-        {/* Gallery Section */}
-        <GallerySection />
+  return defaultLocale;
+}
 
-        {/* Schedule Preview */}
-        <SchedulePreview />
+export default async function RootPage() {
+  const acceptLanguage = (await headers()).get('accept-language');
+  const locale = getPreferredLocale(acceptLanguage);
 
-        {/* Awards Preview */}
-        <AwardsPreview />
-
-        {/* Engagement & Stats Preview */}
-        <EngagePreview />
-
-        {/* Footer */}
-        <Footer />
-
-        {/* Scroll To Top */}
-        <ScrollToTop />
-      </main>
-    </ViewStateProvider>
-  );
+  redirect(`/${locale}`);
 }

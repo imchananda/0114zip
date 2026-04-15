@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "works": "作品",
+    "timeline": "时间轴",
+    "profile": "个人资料",
+    "about": "关于",
+    "community": "社区",
+    "challenges": "挑战",
+    "engage": "互动中心",
+    "schedule": "行程表",
+    "awards": "奖项",
+    "stats": "数据统计"
+  },
+  "hero": {
+    "scroll": "向下滚动",
+    "viewWorks": "查看作品"
+  },
+  "actor": {
+    "realName": "真实姓名：",
+    "birthDate": "生日：",
+    "birthPlace": "出生地：",
+    "education": "学历："
+  },
+  "state": {
+    "namtanfilm": "NamtanFilm",
+    "namtan": "Namtan",
+    "film": "Film",
+    "lunar": "月光粉丝团"
+  },
+  "content": {
+    "together": "合作",
+    "togetherSub": "携手故事",
+    "togetherTitle": "合作作品",
+    "namtanJourney": "Namtan 的旅程",
+    "filmJourney": "Film 的旅程",
+    "lunarSpace": "月光空间",
+    "filmography": "完整作品集",
+    "memories": "我们的回忆",
+    "noWorks": "未找到作品",
+    "tryOther": "请尝试其他筛选",
+    "backToTogether": "返回合作作品"
+  },
+  "category": {
+    "acting": "表演",
+    "award": "奖项",
+    "event": "活动"
+  },
+  "timeline": {
+    "title": "时间轴",
+    "sub": "他们的旅程"
+  },
+  "profile": {
+    "title": "个人资料",
+    "sub": "认识明星"
+  },
+  "about": {
+    "title": "关于我们",
+    "sub": "关于这个粉丝网站",
+    "couple": "最爱的情侣",
+    "worksCount": "合作作品",
+    "awards": "共同奖项",
+    "fans": "粉丝",
+    "description": "本网站由粉丝创建，收集了 Namtan Tipnaree 和 Film Rachanun 的作品与精彩故事。",
+    "disclaimer": "🎬 本网站为粉丝自制，与经纪公司无官方关联。",
+    "imageRights": "图片版权归各自所有者所有"
+  },
+  "preview": {
+    "engage": {
+      "title": "粉丝互动任务",
+      "sub": "加入热点",
+      "live": "进行中"
+    },
+    "schedule": {
+      "title": "近期行程",
+      "sub": "敬请期待"
+    },
+    "awards": {
+      "title": "最近奖项",
+      "sub": "荣誉殿堂"
+    },
+    "all": "查看全部"
+  },
+  "footer": {
+    "fanmade": "粉丝自制网站",
+    "rights": "与任何经纪公司无关"
+  },
+  "lunar": {
+    "name": "月光",
+    "fanclub": "官方粉丝团"
+  }
+}

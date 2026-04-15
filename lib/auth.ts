@@ -11,8 +11,8 @@ import { cookies } from 'next/headers';
  * Creates a server-side Supabase client using @supabase/ssr
  * This correctly handles Supabase's chunked cookies.
  */
-export function createClient() {
-  const cookieStore = cookies();
+export async function createClient() {
+  const cookieStore = await cookies();
   
   return createServerClient(
     supabaseUrl,
@@ -38,7 +38,7 @@ export function createClient() {
 
 export async function getAuthUserRole(req?: NextRequest): Promise<string | null> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error || !user) return null;
@@ -76,7 +76,7 @@ export async function verifyAdmin(req?: NextRequest): Promise<boolean> {
  */
 export async function getAuthUserId(req: NextRequest): Promise<string | null> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error || !user) return null;

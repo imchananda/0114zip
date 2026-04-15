@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const client = isAdmin ? getAdminClient() : supabase;
 
   const type = req.nextUrl.searchParams.get('type');
-  let query = client.from('content_items').select('*').order('sort_order', { ascending: true }).order('year', { ascending: false });
+  let query = client.from('content_items').select('*, brand_collaborations(id, brand_name, brand_logo)').order('sort_order', { ascending: true }).order('year', { ascending: false });
 
   if (type) query = query.eq('content_type', type);
   if (!isAdmin) query = query.eq('visible', true);
