@@ -86,6 +86,8 @@ export default function BrandCollabsPage() {
   const [sectionImgs, setSectionImgs]     = useState({ both: '', namtan: '', film: '' });
   const [savingImgs, setSavingImgs]       = useState(false);
   const [uploadingImg, setUploadingImg]   = useState<'both' | 'namtan' | 'film' | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const inputBothRef   = useRef<HTMLInputElement>(null);
   const inputNamtanRef = useRef<HTMLInputElement>(null);
   const inputFilmRef   = useRef<HTMLInputElement>(null);
@@ -111,6 +113,19 @@ export default function BrandCollabsPage() {
       flash(saveRes.ok ? 'อัพโหลดและบันทึกสำเร็จ' : 'อัพโหลดสำเร็จ แต่บันทึกไม่ได้', saveRes.ok);
     } catch { flash('Network error', false); }
     finally { setUploadingImg(null); setSavingImgs(false); }
+  };
+
+  const handleLogoUpload = async (file: File) => {
+    setUploadingLogo(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) { flash(data.error ?? 'อัพโหลดไม่สำเร็จ', false); return; }
+      setForm(f => ({ ...f, brand_logo: data.url }));
+    } catch { flash('Network error', false); }
+    finally { setUploadingLogo(false); }
   };
 
   const flash = (text: string, ok: boolean) => {
@@ -507,12 +522,29 @@ export default function BrandCollabsPage() {
                   className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[#6cbfd0]" />
               </div>
 
-              {/* Logo URL */}
+              {/* Logo URL + Upload */}
               <div>
-                <label className="block text-xs text-[var(--color-text-muted)] mb-1">URL โลโก้ (ไม่บังคับ)</label>
-                <input type="url" value={form.brand_logo} onChange={e => setForm(f => ({ ...f, brand_logo: e.target.value.replace(/^http:\/\//, 'https://') }))}
-                  placeholder="https://..."
-                  className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[#6cbfd0]" />
+                <label className="block text-xs text-[var(--color-text-muted)] mb-1">โลโก้แบรนด์ (ไม่บังคับ)</label>
+                <div className="flex gap-2 items-center">
+                  {form.brand_logo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logoSrc(form.brand_logo)} alt="" className="w-10 h-10 rounded-lg object-contain bg-white border border-[var(--color-border)] shrink-0" />
+                  )}
+                  <input type="url" value={form.brand_logo} onChange={e => setForm(f => ({ ...f, brand_logo: e.target.value.replace(/^http:\/\//, 'https://') }))}
+                    placeholder="https://... หรืออัพโหลดไฟล์"
+                    className="flex-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[#6cbfd0]" />
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={uploadingLogo}
+                    className="shrink-0 px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-xs text-[var(--color-text-muted)] hover:border-[#6cbfd0] hover:text-[#6cbfd0] transition-colors flex items-center gap-1 disabled:opacity-50"
+                  >
+                    {uploadingLogo ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                    อัพโหลด
+                  </button>
+                  <input ref={logoInputRef} type="file" accept="image/*" className="hidden"
+                    onChange={e => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }} />
+                </div>
               </div>
 
               {/* Description */}
