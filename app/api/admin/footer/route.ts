@@ -10,7 +10,7 @@ export interface FooterSettings {
   socialLinks: { name: string; url: string }[];
 }
 
-export const DEFAULT_FOOTER: FooterSettings = {
+const DEFAULT_FOOTER: FooterSettings = {
   titleLeft: 'Namtan',
   titleRight: 'Film',
   tagline: 'สร้างด้วยความรักจากแฟนคลับ',

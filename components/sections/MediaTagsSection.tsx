@@ -255,7 +255,7 @@ export function MediaTagsSection() {
         setEvents((data as MediaEvent[]) ?? []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .then(undefined, () => setLoading(false));
   }, []);
 
   // All visible posts with their event title attached

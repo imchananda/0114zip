@@ -736,7 +736,7 @@ export default function AdminMediaPage() {
                   {posts.map(post => {
                     const plat     = PLATFORM_MAP[post.platform];
                     const hasGoals = METRICS.some(m =>
-                      ((post as Record<string, unknown>)[m.goalKey as string] as number) > 0
+                      ((post as unknown as Record<string, unknown>)[m.goalKey as string] as number) > 0
                     );
                     const isEditingThis = editingPost?.id === post.id;
 
@@ -787,8 +787,8 @@ export default function AdminMediaPage() {
                               <div className="grid grid-cols-5 gap-2 mt-1">
                                 {METRICS.map(({ icon, key, goalKey }) => (
                                   <MetricBar key={String(key)} icon={icon}
-                                    value={(post as Record<string, number>)[key as string] ?? 0}
-                                    goal={(post as Record<string, number>)[goalKey as string] ?? 0} />
+                                    value={(post as unknown as Record<string, number>)[key as string] ?? 0}
+                                    goal={(post as unknown as Record<string, number>)[goalKey as string] ?? 0} />
                                 ))}
                               </div>
                             ) : (

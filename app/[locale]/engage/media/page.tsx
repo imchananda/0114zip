@@ -292,7 +292,7 @@ export default function MediaPage() {
         setEvents((data as MediaEvent[]) ?? []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .then(undefined, () => setLoading(false));
   }, []);
 
   const totalPosts = events.reduce((s, e) => s + (e.media_posts?.filter(p => p.is_visible).length ?? 0), 0);
