@@ -80,9 +80,10 @@ function BrandLogoItem({ brand, accent, index, onClick }: {
       <div className="w-28 h-20 flex items-center justify-center overflow-hidden">
         {brand.brand_logo
           // eslint-disable-next-line @next/next/no-img-element
-          ? <img src={brand.brand_logo} alt={brand.brand_name} className="w-full h-full object-contain" />
+          ? <img src={brand.brand_logo.replace(/^http:\/\//, 'https://')} alt={brand.brand_name} className="w-full h-full object-contain" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute('style'); }} />
           : <span className="text-4xl">🏷️</span>
         }
+        {brand.brand_logo && <span className="text-4xl" style={{ display: 'none' }}>🏷️</span>}
       </div>
 
       {/* Brand name */}

@@ -422,9 +422,10 @@ export default function BrandCollabsPage() {
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2">
                   {c.brand_logo
-                    ? <img src={c.brand_logo} alt={c.brand_name} className="w-8 h-8 rounded-lg object-contain bg-white" />
-                    : <div className="w-8 h-8 rounded-lg bg-[var(--color-panel)] flex items-center justify-center text-sm">🏷️</div>
+                    ? <img src={c.brand_logo.replace(/^http:\/\//, 'https://')} alt={c.brand_name} className="w-8 h-8 rounded-lg object-contain bg-white" onError={e => { const el = e.currentTarget; el.style.display='none'; const fb = el.nextElementSibling as HTMLElement|null; if(fb) fb.style.display='flex'; }} />
+                    : null
                   }
+                  <div className="w-8 h-8 rounded-lg bg-[var(--color-panel)] flex items-center justify-center text-sm" style={{ display: c.brand_logo ? 'none' : 'flex' }}>🏷️</div>
                   <div>
                     <div className="font-medium text-sm text-[var(--color-text-primary)]">{c.brand_name}</div>
                     {c.collab_type && (
@@ -500,7 +501,7 @@ export default function BrandCollabsPage() {
               {/* Logo URL */}
               <div>
                 <label className="block text-xs text-[var(--color-text-muted)] mb-1">URL โลโก้ (ไม่บังคับ)</label>
-                <input type="url" value={form.brand_logo} onChange={e => setForm(f => ({ ...f, brand_logo: e.target.value }))}
+                <input type="url" value={form.brand_logo} onChange={e => setForm(f => ({ ...f, brand_logo: e.target.value.replace(/^http:\/\//, 'https://') }))}
                   placeholder="https://..."
                   className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:border-[#6cbfd0]" />
               </div>
