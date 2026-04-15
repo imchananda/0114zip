@@ -6,6 +6,15 @@ import { Link } from '@/i18n/routing';
 import { works } from '@/data/works';
 import { awards } from '@/data/awards';
 
+const PROXY_HOSTS = ['upload.wikimedia.org', 'commons.wikimedia.org', 'encrypted-tbn0.gstatic.com'];
+function imgSrc(url: string): string {
+  try {
+    const h = new URL(url).hostname;
+    if (PROXY_HOSTS.includes(h)) return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+  } catch { /* ignore */ }
+  return url.replace(/^http:\/\//, 'https://');
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Artist = 'namtan' | 'film' | 'luna';
 
@@ -140,8 +149,8 @@ function PortraitCard({
   photoUrl?: string | null; fallbackSrc: string;
   mounted: boolean; delay: number; gridClass: string;
 }) {
-  const [src, setSrc] = useState(photoUrl || fallbackSrc);
-  useEffect(() => { setSrc(photoUrl || fallbackSrc); }, [photoUrl, fallbackSrc]);
+  const [src, setSrc] = useState(photoUrl ? imgSrc(photoUrl) : fallbackSrc);
+  useEffect(() => { setSrc(photoUrl ? imgSrc(photoUrl) : fallbackSrc); }, [photoUrl, fallbackSrc]);
 
   return (
     <motion.div
@@ -448,9 +457,10 @@ export function EditorialCheatSheet() {
             {featuredWork?.image && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={featuredWork.image}
+                src={imgSrc(featuredWork.image)}
                 alt={featuredWork.title}
                 className="absolute inset-0 w-full h-full object-cover object-center"
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
               />
             )}
             {/* Gradient overlay — heavier when image present */}
