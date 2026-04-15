@@ -3,6 +3,15 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 
+const PROXY_HOSTS = ['upload.wikimedia.org', 'commons.wikimedia.org', 'encrypted-tbn0.gstatic.com'];
+function imgSrc(url: string): string {
+  try {
+    const h = new URL(url).hostname;
+    if (PROXY_HOSTS.includes(h)) return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+  } catch { /* ignore */ }
+  return url.replace(/^http:\/\//, 'https://');
+}
+
 type ContentType = 'series' | 'variety' | 'event' | 'magazine' | 'award';
 
 interface PlatformLink { platform: string; url: string; }
@@ -122,10 +131,12 @@ export default function ContentManagementPage() {
             >
               {/* Image thumbnail */}
               {item.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={item.image}
+                  src={imgSrc(item.image)}
                   alt=""
                   className="w-12 h-16 object-cover rounded"
+                  onError={e => { (e.currentTarget as HTMLImageElement).style.display='none'; }}
                 />
               ) : (
                 <div className="w-12 h-16 bg-[var(--color-panel)] rounded flex items-center justify-center text-[var(--color-text-muted)] text-xs">
@@ -365,7 +376,8 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
               </label>
             </div>
-            {form.image && <img src={form.image} alt="" className="mt-2 w-20 h-28 object-cover rounded" />}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {form.image && <img src={imgSrc(form.image)} alt="" className="mt-2 w-20 h-28 object-cover rounded" onError={e => { (e.currentTarget as HTMLImageElement).style.display='none'; }} />}
           </Field>
 
           {/* ── Platform Links editor ── */}
