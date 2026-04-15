@@ -422,7 +422,7 @@ export default function BrandCollabsPage() {
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2">
                   {c.brand_logo
-                    ? <img src={c.brand_logo.replace(/^http:\/\//, 'https://')} alt={c.brand_name} className="w-8 h-8 rounded-lg object-contain bg-white" onError={e => { const el = e.currentTarget; el.style.display='none'; const fb = el.nextElementSibling as HTMLElement|null; if(fb) fb.style.display='flex'; }} />
+                    ? <img src={c.brand_logo.replace(/^http:\/\//, 'https://')} alt={c.brand_name} className="w-8 h-8 rounded-lg object-contain bg-white" referrerPolicy="no-referrer" crossOrigin="anonymous" onError={e => { const el = e.currentTarget; el.style.display='none'; const fb = el.nextElementSibling as HTMLElement|null; if(fb) fb.style.display='flex'; }} />
                     : null
                   }
                   <div className="w-8 h-8 rounded-lg bg-[var(--color-panel)] flex items-center justify-center text-sm" style={{ display: c.brand_logo ? 'none' : 'flex' }}>🏷️</div>
