@@ -84,7 +84,7 @@ export default function FooterAdminPage() {
           >
             <span>←</span> Back to Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)]">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">
             🦶 จัดการ Footer
           </h1>
           <p className="text-sm text-[var(--color-text-muted)]">
@@ -138,7 +138,7 @@ export default function FooterAdminPage() {
 
       {/* Title fields */}
       <section className="mb-6 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
-        <h2 className="text-sm font-semibold mb-4 text-[var(--color-text-primary)]">ชื่อใน Footer</h2>
+        <h2 className="text-sm font-normal mb-4 text-[var(--color-text-primary)]">ชื่อใน Footer</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs text-[var(--color-text-muted)] mb-1.5">ชื่อซ้าย</label>
@@ -165,7 +165,7 @@ export default function FooterAdminPage() {
 
       {/* Tagline */}
       <section className="mb-6 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
-        <h2 className="text-sm font-semibold mb-4 text-[var(--color-text-primary)]">Tagline</h2>
+        <h2 className="text-sm font-normal mb-4 text-[var(--color-text-primary)]">Tagline</h2>
         <input
           type="text"
           value={settings.tagline}
@@ -178,7 +178,7 @@ export default function FooterAdminPage() {
       {/* Social Links */}
       <section className="mb-6 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">Social Links</h2>
+          <h2 className="text-sm font-normal text-[var(--color-text-primary)]">Social Links</h2>
           <button
             onClick={addSocialLink}
             className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-bg)] transition-colors text-[var(--color-text-secondary)]"
@@ -220,7 +220,7 @@ export default function FooterAdminPage() {
 
       {/* Copyright */}
       <section className="mb-8 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-5">
-        <h2 className="text-sm font-semibold mb-4 text-[var(--color-text-primary)]">ข้อความ Copyright</h2>
+        <h2 className="text-sm font-normal mb-4 text-[var(--color-text-primary)]">ข้อความ Copyright</h2>
         <input
           type="text"
           value={settings.copyright}

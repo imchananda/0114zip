@@ -74,7 +74,7 @@ export default function AdminNotificationsPage() {
           >
             ← Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)] flex items-center gap-2">
             <Bell className="w-6 h-6 text-[#6cbfd0]" /> Notifications
           </h1>
           <p className="text-sm text-[var(--color-text-muted)]">ส่งข้อความแจ้งเตือนถึงแฟนคลับทุกคน และดูประวัติการส่ง</p>

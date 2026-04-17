@@ -97,7 +97,7 @@ export default function ContentManagementPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Link href="/admin/dashboard" className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-sm">← Dashboard</Link>
-          <h1 className="font-display text-xl font-medium">จัดการเนื้อหา</h1>
+          <h1 className="font-display text-xl font-normal">จัดการเนื้อหา</h1>
         </div>
         <button
           onClick={() => { setEditing(null); setShowForm(true); }}
@@ -160,7 +160,7 @@ export default function ContentManagementPage() {
                     </span>
                   ))}
                 </div>
-                <h3 className="text-sm font-medium mt-1 truncate">{item.title_thai || item.title}</h3>
+                <h3 className="text-sm font-normal mt-1 truncate">{item.title_thai || item.title}</h3>
               </div>
 
               {/* Actions */}
@@ -297,7 +297,7 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
         onSubmit={handleSubmit}
         className="w-full max-w-lg bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6 max-h-[90vh] overflow-y-auto"
       >
-        <h2 className="font-display text-lg font-medium mb-4">
+        <h2 className="font-display text-lg font-normal mb-4">
           {isEdit ? '✏️ แก้ไขเนื้อหา' : '➕ เพิ่มเนื้อหาใหม่'}
         </h2>
 

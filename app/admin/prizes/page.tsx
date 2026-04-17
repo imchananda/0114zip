@@ -137,7 +137,7 @@ export default function AdminPrizesPage() {
 
   const PrizeForm = ({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) => (
     <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 mb-6">
-      <h3 className="text-base font-semibold text-[var(--color-text)] mb-4">
+      <h3 className="text-base font-normal text-[var(--color-text)] mb-4">
         {editingId ? '✏️ แก้ไขของรางวัล' : '✨ เพิ่มของรางวัลใหม่'}
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -228,7 +228,7 @@ export default function AdminPrizesPage() {
           >
             ← Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)] flex items-center gap-2">
             <Gift className="w-6 h-6 text-pink-400" /> จัดการของรางวัล
           </h1>
           <p className="text-sm text-[var(--color-text-muted)]">เพิ่ม/แก้ไขของรางวัลสำหรับแลกคะแนน (Gamification)</p>

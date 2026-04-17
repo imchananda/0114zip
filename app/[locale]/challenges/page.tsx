@@ -71,7 +71,7 @@ export default function ChallengesPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--color-text)]">🎮 Challenges</h1>
+            <h1 className="text-2xl font-normal font-display text-[var(--color-text-primary)]">🎮 Challenges</h1>
             <p className="text-sm text-[var(--color-muted)] mt-1">ร่วมสนุก สะสมแต้ม รับรางวัล!</p>
           </div>
           <Link href="/" className="text-[var(--color-muted)] text-sm hover:text-[var(--color-text)]">← กลับ</Link>
@@ -140,7 +140,7 @@ export default function ChallengesPage() {
                         </div>
                       </div>
 
-                      <h2 className="text-base font-semibold text-[var(--color-text)] mt-3">{ch.title}</h2>
+                      <h2 className="text-base font-normal font-display text-[var(--color-text-primary)] mt-3">{ch.title}</h2>
                       {ch.description && (
                         <p className="text-sm text-[var(--color-muted)] mt-1 line-clamp-2">{ch.description}</p>
                       )}

@@ -271,7 +271,7 @@ export default function ProfilePage() {
                     className="hidden"
                   />
                 </div>
-                <button onClick={handleOpenSettings} className="mb-2 px-4 py-1.5 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-full text-xs font-medium hover:bg-neutral-800 transition-colors">
+                <button onClick={handleOpenSettings} className="mb-2 px-4 py-1.5 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-full text-xs font-medium hover:bg-[#30302e] transition-colors">
                   แก้ไขโปรไฟล์
                 </button>
               </div>
@@ -379,7 +379,7 @@ export default function ProfilePage() {
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-muted)] mb-3">รูปภาพโปรไฟล์ (Avatar)</label>
                   <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-full bg-neutral-800 border-2 border-[var(--color-border)] flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-[#30302e] border-2 border-[var(--color-border)] flex items-center justify-center overflow-hidden shrink-0">
                       {avatarFile ? (
                         <img src={URL.createObjectURL(avatarFile)} alt="" className="w-full h-full object-cover" />
                       ) : profile?.avatar_url ? (
@@ -398,7 +398,7 @@ export default function ProfilePage() {
                       />
                       <button
                         onClick={() => avatarInputRef.current?.click()}
-                        className="px-4 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-sm hover:bg-neutral-800 transition-colors"
+                        className="px-4 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-sm hover:bg-[#30302e] transition-colors"
                       >
                         อัปโหลดรูปภาพ
                       </button>
@@ -431,7 +431,7 @@ export default function ProfilePage() {
                   />
                   <button
                     onClick={() => bannerInputRef.current?.click()}
-                    className="px-4 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-sm hover:bg-neutral-800 transition-colors"
+                    className="px-4 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-sm hover:bg-[#30302e] transition-colors"
                   >
                     อัปโหลดรูปแบนเนอร์
                   </button>

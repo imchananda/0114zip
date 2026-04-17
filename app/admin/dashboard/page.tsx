@@ -121,7 +121,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-4 border-b border-[var(--color-border)] gap-4">
         <div>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)]">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">
             <span className="bg-gradient-to-r from-[#6cbfd0] to-[#fbdf74] bg-clip-text text-transparent">
               NamtanFilm
             </span>
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
         {/* Views chart */}
         <div className="lg:col-span-2 bg-[var(--color-surface)] rounded-xl p-6 border border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-lg font-medium">📊 Page Views</h2>
+            <h2 className="font-display text-lg font-normal">📊 Page Views</h2>
             <div className="flex gap-2">
               {[7, 14, 30].map((d) => (
                 <button
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
         {/* Social Stats Summary */}
         <div className="bg-[var(--color-surface)] rounded-xl p-6 border border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display text-lg font-medium">📱 Social Stats</h2>
+            <h2 className="font-display text-lg font-normal">📱 Social Stats</h2>
             <Link href="/admin/social-stats" className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
               แก้ไข →
             </Link>
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top countries */}
         <div className="bg-[var(--color-surface)] rounded-xl p-6 border border-[var(--color-border)]">
-          <h2 className="font-display text-lg font-medium mb-4">🌍 Top Countries</h2>
+          <h2 className="font-display text-lg font-normal mb-4">🌍 Top Countries</h2>
           <div className="space-y-3">
             {analytics?.topCountries?.length ? (
               analytics.topCountries.map(({ country, count }) => (
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
 
         {/* Top Pages */}
         <div className="bg-[var(--color-surface)] rounded-xl p-6 border border-[var(--color-border)]">
-          <h2 className="font-display text-lg font-medium mb-4">📄 Top Pages</h2>
+          <h2 className="font-display text-lg font-normal mb-4">📄 Top Pages</h2>
           <div className="space-y-2">
             {analytics?.topPages?.length ? (
               analytics.topPages.map(({ path, count }) => (

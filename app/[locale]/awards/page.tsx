@@ -116,7 +116,7 @@ export default function AwardsPage() {
                             <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                               award.result === 'won'
                                 ? 'bg-green-500/20 text-green-400'
-                                : 'bg-gray-500/20 text-gray-400'
+                                : 'bg-[#87867f]/20 text-[#87867f]'
                             }`}>
                               {award.result === 'won' ? '✓ Won' : 'Nominated'}
                             </span>

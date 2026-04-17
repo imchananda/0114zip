@@ -43,7 +43,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
   const trailerId = trailerLink ? getYouTubeId(trailerLink.url) : null;
 
   return (
-    <main className="min-h-screen bg-neutral-950 pb-20">
+    <main className="min-h-screen bg-[#141413] pb-20">
       {/* Hero Section */}
       <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
         {item.image ? (
@@ -56,10 +56,10 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             className="object-cover opacity-50"
           />
         ) : (
-          <div className="w-full h-full bg-neutral-900" />
+          <div className="w-full h-full bg-[#30302e]" />
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#141413] via-[#141413]/60 to-transparent"></div>
         
         <div className="absolute top-0 left-0 right-0 p-6 z-20">
           <Link href="/works" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors bg-black/20 hover:bg-black/40 backdrop-blur-md px-4 py-2 rounded-full text-sm">
@@ -71,7 +71,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 lg:p-20 z-10 w-full max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row gap-8 items-end">
             {/* Poster (Desktop Only) */}
-            <div className="hidden md:block relative w-64 shrink-0 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl bg-neutral-900 aspect-[3/4]">
+            <div className="hidden md:block relative w-64 shrink-0 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl bg-[#30302e] aspect-[3/4]">
               {item.image && (
                 <Image src={item.image} alt={item.title} fill sizes="256px" className="object-cover" />
               )}
@@ -93,7 +93,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
                 )}
               </div>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2 leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-normal font-display text-white mb-2 leading-tight">
                 {item.title}
               </h1>
               {item.title_thai && (
@@ -105,7 +105,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-4 mt-8">
                 {trailerLink && (
-                  <a href="#trailer" className="inline-flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-neutral-200 transition-colors">
+                  <a href="#trailer" className="inline-flex items-center gap-2 bg-white text-[#141413] px-6 py-3 rounded-xl font-medium hover:bg-[#e8e6dc] transition-colors">
                     <PlayCircle className="w-5 h-5" />
                     Watch Trailer
                   </a>
@@ -137,7 +137,7 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
               <Info className="w-6 h-6 text-namtan-primary" />
               Synopsis
             </h3>
-            <div className="text-neutral-300 text-lg leading-relaxed font-thai whitespace-pre-wrap bg-white/5 p-8 rounded-3xl border border-white/5">
+            <div className="text-[#b0aea5] text-lg leading-relaxed font-thai whitespace-pre-wrap bg-white/5 p-8 rounded-3xl border border-white/5">
               {item.description ? item.description : 'No description available for this content.'}
             </div>
           </section>
@@ -172,42 +172,42 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             <dl className="space-y-6">
               {item.role && (
                 <div>
-                  <dt className="text-neutral-500 text-sm mb-1 uppercase tracking-wider">Role</dt>
+                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Role</dt>
                   <dd className="text-white font-medium">{item.role}</dd>
                 </div>
               )}
               
               {item.event_type && (
                 <div>
-                  <dt className="text-neutral-500 text-sm mb-1 uppercase tracking-wider">Event Type</dt>
+                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Event Type</dt>
                   <dd className="text-white font-medium">{item.event_type}</dd>
                 </div>
               )}
               
               {item.venue && (
                 <div>
-                  <dt className="text-neutral-500 text-sm mb-1 uppercase tracking-wider">Venue</dt>
+                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Venue</dt>
                   <dd className="text-white font-medium">{item.venue}</dd>
                 </div>
               )}
               
               {item.date && (
                 <div>
-                  <dt className="text-neutral-500 text-sm mb-1 uppercase tracking-wider">Date</dt>
+                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Date</dt>
                   <dd className="text-white font-medium">{item.date}</dd>
                 </div>
               )}
               
               {item.magazine_name && (
                 <div>
-                  <dt className="text-neutral-500 text-sm mb-1 uppercase tracking-wider">Magazine</dt>
+                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Magazine</dt>
                   <dd className="text-white font-medium">{item.magazine_name} {item.issue && `(Issue: ${item.issue})`}</dd>
                 </div>
               )}
               
               {item.award_name && (
                 <div>
-                  <dt className="text-neutral-500 text-sm mb-1 uppercase tracking-wider">Award</dt>
+                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Award</dt>
                   <dd className="text-white font-medium">{item.award_name}</dd>
                 </div>
               )}

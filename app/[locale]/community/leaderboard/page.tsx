@@ -86,7 +86,7 @@ export default async function LeaderboardPage() {
                         )}
                         {/* Role badge if admin */}
                         {['admin', 'moderator'].includes(user.role) && (
-                          <div className="absolute -bottom-1 -right-1 bg-neutral-900 border border-[#6cbfd0] text-[#6cbfd0] rounded-full p-1" title={user.role}>
+                          <div className="absolute -bottom-1 -right-1 bg-[#30302e] border border-[#6cbfd0] text-[#6cbfd0] rounded-full p-1" title={user.role}>
                             <Shield className="w-3 h-3" />
                           </div>
                         )}
@@ -94,7 +94,7 @@ export default async function LeaderboardPage() {
 
                       {/* User Info */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base md:text-lg font-bold text-[var(--color-text)] truncate">
+                        <h3 className="text-base md:text-lg font-normal font-display text-[var(--color-text-primary)] truncate">
                           {user.display_name}
                         </h3>
                         <div className="flex items-center gap-3 text-xs text-[var(--color-muted)] mt-1">

@@ -103,6 +103,9 @@ export default async function HomePage() {
         })}
       </HomeSectionsWrapper>
 
+      {/* Footer divider */}
+      <div className="w-full h-px" style={{ background: 'linear-gradient(to right, transparent, var(--color-border), transparent)' }} />
+
       {/* Footer */}
       <Footer />
 

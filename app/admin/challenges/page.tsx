@@ -165,7 +165,7 @@ export default function AdminChallengesPage() {
 
   const ChallengeForm = ({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) => (
     <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 mb-6">
-      <h3 className="text-base font-semibold text-[var(--color-text-primary)] mb-4">
+      <h3 className="text-base font-normal text-[var(--color-text-primary)] mb-4">
         {editingId ? '✏️ แก้ไข Challenge' : '✨ สร้าง Challenge ใหม่'}
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -259,7 +259,7 @@ export default function AdminChallengesPage() {
           >
             ← Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)] flex items-center gap-2">
             🎮 จัดการ Challenges
           </h1>
           <p className="text-sm text-[var(--color-text-muted)]">สร้าง/แก้ไขกิจกรรมและมินิเกม</p>
@@ -357,7 +357,7 @@ export default function AdminChallengesPage() {
                   <div className="flex items-center gap-2 mb-0.5">
                     <span
                       className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                        ch.is_active ? 'bg-green-400' : 'bg-gray-500'
+                        ch.is_active ? 'bg-green-400' : 'bg-[#87867f]'
                       }`}
                     />
                     <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">{ch.title}</p>

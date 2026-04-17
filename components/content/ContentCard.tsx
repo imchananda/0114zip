@@ -119,11 +119,11 @@ export function ContentCard({ work }: ContentCardProps) {
     >
       <div
         className={cn(
-          'relative aspect-[2/3] rounded overflow-hidden bg-neutral-900',
+          'relative aspect-[2/3] rounded overflow-hidden bg-[#141413]',
           'transition-shadow duration-500',
           (isHovered || showOverlay)
-            ? isLight ? 'shadow-xl shadow-neutral-900/15' : 'shadow-2xl shadow-neutral-900/40'
-            : isLight ? 'shadow-md shadow-neutral-900/8'  : 'shadow-lg shadow-neutral-900/20'
+            ? isLight ? 'shadow-xl shadow-[#141413]/15' : 'shadow-2xl shadow-[#141413]/40'
+            : isLight ? 'shadow-md shadow-[#141413]/8'  : 'shadow-lg shadow-[#141413]/20'
         )}
       >
         {/* Image */}
@@ -150,7 +150,7 @@ export function ContentCard({ work }: ContentCardProps) {
 
         {/* Loading Skeleton */}
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900 animate-pulse" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#30302e] to-[#141413] animate-pulse" />
         )}
 
         {/* Base Gradient Overlay */}
@@ -234,7 +234,7 @@ export function ContentCard({ work }: ContentCardProps) {
               <div className="relative z-10 flex flex-col items-center gap-4 px-4">
                 {/* Title */}
                 <motion.h3
-                  className={isLight ? 'text-neutral-900 font-medium text-sm text-center leading-snug font-thai' : 'text-white font-medium text-sm text-center leading-snug font-thai'}
+                  className={isLight ? 'text-[#141413] font-medium text-sm text-center leading-snug font-thai' : 'text-white font-medium text-sm text-center leading-snug font-thai'}
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 10, opacity: 0 }}
@@ -245,7 +245,7 @@ export function ContentCard({ work }: ContentCardProps) {
 
                 {/* Streaming label */}
                 <motion.p
-                  className={isLight ? 'text-neutral-500 text-[10px] uppercase tracking-widest' : 'text-white/60 text-[10px] uppercase tracking-widest'}
+                  className={isLight ? 'text-[#87867f] text-[10px] uppercase tracking-widest' : 'text-white/60 text-[10px] uppercase tracking-widest'}
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 10, opacity: 0 }}
@@ -269,7 +269,7 @@ export function ContentCard({ work }: ContentCardProps) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className={isLight
-                        ? 'flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-100 border border-neutral-300 hover:bg-neutral-200 active:scale-95 transition-all cursor-pointer'
+                        ? 'flex items-center gap-2 px-3 py-2 rounded-lg bg-[#f5f4ed] border border-[#e8e6dc] hover:bg-[#e8e6dc] active:scale-95 transition-all cursor-pointer'
                         : 'flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 hover:border-white/40 active:scale-95 transition-all cursor-pointer'
                       }
                       onClick={(e) => e.stopPropagation()}
@@ -280,7 +280,7 @@ export function ContentCard({ work }: ContentCardProps) {
                       >
                         {platformConfig[link.platform]?.icon || '↗'}
                       </span>
-                      <span className={isLight ? 'text-neutral-800 text-xs tracking-wide font-medium' : 'text-white text-xs tracking-wide font-medium'}>
+                      <span className={isLight ? 'text-[#4d4c48] text-xs tracking-wide font-medium' : 'text-white text-xs tracking-wide font-medium'}>
                         {platformConfig[link.platform]?.label || 'Link'}
                       </span>
                     </a>

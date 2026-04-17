@@ -95,6 +95,22 @@ export default function BrandCollabsPage() {
   const handleImgUpload = async (key: 'both' | 'namtan' | 'film', file: File) => {
     setUploadingImg(key);
     try {
+      // Delete old image first if exists
+      const oldUrl = sectionImgs[key];
+      if (oldUrl) {
+        try {
+          // Extract storage path from public URL (after 'content-images/')
+          const match = oldUrl.match(/content-images\/(.+)$/);
+          if (match) {
+            await fetch('/api/admin/upload', {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ path: match[1] }),
+            });
+          }
+        } catch { /* ignore delete errors, proceed with upload */ }
+      }
+
       const fd = new FormData();
       fd.append('file', file);
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
@@ -257,7 +273,7 @@ export default function BrandCollabsPage() {
           <Link href="/admin/dashboard" className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 w-fit transition-colors">
             ← Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)] flex items-center gap-2">
             <Briefcase className="w-6 h-6 text-[#6cbfd0]" /> Brand Collaborations
           </h1>
           <p className="text-sm text-[var(--color-text-muted)]">รวบรวมแบรนด์ทุกแบรนด์ที่ศิลปินเคยร่วมงาน</p>
@@ -295,7 +311,7 @@ export default function BrandCollabsPage() {
       <div className="mb-8 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-4">
           <Image className="w-4 h-4 text-[#6cbfd0]" />
-          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">รูปภาพดาราประจำ Section</h3>
+          <h3 className="text-sm font-normal text-[var(--color-text-primary)]">รูปภาพดาราประจำ Section</h3>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#6cbfd0]/15 text-[#6cbfd0] ml-1">แยกจาก Profile</span>
         </div>
         <p className="text-xs text-[var(--color-text-muted)] mb-4">
@@ -506,7 +522,7 @@ export default function BrandCollabsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] sticky top-0 bg-[var(--color-surface)]">
-              <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
+              <h2 className="text-base font-normal text-[var(--color-text-primary)]">
                 {editingId ? 'แก้ไขแบรนด์' : 'เพิ่มแบรนด์ใหม่'}
               </h2>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-colors">

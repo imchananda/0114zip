@@ -100,7 +100,7 @@ export default function AdminProfilePage() {
           <Link href="/admin/dashboard" className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors flex items-center gap-2 w-fit">
             <span>←</span> Back to Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)]">📋 จัดการข้อมูลศิลปิน (Profile Editor)</h1>
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">📋 จัดการข้อมูลศิลปิน (Profile Editor)</h1>
           <p className="text-sm text-[var(--color-text-muted)]">แก้ไขประวัติส่วนตัว, การศึกษา และ Social Media</p>
         </div>
       </div>
@@ -237,7 +237,7 @@ function EditProfileModal({ profile, onClose, onSave, saving, supabase }: {
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-2xl bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6 max-h-[90vh] overflow-y-auto"
       >
-        <h2 className="font-display text-lg font-medium mb-6 border-b border-[var(--color-border)] pb-3">
+        <h2 className="font-display text-lg font-normal mb-6 border-b border-[var(--color-border)] pb-3">
           ✏️ แก้ไขประวัติส่วนตัว — {profile.nickname_th}
         </h2>
 
@@ -393,7 +393,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="col-span-1 md:col-span-2 mt-4 mb-2">
-      <h3 className="text-sm font-medium text-[var(--color-text-secondary)]">{children}</h3>
+      <h3 className="text-sm font-normal text-[var(--color-text-secondary)]">{children}</h3>
     </div>
   );
 }

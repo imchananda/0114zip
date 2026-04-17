@@ -168,7 +168,7 @@ export function HeroSlider() {
                 className={`
                   text-3xl sm:text-5xl md:text-7xl font-light tracking-[0.1em] sm:tracking-[0.2em]
                   font-display drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] mb-3
-                  ${isLight ? 'text-neutral-900' : 'text-white'}
+                  ${isLight ? 'text-[#141413]' : 'text-white'}
                 `}
               >
                 {locale === 'th' ? (slide.title_thai || slide.title) : slide.title}
@@ -179,7 +179,7 @@ export function HeroSlider() {
                 className={`
                   text-xs sm:text-sm tracking-[0.3em] uppercase
                   drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]
-                  ${isLight ? 'text-neutral-700' : 'text-white/70'}
+                  ${isLight ? 'text-[#5e5d59]' : 'text-white/70'}
                 `}
               >
                 {locale === 'th' ? (slide.subtitle_thai || slide.subtitle) : slide.subtitle}
@@ -199,7 +199,7 @@ export function HeroSlider() {
               w-10 h-10 rounded-full flex items-center justify-center
               backdrop-blur-sm border transition-all duration-200
               ${isLight
-                ? 'bg-white/70 hover:bg-white text-neutral-800 border-neutral-200'
+                ? 'bg-white/70 hover:bg-white text-[#4d4c48] border-[#f0eee6]'
                 : 'bg-black/30 hover:bg-black/60 text-white border-white/20'}
             `}
             aria-label="Previous slide"
@@ -213,7 +213,7 @@ export function HeroSlider() {
               w-10 h-10 rounded-full flex items-center justify-center
               backdrop-blur-sm border transition-all duration-200
               ${isLight
-                ? 'bg-white/70 hover:bg-white text-neutral-800 border-neutral-200'
+                ? 'bg-white/70 hover:bg-white text-[#4d4c48] border-[#f0eee6]'
                 : 'bg-black/30 hover:bg-black/60 text-white border-white/20'}
             `}
             aria-label="Next slide"

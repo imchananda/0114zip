@@ -116,7 +116,7 @@ export default function FollowerSnapshotsPage() {
           <Link href="/admin/social-stats" className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 w-fit transition-colors">
             ← Social Stats
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)] flex items-center gap-2">
             <TrendingUp className="w-6 h-6 text-[#6cbfd0]" /> ประวัติยอดผู้ติดตาม
           </h1>
           <p className="text-sm text-[var(--color-text-muted)]">บันทึกยอดฟอลโลเวอร์รายวัน แยกตามศิลปินและแพลตฟอร์ม</p>
@@ -141,7 +141,7 @@ export default function FollowerSnapshotsPage() {
       {/* Add form */}
       {showForm && (
         <div className="mb-6 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4">บันทึกยอดผู้ติดตามใหม่</h2>
+          <h2 className="text-sm font-normal text-[var(--color-text-primary)] mb-4">บันทึกยอดผู้ติดตามใหม่</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {/* Artist */}
             <div>

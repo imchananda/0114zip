@@ -589,14 +589,14 @@ export default function App() {
     <ViewStateProvider>
       <div className="min-h-screen bg-black text-white">
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
           
           * {
-            font-family: 'Inter', 'IBM Plex Sans Thai', sans-serif;
+            font-family: 'Inter', 'Noto Sans Thai', sans-serif;
           }
           
           h1, h2, h3, h4, h5, h6 {
-            font-family: 'Inter', 'IBM Plex Sans Thai', sans-serif;
+            font-family: Georgia, serif;
           }
           
           @keyframes fade-in {

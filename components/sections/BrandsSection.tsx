@@ -74,51 +74,18 @@ function BrandLogoItem({ brand, accent, index, onClick }: {
       transition={{ delay: index * 0.04, duration: 0.25 }}
       whileHover={{ y: -4, scale: 1.03 }}
       onClick={onClick}
-      className="group relative flex flex-col items-center gap-3 p-5 rounded-2xl transition-all duration-200 cursor-pointer"
-      style={{ background: 'rgba(0,0,0,0.025)' }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.background = accent + '18';
-        (e.currentTarget as HTMLElement).style.boxShadow = `0 6px 24px ${accent}22`;
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.025)';
-        (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-      }}
+      className="group relative flex flex-col items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer"
     >
       {/* Logo */}
-      <div className="w-28 h-20 flex items-center justify-center overflow-hidden">
+      <div className="w-16 h-12 flex items-center justify-center overflow-hidden">
         {brand.brand_logo
           // eslint-disable-next-line @next/next/no-img-element
           ? <img src={logoSrc(brand.brand_logo)} alt={brand.brand_name} className="w-full h-full object-contain" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute('style'); }} />
-          : <span className="text-4xl">🏷️</span>
+          : <span className="text-3xl">🏷️</span>
         }
-        {brand.brand_logo && <span className="text-4xl" style={{ display: 'none' }}>🏷️</span>}
+        {brand.brand_logo && <span className="text-3xl" style={{ display: 'none' }}>🏷️</span>}
       </div>
 
-      {/* Brand name */}
-      <p className="text-xs font-medium text-gray-500 group-hover:text-gray-800 text-center leading-tight line-clamp-2 transition-colors">
-        {brand.brand_name}
-      </p>
-
-      {/* Category badge */}
-      {brand.category && (
-        <span
-          className="text-[9px] px-2 py-0.5 rounded-full font-medium"
-          style={{ background: accent + '22', color: textAccent }}
-        >
-          {brand.category}
-        </span>
-      )}
-
-      {/* Media count */}
-      {brand.media_items && brand.media_items.length > 0 && (
-        <span
-          className="absolute top-2 right-2 text-[8px] px-1.5 py-0.5 rounded-full font-semibold"
-          style={{ background: accent + '30', color: textAccent }}
-        >
-          {brand.media_items.length}
-        </span>
-      )}
     </motion.button>
   );
 }
@@ -344,17 +311,16 @@ export function BrandsSection() {
 
   return (
     <section
-      className="relative w-full overflow-hidden"
-      style={{ backgroundColor: '#f8f7f5', borderTop: '1px solid rgba(0,0,0,0.06)' }}
+      className="relative w-full"
+      style={{ backgroundColor: 'var(--color-brands-bg)', borderTop: '1px solid var(--color-border)' }}
     >
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row" style={{ minHeight: '560px' }}>
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row">
 
         {/* ── Left: Artist photo ─────────────────────────────────────────── */}
         <AnimatePresence mode="wait">
           <motion.div
             key={portraitKey}
-            className="relative w-full md:w-[36%] flex-shrink-0 overflow-hidden"
-            style={{ minHeight: '340px' }}
+            className="relative w-full md:w-[42%] flex-shrink-0 flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -365,28 +331,34 @@ export function BrandsSection() {
               <img
                 src={portraitUrl}
                 alt={portraitKey === 'film' ? 'ฟิล์ม' : 'น้ำตาล'}
-                className="absolute inset-0 w-full h-full object-cover object-top"
+                className="w-full h-auto block"
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center" style={{ background: '#ede9e3' }}>
+              <div className="w-full flex items-center justify-center" style={{ minHeight: '480px', background: 'var(--color-surface)' }}>
                 <span className="text-7xl opacity-10">👤</span>
               </div>
             )}
-            {/* Right-edge fade into section bg */}
+            {/* Right-edge fade */}
             <div
-              className="absolute inset-y-0 right-0 w-20 hidden md:block pointer-events-none"
-              style={{ background: 'linear-gradient(to right, transparent, #f8f7f5)' }}
+              className="absolute inset-y-0 right-0 w-28 hidden md:block pointer-events-none"
+              style={{ background: 'linear-gradient(to right, transparent, var(--color-brands-bg))' }}
+            />
+            {/* Bottom fade */}
+            <div
+              className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+              style={{ background: 'linear-gradient(to bottom, transparent, var(--color-brands-bg))' }}
             />
           </motion.div>
         </AnimatePresence>
 
         {/* ── Right: Content ─────────────────────────────────────────────── */}
-        <div className="flex-1 px-8 md:px-10 lg:px-14 py-14 md:py-16 flex flex-col">
+        <div className="flex-1 px-10 md:px-14 lg:px-16 py-12 md:py-16 flex flex-col justify-center">
 
           {/* Title */}
           <motion.h2
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-8 leading-tight"
+            className="text-3xl md:text-4xl lg:text-5xl font-normal font-display mb-8 leading-tight"
+            style={{ color: 'var(--color-text-primary)' }}
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -404,13 +376,13 @@ export function BrandsSection() {
                     onClick={() => setArtistFilter(tab.value)}
                     className="text-sm md:text-base font-semibold transition-colors duration-200 px-1"
                     style={artistFilter === tab.value
-                      ? { color: '#111111' }
-                      : { color: 'rgba(0,0,0,0.28)' }}
+                      ? { color: 'var(--color-text-primary)' }
+                      : { color: 'var(--color-text-muted)' }}
                   >
                     {tab.label}
                   </button>
                   {i < ARTIST_TABS.length - 1 && (
-                    <span className="mx-3 text-gray-300 select-none text-sm">|</span>
+                    <span className="mx-3 select-none text-sm" style={{ color: 'var(--color-border)' }}>|</span>
                   )}
                 </span>
               ))}
@@ -444,27 +416,27 @@ export function BrandsSection() {
             )}
           </div>
 
-          {/* Brand Logo Grid */}
+          {/* Brand Logo Row */}
           {loading ? (
-            <div className="grid grid-cols-3 gap-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-28 rounded-2xl animate-pulse" style={{ background: 'rgba(0,0,0,0.06)' }} />
+            <div className="flex flex-wrap gap-6">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="w-20 h-16 rounded-xl animate-pulse" style={{ background: 'var(--color-surface)' }} />
               ))}
             </div>
           ) : filtered.length === 0 ? (
             <motion.div
-              className="flex flex-col items-center justify-center h-40 gap-2 rounded-2xl border border-gray-200"
+              className="flex flex-col items-center justify-center h-32 gap-2"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             >
               <span className="text-3xl">🏷️</span>
-              <p className="text-gray-400 text-sm">ไม่มีข้อมูล Brand{yearFilter ? ` ปี ${yearFilter}` : ''}</p>
+              <p className="text-[#87867f] text-sm">ไม่มีข้อมูล Brand{yearFilter ? ` ปี ${yearFilter}` : ''}</p>
             </motion.div>
           ) : (
             <AnimatePresence mode="popLayout">
               <motion.div
                 key={`${artistFilter}-${yearFilter}`}
                 layout
-                className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-2"
+                className="flex flex-wrap gap-x-2 gap-y-1"
               >
                 {filtered.map((brand, i) => (
                   <BrandLogoItem
@@ -480,7 +452,7 @@ export function BrandsSection() {
           )}
 
           {!loading && filtered.length > 0 && (
-            <p className="mt-5 text-xs text-gray-400">
+            <p className="mt-5 text-xs" style={{ color: 'var(--color-text-muted)' }}>
               {filtered.length} แบรนด์{yearFilter ? ` · ${yearFilter}` : ''}
             </p>
           )}

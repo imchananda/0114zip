@@ -355,7 +355,7 @@ function TimelineCard({
       <div className={`flex items-center gap-3 mb-3 ${align === 'right' ? 'md:justify-end' : 'md:justify-start'}`}>
         <span className="text-2xl">{event.icon}</span>
         <span 
-          className="text-[10px] font-bold tracking-widest uppercase px-3 py-1 rounded-full border"
+          className="text-[10px] font-medium tracking-widest uppercase px-3 py-1 rounded-full border"
           style={{ 
             backgroundColor: `${catConfig.color}15`, 
             color: catConfig.color,

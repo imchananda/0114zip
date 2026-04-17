@@ -161,7 +161,7 @@ export default function UserManagementPage() {
           <Link href="/admin/dashboard" className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] text-sm transition-colors">
             ← Dashboard
           </Link>
-          <h1 className="font-display text-xl font-medium">👥 จัดการผู้ใช้</h1>
+          <h1 className="font-display text-xl font-normal">👥 จัดการผู้ใช้</h1>
         </div>
       </div>
 
@@ -263,7 +263,7 @@ export default function UserManagementPage() {
                     <>
                       <button
                         onClick={() => setEditingUser(user)}
-                        className="px-3 py-1.5 bg-[var(--color-panel)] hover:bg-[var(--color-border)] rounded-lg text-xs text-neutral-300 transition-colors"
+                        className="px-3 py-1.5 bg-[var(--color-panel)] hover:bg-[var(--color-border)] rounded-lg text-xs text-[#b0aea5] transition-colors"
                       >
                         ✏️ แก้ไข
                       </button>
@@ -424,7 +424,7 @@ function EditUserModal({
             )}
           </div>
           <div>
-            <h2 className="font-display text-lg font-medium">{user.display_name}</h2>
+            <h2 className="font-display text-lg font-normal">{user.display_name}</h2>
             <p className="text-xs text-[var(--color-text-secondary)]">{user.email}</p>
           </div>
         </div>
@@ -440,7 +440,7 @@ function EditUserModal({
                 className={`flex items-center gap-2 px-4 py-3 rounded-lg border text-sm transition-all ${
                   role === key
                     ? 'border-[#6cbfd0] bg-[#6cbfd0]/10 text-[var(--color-text-primary)]'
-                    : 'border-[var(--color-border)] bg-neutral-800/50 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]'
+                    : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]'
                 }`}
               >
                 <span>{cfg.icon}</span>
@@ -542,7 +542,7 @@ function BanConfirmModal({
           <span className="text-3xl">🚫</span>
         </div>
 
-        <h2 className="font-display text-lg font-medium mb-2">แบนผู้ใช้</h2>
+        <h2 className="font-display text-lg font-normal mb-2">แบนผู้ใช้</h2>
         <p className="text-sm text-[var(--color-text-muted)] mb-1">
           ต้องการแบน <strong className="text-[var(--color-text-primary)]">{user.display_name}</strong>?
         </p>
@@ -598,7 +598,7 @@ function DeleteConfirmModal({
           <span className="text-3xl">🗑️</span>
         </div>
 
-        <h2 className="font-display text-lg font-medium mb-2 text-red-500">ลบผู้ใช้อย่างถาวร</h2>
+        <h2 className="font-display text-lg font-normal mb-2 text-red-500">ลบผู้ใช้อย่างถาวร</h2>
         <p className="text-sm text-[var(--color-text-muted)] mb-1">
           ต้องการลบ <strong className="text-[var(--color-text-primary)]">{user.display_name}</strong>?
         </p>

@@ -78,7 +78,7 @@ export default function AdminTimelinePage() {
 
   const renderForm = () => (
     <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-6 mb-6 mt-4 relative">
-      <h3 className="text-lg font-medium mb-4">{isCreating ? '✨ เพิ่มเหตุการณ์ใหม่' : '✏️ แก้ไขเหตุการณ์'}</h3>
+      <h3 className="text-lg font-normal mb-4">{isCreating ? '✨ เพิ่มเหตุการณ์ใหม่' : '✏️ แก้ไขเหตุการณ์'}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         
         <div className="space-y-1">
@@ -210,7 +210,7 @@ export default function AdminTimelinePage() {
           <Link href="/admin/dashboard" className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors flex items-center gap-2 w-fit">
             <span>←</span> Back to Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)]">📖 จัดการ Timeline (Timeline Editor)</h1>
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">📖 จัดการ Timeline (Timeline Editor)</h1>
           <p className="text-sm text-[var(--color-text-muted)]">เพิ่ม/แก้ไขประวัติการเดินทางของศิลปิน</p>
         </div>
         {!isCreating && !editingId && (
@@ -248,7 +248,7 @@ export default function AdminTimelinePage() {
                    
                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                         <h4 className="font-medium text-[var(--color-text-primary)] truncate">{evt.titleThai} / {evt.title}</h4>
+                         <h4 className="font-normal text-[var(--color-text-primary)] truncate">{evt.titleThai} / {evt.title}</h4>
                          <span className={`text-[9px] px-1.5 py-0.5 rounded-sm uppercase tracking-wider ${
                             evt.actor === 'both' ? 'bg-[#6cbfd0]/20 text-[#6cbfd0]' : 
                             evt.actor === 'namtan' ? 'bg-[var(--namtan-teal)]/20 text-[var(--namtan-teal)]' : 

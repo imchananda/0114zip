@@ -68,7 +68,7 @@ export function Mascot({
         {/* Sleeping ZZZ overlay */}
         {state === 'sleeping' && (
           <motion.span
-            className="absolute -top-2 -right-2 text-xs font-bold text-blue-300"
+            className="absolute -top-2 -right-2 text-xs font-bold text-[#8ed0dd]"
             animate={{ opacity: [0, 1, 0], y: [0, -8, -16] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 0.5 }}
           >

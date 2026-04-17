@@ -159,7 +159,7 @@ export default function StatsPage() {
           {/* ── Page Header ──────────────────────────────────── */}
           <div className="flex items-center justify-between py-7">
             <div>
-              <h1 className="font-display text-2xl font-semibold text-[var(--color-text)]">Engagement Dashboard</h1>
+              <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">Engagement Dashboard</h1>
               <p className="text-sm text-[var(--color-muted)] mt-0.5">น้ำตาล · ฟิล์ม · ลูน่า</p>
             </div>
             <Link href="/" className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors">← กลับ</Link>

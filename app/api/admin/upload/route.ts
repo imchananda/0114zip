@@ -52,3 +52,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }
+
+// DELETE /api/admin/upload — delete image from Supabase Storage
+export async function DELETE(req: NextRequest) {
+  if (!(await verifyAdmin(req))) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { path: filePath } = await req.json();
+    if (!filePath || typeof filePath !== 'string') {
+      return NextResponse.json({ error: 'No path provided' }, { status: 400 });
+    }
+
+    // Sanitize: only allow paths within uploads/
+    const normalised = filePath.replace(/\\/g, '/');
+    if (!normalised.startsWith('uploads/') || normalised.includes('..')) {
+      return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
+    }
+
+    const admin = getAdminClient();
+    const { error } = await admin.storage.from('content-images').remove([normalised]);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
+  }
+}

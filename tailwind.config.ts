@@ -10,26 +10,70 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['var(--font-display)', 'Inter', 'sans-serif'],
-        thai: ['var(--font-thai)', 'IBM Plex Sans Thai', 'sans-serif'],
-        body: ['var(--font-body)', 'Inter', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'serif'],
+        georgia: ['Georgia', 'serif'],
+        thai: ['var(--font-thai)', 'Noto Sans Thai', 'sans-serif'],
+        body: ['var(--font-body)', 'Inter', 'Noto Sans Thai', 'sans-serif'],
       },
       fontSize: {
+        // DESIGN-ntf.md typography scale
+        'micro':    ['0.6rem',   { lineHeight: '1.60' }],   // 9.6px
+        'overline': ['0.63rem',  { lineHeight: '1.60', letterSpacing: '0.5px' }], // 10px
+        'label':    ['0.75rem',  { lineHeight: '1.50', letterSpacing: '0.12px' }], // 12px
+        'caption':  ['0.88rem',  { lineHeight: '1.43' }],   // 14px
+        'body-sm':  ['0.94rem',  { lineHeight: '1.60' }],   // 15px
+        'body':     ['1rem',     { lineHeight: '1.60' }],   // 16px
+        'body-lg':  ['1.06rem',  { lineHeight: '1.60' }],   // 17px
+        'body-xl':  ['1.25rem',  { lineHeight: '1.60' }],   // 20px
+        'feature':  ['1.3rem',   { lineHeight: '1.20' }],   // 20.8px
+        'sub-sm':   ['1.6rem',   { lineHeight: '1.20' }],   // 25.6px
+        'sub':      ['2rem',     { lineHeight: '1.10' }],   // 32px
+        'sub-lg':   ['2.3rem',   { lineHeight: '1.30' }],   // 36px
+        'section':  ['3.25rem',  { lineHeight: '1.20' }],   // 52px
+        'display':  ['4rem',     { lineHeight: '1.10' }],   // 64px
+        // Tailwind defaults kept for compatibility
         xs:    ['0.875rem',  { lineHeight: '1.25rem' }],
         sm:    ['1rem',      { lineHeight: '1.5rem' }],
-        base:  ['1.125rem', { lineHeight: '1.75rem' }],
-        lg:    ['1.25rem',  { lineHeight: '1.75rem' }],
-        xl:    ['1.5rem',   { lineHeight: '2rem' }],
-        '2xl': ['1.875rem', { lineHeight: '2.25rem' }],
-        '3xl': ['2.25rem',  { lineHeight: '2.5rem' }],
-        '4xl': ['3rem',     { lineHeight: '1' }],
-        '5xl': ['3.75rem',  { lineHeight: '1' }],
-        '6xl': ['4.5rem',   { lineHeight: '1' }],
-        '7xl': ['6rem',     { lineHeight: '1' }],
-        '8xl': ['8rem',     { lineHeight: '1' }],
-        '9xl': ['10rem',    { lineHeight: '1' }],
+        base:  ['1.125rem',  { lineHeight: '1.75rem' }],
+        lg:    ['1.25rem',   { lineHeight: '1.75rem' }],
+        xl:    ['1.5rem',    { lineHeight: '2rem' }],
+        '2xl': ['1.875rem',  { lineHeight: '2.25rem' }],
+        '3xl': ['2.25rem',   { lineHeight: '2.5rem' }],
+        '4xl': ['3rem',      { lineHeight: '1' }],
+        '5xl': ['3.75rem',   { lineHeight: '1' }],
+        '6xl': ['4.5rem',    { lineHeight: '1' }],
+        '7xl': ['6rem',      { lineHeight: '1' }],
+        '8xl': ['8rem',      { lineHeight: '1' }],
+        '9xl': ['10rem',     { lineHeight: '1' }],
+      },
+      borderRadius: {
+        'none': '0',
+        'sharp': '4px',
+        'sm':    '6px',
+        DEFAULT: '8px',
+        'md':    '8.5px',
+        'lg':    '12px',
+        'xl':    '16px',
+        '2xl':   '24px',
+        '3xl':   '32px',
+        'full':  '9999px',
       },
       colors: {
+        // ---- Design System: Surface & Background ----
+        parchment:  '#f5f4ed',
+        ivory:      '#faf9f5',
+        'warm-sand': '#e8e6dc',
+        'dark-surface': '#30302e',
+        'deep-dark': '#141413',
+        // ---- Design System: Neutrals ----
+        'charcoal-warm': '#4d4c48',
+        'olive-gray':    '#5e5d59',
+        'stone-gray':    '#87867f',
+        'dark-warm':     '#3d3d3a',
+        'warm-silver':   '#b0aea5',
+        // ---- Design System: Borders ----
+        'border-cream': '#f0eee6',
+        'border-warm':  '#e8e6dc',
         // ---- Brand: Namtan = Teal ----
         namtan: {
           primary:   '#6cbfd0',

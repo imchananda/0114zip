@@ -53,7 +53,7 @@ export default function AdminPage() {
               <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 flex items-center justify-center">
                 <span className="text-3xl">🔒</span>
               </div>
-              <p className="text-neutral-300 text-sm">
+              <p className="text-[#b0aea5] text-sm">
                 บัญชีของคุณไม่มีสิทธิ์เข้าถึง Admin Panel
               </p>
               <p className="text-[var(--color-text-secondary)] text-xs">
@@ -71,7 +71,7 @@ export default function AdminPage() {
               <div className="w-16 h-16 mx-auto rounded-full bg-[#6cbfd0]/10 flex items-center justify-center">
                 <span className="text-3xl">👤</span>
               </div>
-              <p className="text-neutral-300 text-sm">
+              <p className="text-[#b0aea5] text-sm">
                 กรุณาเข้าสู่ระบบด้วยบัญชี Admin หรือ Moderator
               </p>
               <Link

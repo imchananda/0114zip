@@ -146,7 +146,7 @@ export default function IgPostsAdminPage() {
           <Link href="/admin/social-stats" className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 w-fit transition-colors">
             ← Social Stats
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)] flex items-center gap-2">
             <Instagram className="w-6 h-6 text-[#6cbfd0]" /> IG Posts & EMV
           </h1>
           <p className="text-sm text-[var(--color-text-muted)]">บันทึก engagement ของ 6 โพสล่าสุดต่อศิลปิน พร้อมตัวเลข EMV</p>
@@ -260,7 +260,7 @@ export default function IgPostsAdminPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl w-full max-w-xl shadow-2xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
-              <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
+              <h2 className="text-base font-normal text-[var(--color-text-primary)]">
                 {editingId ? 'แก้ไขโพส' : 'เพิ่มโพสใหม่'}
               </h2>
               <button onClick={() => setShowModal(false)} className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] transition-colors">

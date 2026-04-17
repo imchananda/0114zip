@@ -115,13 +115,13 @@ export function SchedulePreview() {
                         {/* Date pill */}
                         <div className="w-14 h-14 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
                           style={{ background: `${style.color}12` }}>
-                          <span className="text-[1.1rem] font-bold" style={{ color: style.color }}>{d.day}</span>
+                          <span className="text-[1.1rem] font-medium" style={{ color: style.color }}>{d.day}</span>
                           <span className="text-[9px] text-[var(--color-text)] opacity-60 font-medium tracking-wider">{d.month}</span>
                         </div>
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                            <span className="text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full" style={{ background: `${style.color}20`, color: style.color }}>
+                            <span className="text-[9px] font-medium tracking-wider uppercase px-1.5 py-0.5 rounded-full" style={{ background: `${style.color}20`, color: style.color }}>
                               {style.icon} {style.label}
                             </span>
                             {event.actors.includes('both') ? (

@@ -179,7 +179,7 @@ export default function HeroSlidesAdminPage() {
           >
             ← Back to Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)]">🖼️ Hero Slides</h1>
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">🖼️ Hero Slides</h1>
           <p className="text-sm text-[var(--color-text-muted)]">จัดการภาพสไลด์แบนเนอร์หน้าหลัก — เพิ่ม ลบ แก้ไข เปิด/ปิด และลิงค์ได้</p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -261,13 +261,13 @@ export default function HeroSlidesAdminPage() {
                   <p className="text-xs text-[var(--color-text-muted)] truncate">{slide.subtitle}</p>
                 )}
                 {slide.link && (
-                  <p className="text-xs text-blue-400 truncate mt-0.5">🔗 {slide.link}</p>
+                  <p className="text-xs text-[#6cbfd0] truncate mt-0.5">🔗 {slide.link}</p>
                 )}
               </div>
 
               {/* Status badge */}
               <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
-                slide.enabled ? 'bg-green-500/15 text-green-600' : 'bg-neutral-500/15 text-neutral-500'
+                slide.enabled ? 'bg-green-500/15 text-green-600' : 'bg-[#87867f]/15 text-[#87867f]'
               }`}>
                 {slide.enabled ? 'เปิด' : 'ปิด'}
               </span>
@@ -294,7 +294,7 @@ export default function HeroSlidesAdminPage() {
                   className={`p-1.5 rounded-lg transition-all text-sm ${
                     slide.enabled
                       ? 'text-green-500 hover:bg-green-500/10'
-                      : 'text-neutral-400 hover:bg-[var(--color-panel)]'
+                      : 'text-[#87867f] hover:bg-[var(--color-panel)]'
                   }`}
                   title={slide.enabled ? 'ปิด slide' : 'เปิด slide'}
                 >
@@ -304,7 +304,7 @@ export default function HeroSlidesAdminPage() {
                 {/* Edit */}
                 <button
                   onClick={() => { setIsNew(false); setEditing({ ...slide }); }}
-                  className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-blue-400 hover:bg-blue-500/10 transition-all"
+                  className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[#6cbfd0] hover:bg-[#6cbfd0]/10 transition-all"
                   title="แก้ไข"
                 >✏️</button>
 
@@ -326,7 +326,7 @@ export default function HeroSlidesAdminPage() {
           <div className="w-full max-w-xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-2xl">
             {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
-              <h2 className="font-display text-lg font-medium">
+              <h2 className="font-display text-lg font-normal">
                 {isNew ? '+ เพิ่ม Slide ใหม่' : '✏️ แก้ไข Slide'}
               </h2>
               <button

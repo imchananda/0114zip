@@ -89,9 +89,9 @@ function GoalBar({ icon, label, value, goal }: GoalBarProps) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center text-xs">
-        <span className="flex items-center gap-1 text-neutral-400">{icon} {label}</span>
+        <span className="flex items-center gap-1 text-[#87867f]">{icon} {label}</span>
         <span className={`font-medium tabular-nums ${done ? 'text-green-400' : 'text-white'}`}>
-          {formatNum(value)}<span className="text-neutral-500">/{formatNum(goal)}</span>
+          {formatNum(value)}<span className="text-[#87867f]">/{formatNum(goal)}</span>
           <span className={`ml-1.5 ${done ? 'text-green-400' : 'text-[#6cbfd0]'}`}>{pct.toFixed(0)}%</span>
         </span>
       </div>
@@ -115,7 +115,7 @@ function PostCard({ post, viewMode }: { post: MediaPost; viewMode: 'grid' | 'lis
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className={`group bg-neutral-900 border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden transition-all hover:shadow-xl ${viewMode === 'list' ? 'flex flex-row items-stretch' : 'flex flex-col'}`}
+      className={`group bg-[#30302e] border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden transition-all hover:shadow-xl ${viewMode === 'list' ? 'flex flex-row items-stretch' : 'flex flex-col'}`}
     >
       <a href={post.post_url} target="_blank" rel="noopener noreferrer"
         className={`relative bg-black flex-shrink-0 ${viewMode === 'list' ? 'w-36 h-32' : 'w-full aspect-video'}`}
@@ -123,7 +123,7 @@ function PostCard({ post, viewMode }: { post: MediaPost; viewMode: 'grid' | 'lis
         {post.thumbnail ? (
           <img src={post.thumbnail} alt={post.title ?? 'media'} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" loading="lazy" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-700">
+          <div className="w-full h-full flex items-center justify-center text-[#5e5d59]">
             <Icon className="w-10 h-10" />
           </div>
         )}
@@ -142,18 +142,18 @@ function PostCard({ post, viewMode }: { post: MediaPost; viewMode: 'grid' | 'lis
 
       <div className="p-4 flex-1 flex flex-col gap-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-white/10 text-neutral-300 rounded-full">
+          <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-white/10 text-[#b0aea5] rounded-full">
             {post.artist === 'both' ? 'คู่จิ้น' : post.artist === 'namtan' ? 'น้ำตาล' : 'ฟิล์ม'}
           </span>
-          <span className="text-[10px] text-neutral-500 ml-auto">
+          <span className="text-[10px] text-[#87867f] ml-auto">
             {new Date(post.post_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
           </span>
         </div>
-        <p className="text-sm text-neutral-200 line-clamp-2 leading-relaxed font-thai flex-1">
+        <p className="text-sm text-[#e8e6dc] line-clamp-2 leading-relaxed font-thai flex-1">
           {post.title || post.caption || '—'}
         </p>
 
-        <div className="flex items-center gap-3 text-[11px] text-neutral-500 font-medium pt-2 border-t border-white/5">
+        <div className="flex items-center gap-3 text-[11px] text-[#87867f] font-medium pt-2 border-t border-white/5">
           {post.views > 0    && <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatNum(post.views)}</span>}
           <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{formatNum(post.likes)}</span>
           <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{formatNum(post.comments)}</span>
@@ -201,39 +201,39 @@ function EventBlock({ event, artistFilter, viewMode }: { event: MediaEvent; arti
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-      <div className="bg-neutral-900 border border-white/10 rounded-2xl p-5 mb-4">
+      <div className="bg-[#30302e] border border-white/10 rounded-2xl p-5 mb-4">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-white font-thai">{event.title}</h2>
+            <h2 className="text-lg font-normal font-display text-white font-thai">{event.title}</h2>
             {dateRange && (
-              <p className="flex items-center gap-1.5 text-xs text-neutral-500 mt-1">
+              <p className="flex items-center gap-1.5 text-xs text-[#87867f] mt-1">
                 <CalendarDays className="w-3.5 h-3.5" /> {dateRange}
               </p>
             )}
             {event.description && (
-              <p className="text-sm text-neutral-400 mt-1.5 font-thai">{event.description}</p>
+              <p className="text-sm text-[#87867f] mt-1.5 font-thai">{event.description}</p>
             )}
           </div>
           <button
             onClick={() => setExpanded(v => !v)}
-            className="shrink-0 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 transition-colors"
+            className="shrink-0 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#87867f] transition-colors"
           >
             {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
 
         <div className="flex flex-wrap gap-3 text-sm mb-4">
-          {total.views > 0  && <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-neutral-300"><Eye className="w-3.5 h-3.5 text-neutral-500" />{formatNum(total.views)}</div>}
-          <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-neutral-300"><Heart className="w-3.5 h-3.5 text-red-400" />{formatNum(total.likes)}</div>
-          <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-neutral-300"><MessageCircle className="w-3.5 h-3.5 text-blue-400" />{formatNum(total.comments)}</div>
-          {total.shares > 0 && <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-neutral-300"><Share2 className="w-3.5 h-3.5 text-green-400" />{formatNum(total.shares)}</div>}
-          {total.saves > 0  && <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-neutral-300"><Bookmark className="w-3.5 h-3.5 text-amber-400" />{formatNum(total.saves)}</div>}
-          <div className="flex items-center gap-1 bg-white/5 rounded-lg px-3 py-1.5 text-neutral-500 text-xs">{visiblePosts.length} โพสต์</div>
+          {total.views > 0  && <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-[#b0aea5]"><Eye className="w-3.5 h-3.5 text-[#87867f]" />{formatNum(total.views)}</div>}
+          <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-[#b0aea5]"><Heart className="w-3.5 h-3.5 text-red-400" />{formatNum(total.likes)}</div>
+          <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-[#b0aea5]"><MessageCircle className="w-3.5 h-3.5 text-[#6cbfd0]" />{formatNum(total.comments)}</div>
+          {total.shares > 0 && <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-[#b0aea5]"><Share2 className="w-3.5 h-3.5 text-green-400" />{formatNum(total.shares)}</div>}
+          {total.saves > 0  && <div className="flex items-center gap-1.5 bg-white/5 rounded-lg px-3 py-1.5 text-[#b0aea5]"><Bookmark className="w-3.5 h-3.5 text-amber-400" />{formatNum(total.saves)}</div>}
+          <div className="flex items-center gap-1 bg-white/5 rounded-lg px-3 py-1.5 text-[#87867f] text-xs">{visiblePosts.length} โพสต์</div>
         </div>
 
         {hasGoals && (
           <div className="space-y-2.5 pt-3 border-t border-white/10">
-            <p className="text-xs text-neutral-500 font-medium uppercase tracking-wider mb-1">เป้าหมายรวมกิจกรรม</p>
+            <p className="text-xs text-[#87867f] font-medium uppercase tracking-wider mb-1">เป้าหมายรวมกิจกรรม</p>
             {total.goal_views > 0    && <GoalBar icon={<Eye className="w-3 h-3 inline"/>}            label="Views"    value={total.views}    goal={total.goal_views}    />}
             {total.goal_likes > 0    && <GoalBar icon={<Heart className="w-3 h-3 inline"/>}          label="Likes"    value={total.likes}    goal={total.goal_likes}    />}
             {total.goal_comments > 0 && <GoalBar icon={<MessageCircle className="w-3 h-3 inline"/>}  label="Comments" value={total.comments} goal={total.goal_comments} />}
@@ -300,18 +300,18 @@ export default function MediaPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen pt-24 pb-16 bg-gradient-to-b from-neutral-950 to-neutral-900">
+      <main className="min-h-screen pt-24 pb-16 bg-gradient-to-b from-[#141413] to-[#30302e]">
         <div className="container mx-auto px-6 md:px-12 lg:px-20 max-w-7xl">
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
-              <Link href="/" className="inline-flex items-center gap-1.5 text-neutral-400 hover:text-white transition-colors mb-4 text-sm">
+              <Link href="/" className="inline-flex items-center gap-1.5 text-[#87867f] hover:text-white transition-colors mb-4 text-sm">
                 ← กลับหน้าหลัก
               </Link>
-              <h1 className="text-4xl md:text-5xl font-light text-white mb-2 font-thai">
+              <h1 className="text-4xl md:text-5xl font-normal font-display text-white mb-2 font-thai">
                 Media <span className="bg-gradient-to-r from-[#6cbfd0] to-[#fbdf74] bg-clip-text text-transparent">Posts</span>
               </h1>
-              <p className="text-neutral-400 text-sm">
+              <p className="text-[#87867f] text-sm">
                 อัปเดตโพสต์และยอด Engagement แยกตามกิจกรรม
               </p>
             </div>
@@ -321,17 +321,17 @@ export default function MediaPage() {
                   <button
                     key={a.id}
                     onClick={() => setArtistFilter(a.id)}
-                    className={`px-3 py-1.5 rounded-full text-sm transition-all ${artistFilter === a.id ? 'bg-white/20 text-white' : 'text-neutral-400 hover:text-white'}`}
+                    className={`px-3 py-1.5 rounded-full text-sm transition-all ${artistFilter === a.id ? 'bg-white/20 text-white' : 'text-[#87867f] hover:text-white'}`}
                   >
                     {a.label}
                   </button>
                 ))}
               </div>
               <div className="flex gap-1">
-                <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-white'}`}>
+                <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-white/10 text-white' : 'text-[#87867f] hover:text-white'}`}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 </button>
-                <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white/10 text-white' : 'text-neutral-500 hover:text-white'}`}>
+                <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white/10 text-white' : 'text-[#87867f] hover:text-white'}`}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                 </button>
               </div>
@@ -341,18 +341,18 @@ export default function MediaPage() {
           {loading ? (
             <div className="space-y-6">
               {[1, 2].map(i => (
-                <div key={i} className="bg-neutral-900 rounded-2xl animate-pulse h-48" />
+                <div key={i} className="bg-[#30302e] rounded-2xl animate-pulse h-48" />
               ))}
             </div>
           ) : events.length === 0 ? (
             <div className="text-center py-20 bg-white/[0.03] border border-white/10 rounded-3xl">
               <Mascot state="sleeping" size={100} showCaption className="mx-auto mb-6" />
               <h3 className="text-xl text-white mb-2 font-thai">ยังไม่มีกิจกรรม</h3>
-              <p className="text-neutral-500 text-sm">แอดมินยังไม่ได้เพิ่มกิจกรรมสื่อ</p>
+              <p className="text-[#87867f] text-sm">ยังไม่มีกิจกรรม</p>
             </div>
           ) : (
             <>
-              <p className="text-sm text-neutral-500 mb-8">{events.length} กิจกรรม · {totalPosts} โพสต์</p>
+              <p className="text-sm text-[#87867f] mb-8">{events.length} กิจกรรม · {totalPosts} โพสต์</p>
               {events.map(event => (
                 <EventBlock key={event.id} event={event} artistFilter={artistFilter} viewMode={viewMode} />
               ))}

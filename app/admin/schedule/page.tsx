@@ -108,7 +108,7 @@ export default function AdminSchedulePage() {
           >
             ← Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)] flex items-center gap-2">
             <Calendar className="w-6 h-6 text-namtan-primary" /> ตารางงาน
           </h1>
           <p className="text-sm text-[var(--color-text-muted)]">จัดการตารางงาน คิวออกงาน และกิจกรรมของน้ำตาลและฟิล์ม</p>
@@ -226,7 +226,7 @@ export default function AdminSchedulePage() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] truncate">{item.title}</h3>
+                <h3 className="text-sm font-normal text-[var(--color-text-primary)] truncate">{item.title}</h3>
                 {item.title_thai && <p className="text-xs text-[var(--color-text-muted)] truncate">{item.title_thai}</p>}
                 <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-text-muted)]">
                   <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDisplayDate(item.date)}</span>
@@ -446,7 +446,7 @@ function ScheduleFormModal({ item, onClose, onSave }: { item: ScheduleEvent | nu
         onSubmit={handleSubmit}
         className="w-full max-w-xl bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-6 md:p-8 max-h-[90vh] overflow-y-auto"
       >
-        <h2 className="font-display text-xl font-medium text-[var(--color-text-primary)] mb-6 flex items-center gap-2">
+        <h2 className="font-display text-xl font-normal text-[var(--color-text-primary)] mb-6 flex items-center gap-2">
           <Calendar className="w-5 h-5 text-namtan-primary" />
           {isEdit ? 'แก้ไขคิวงาน' : 'เพิ่มคิวงานใหม่'}
         </h2>
@@ -501,14 +501,14 @@ function ScheduleFormModal({ item, onClose, onSave }: { item: ScheduleEvent | nu
             <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="w-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-2.5 focus:border-[var(--namtan-teal)] focus:ring-1 focus:ring-[var(--namtan-teal)] focus:outline-none transition-all text-sm min-h-[80px]" placeholder="เพิ่มข้อมูลเพิ่มเติม..." />
           </Field>
 
-          <label className="flex items-center gap-2 text-sm text-neutral-300 mt-2 hover:text-[var(--color-text-primary)] cursor-pointer w-max">
+          <label className="flex items-center gap-2 text-sm text-[#b0aea5] mt-2 hover:text-[var(--color-text-primary)] cursor-pointer w-max">
             <input type="checkbox" checked={form.visible} onChange={(e) => setForm((f) => ({ ...f, visible: e.target.checked }))} className="w-4 h-4 rounded border-white/20 bg-black" />
             เปิดแสดงผลหน้าตารางงานทันที
           </label>
         </div>
 
         <div className="flex gap-3 mt-8 pt-6 border-t border-white/10">
-          <button type="button" onClick={onClose} className="flex-1 py-3 bg-[var(--color-panel)] text-neutral-300 font-medium rounded-xl hover:bg-[var(--color-border)] transition-colors">
+          <button type="button" onClick={onClose} className="flex-1 py-3 bg-[var(--color-panel)] text-[#b0aea5] font-medium rounded-xl hover:bg-[var(--color-border)] transition-colors">
             ยกเลิก
           </button>
           <button type="submit" disabled={saving} className="flex-1 py-3 bg-namtan-primary text-black font-bold rounded-xl hover:brightness-110 disabled:opacity-50 transition-colors">

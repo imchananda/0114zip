@@ -15,14 +15,36 @@
    CSS Custom Properties — theme-aware tokens
    ============================================================ */
 :root {
-  --font-display: var(--font-georgia), var(--font-noto-thai), 'Georgia', serif;
+  --font-display: 'Georgia', var(--font-noto-thai), Georgia, serif;
   --font-thai:    var(--font-noto-thai), 'Noto Sans Thai', sans-serif;
   --font-body:    var(--font-inter), var(--font-noto-thai), 'Inter', 'Noto Sans Thai', sans-serif;
 
   /* Brand */
   --namtan-teal:   #6cbfd0;
+  --namtan-teal-light: #8ed0dd;
+  --namtan-teal-dark:  #4a9aab;
   --film-gold:     #fbdf74;
+  --film-gold-light: #fce89a;
+  --film-gold-dark:  #d4b84e;
   --nf-gradient:   linear-gradient(135deg, #6cbfd0 0%, #fbdf74 100%);
+
+  /* Surfaces */
+  --parchment:     #f5f4ed;
+  --ivory:         #faf9f5;
+  --warm-sand:     #e8e6dc;
+
+  /* Text */
+  --near-black:    #141413;
+  --charcoal-warm: #4d4c48;
+  --olive-gray:    #5e5d59;
+  --stone-gray:    #87867f;
+  --dark-warm:     #3d3d3a;
+  --warm-silver:   #b0aea5;
+
+  /* Borders */
+  --border-cream:  #f0eee6;
+  --border-warm:   #e8e6dc;
+  --border-dark:   #30302e;
 }
 
 /* ============================================================
@@ -41,6 +63,8 @@
   --skeleton-mid:       #3d3d3a;
   --skeleton-to:        #30302e;
   --selection-bg:       rgba(108, 191, 208, 0.30); /* Namtan Glow */
+  --color-footer-bg:    #1e1e1c; /* Dark Footer */
+  --color-brands-bg:    #1a1a18; /* Dark Brands Section */
 }
 
 /* ============================================================
@@ -58,6 +82,8 @@
   --skeleton-mid:       #e8e6dc;
   --skeleton-to:        #f0eee6;
   --selection-bg:       rgba(108, 191, 208, 0.20);
+  --color-footer-bg:    #ebe8de; /* Light Footer */
+  --color-brands-bg:    #faf9f5; /* Light Brands Section */
 }
 
 /* ============================================================

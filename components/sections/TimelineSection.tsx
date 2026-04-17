@@ -53,7 +53,7 @@ export function TimelineSection() {
             case 'award': return { bg: 'bg-[#fbdf74]/20', text: 'text-[#fbdf74]' };
             case 'event': return { bg: 'bg-green-500/20', text: 'text-green-600' };
             case 'milestone': return { bg: 'bg-pink-500/20', text: 'text-pink-600' };
-            default: return { bg: 'bg-neutral-500/10', text: 'text-neutral-600' };
+            default: return { bg: 'bg-[#87867f]/10', text: 'text-[#5e5d59]' };
         }
     };
 

@@ -9,7 +9,7 @@ export default function AdminFashionPage() {
         <Link href="/admin/dashboard" className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors flex items-center gap-1.5 w-fit">
           ← Dashboard
         </Link>
-        <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)] flex items-center gap-2">
+        <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)] flex items-center gap-2">
           👗 Fashions
         </h1>
         <p className="text-sm text-[var(--color-text-muted)]">จัดการข้อมูลแฟชั่นของน้ำตาลและฟิล์ม</p>

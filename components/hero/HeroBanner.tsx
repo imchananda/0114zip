@@ -26,24 +26,22 @@ export function HeroBanner() {
   const overlayB  = isLight ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.60)';
   const overlayT  = isLight ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.30)';
   const textShadow = 'none';
-  const nameClass  = isLight ? 'text-neutral-900 font-georgia' : 'text-white font-georgia';
-  const valueCls   = isLight ? 'text-neutral-800' : 'text-white/90';
+  const nameClass  = isLight ? 'text-[#141413] font-georgia' : 'text-white font-georgia';
+  const valueCls   = isLight ? 'text-[#4d4c48]' : 'text-white/90';
   const namtanLabel = 'text-namtan-primary';
   const filmLabel   = 'text-film-primary';
   // Social link
   const socialCls   = isLight
-    ? 'text-neutral-600 hover:text-neutral-900 transition-colors text-xs tracking-wide'
+    ? 'text-[#5e5d59] hover:text-[#141413] transition-colors text-xs tracking-wide'
     : 'text-white/50 hover:text-white transition-colors text-xs tracking-wide';
   // CTA button
   const ctaCls = isLight
-    ? 'bg-neutral-900/80 hover:bg-neutral-900 text-white backdrop-blur-sm border border-neutral-900/50 hover:border-neutral-900 rounded-full transition-all duration-300'
-    : 'bg-white/10 hover:bg-white text-white hover:text-black backdrop-blur-sm border border-white/20 hover:border-white rounded-full transition-all duration-300';
+    ? 'bg-[#141413]/80 hover:bg-[#141413] text-white backdrop-blur-sm border border-[#141413]/50 hover:border-[#141413] rounded-full transition-all duration-300'
+    : 'bg-white/10 hover:bg-white text-white hover:text-[#141413] backdrop-blur-sm border border-white/20 hover:border-white rounded-full transition-all duration-300';
   // Scroll indicator
-  const scrollCls   = isLight ? 'text-neutral-700' : 'text-white/30';
-  // Corner decoration
-  const cornerCls   = isLight ? 'border-neutral-900/20' : 'border-white/10';
-  // Center title × separator
-  const sepCls      = isLight ? 'text-neutral-500' : 'text-white/50';
+  const scrollCls   = isLight ? 'text-[#5e5d59]' : 'text-white/30';
+  const cornerCls   = isLight ? 'border-[#141413]/20' : 'border-white/10';
+  const sepCls      = isLight ? 'text-[#87867f]' : 'text-white/50';
 
   return (
     <section id="hero" className="relative min-h-[67dvh] h-[67dvh] landscape:min-h-[67dvh] landscape:h-[67dvh] md:min-h-[67dvh] md:h-[67dvh] w-full overflow-hidden">

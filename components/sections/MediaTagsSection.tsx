@@ -376,7 +376,7 @@ export function MediaTagsSection() {
 
           {/* Hashtags */}
           <div>
-            <h3 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
+            <h3 className="text-sm font-normal font-display text-[var(--color-text-muted)] uppercase tracking-wider mb-4">
               แฮชแท็กกิจกรรม
             </h3>
             {!loading && hashtags.length === 0 && (

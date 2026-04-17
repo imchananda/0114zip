@@ -220,7 +220,7 @@ export default function SettingsPage() {
           >
             <span>←</span> Back to Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)]">
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">
             ⚙️ ตั้งค่าเว็บไซต์ (Site Settings)
           </h1>
         </div>
@@ -468,7 +468,7 @@ const FEATURE_LABELS: Record<string, string> = {
 function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
     <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
-      <h2 className="font-display text-lg font-medium text-[var(--color-text-primary)] mb-1">{title}</h2>
+      <h2 className="font-display text-lg font-normal text-[var(--color-text-primary)] mb-1">{title}</h2>
       <p className="text-xs text-[var(--color-text-muted)] mb-5">{description}</p>
       <div className="space-y-4">{children}</div>
     </div>

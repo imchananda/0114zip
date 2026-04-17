@@ -24,7 +24,7 @@ export default function NotFound() {
           transition={{ type: 'spring', bounce: 0.5, delay: 0.2 }}
           className="relative inline-block"
         >
-          <h1 className="text-9xl md:text-[150px] font-black text-transparent bg-clip-text bg-gradient-to-r from-[#6cbfd0] to-[#fbdf74] drop-shadow-2xl opacity-90 tracking-tighter">
+          <h1 className="text-9xl md:text-[150px] font-normal font-display text-transparent bg-clip-text bg-gradient-to-r from-[#6cbfd0] to-[#fbdf74] drop-shadow-2xl opacity-90 tracking-tighter">
             404
           </h1>
           {/* Mascot on top-right of 404 */}
@@ -33,7 +33,7 @@ export default function NotFound() {
           </div>
         </motion.div>
 
-        <h2 className="text-2xl md:text-3xl font-semibold text-[var(--color-text)] mt-4 mb-2">
+        <h2 className="text-2xl md:text-3xl font-normal font-display text-[var(--color-text-primary)] mt-4 mb-2">
           อุ๊ปส์! คุณน่าจะหลงทางแล้วล่ะ
         </h2>
         <p className="text-[var(--color-muted)] max-w-md mx-auto mb-10 text-lg">

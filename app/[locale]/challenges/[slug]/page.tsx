@@ -81,7 +81,7 @@ function ShareResult({
             title={link.label}
           >
             {link.emoji === '𝕏' ? (
-              <span className="font-bold font-sans text-[1.1rem]">𝕏</span>
+              <span className="font-bold font-body text-[1.1rem]">𝕏</span>
             ) : link.emoji === 'f' ? (
               <span className="font-bold text-[1.1rem] leading-none shrink-0 translate-y-[1px]">f</span>
             ) : (
@@ -303,7 +303,7 @@ export default function ChallengeDetailPage() {
         </Link>
 
         {/* Title */}
-        <h1 className="text-xl font-bold text-[var(--color-text)] mb-2">{challenge.title}</h1>
+        <h1 className="text-xl font-normal font-display text-[var(--color-text-primary)] mb-2">{challenge.title}</h1>
         {challenge.description && (
           <p className="text-sm text-[var(--color-muted)] mb-6">{challenge.description}</p>
         )}
@@ -417,7 +417,7 @@ export default function ChallengeDetailPage() {
                   <button
                     onClick={handleDareSubmit}
                     disabled={!dareImage || submitting}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-namtan-primary to-[#fbdf74] text-gray-900 font-bold text-sm disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-namtan-primary to-[#fbdf74] text-[#141413] font-bold text-sm disabled:opacity-50 transition-all hover:scale-[1.02] active:scale-[0.98]"
                   >
                     {submitting ? 'กำลังส่งข้อมูล...' : 'ส่งผลงาน 🚀'}
                   </button>

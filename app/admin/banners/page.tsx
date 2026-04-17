@@ -82,7 +82,7 @@ export default function BannerManagementPage() {
           <Link href="/admin/dashboard" className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors flex items-center gap-2 w-fit">
             <span>←</span> Back to Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-medium text-[var(--color-text-primary)]">🎨 จัดการ Banner & Hero (Banner Management)</h1>
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">🎨 จัดการ Banner & Hero (Banner Management)</h1>
           <p className="text-sm text-[var(--color-text-muted)]">เปลี่ยนรูป Banner, ชื่อ และ Tagline ของแต่ละ Artist State</p>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function BannerManagementPage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-3 left-4 right-4">
-                <h3 className="text-white font-display text-lg font-medium drop-shadow-lg">{config.title}</h3>
+                <h3 className="text-white font-display text-lg font-normal drop-shadow-lg">{config.title}</h3>
                 <p className="text-white/70 text-xs">{config.tagline}</p>
               </div>
               <span className="absolute top-3 right-3 text-xs px-2 py-1 bg-black/50 text-white rounded-full backdrop-blur-sm">
@@ -179,7 +179,7 @@ function EditBannerModal({ config, onClose, onSave, saving }: {
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-lg bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6 max-h-[90vh] overflow-y-auto"
       >
-        <h2 className="font-display text-lg font-medium mb-6">✏️ แก้ไข Banner — {config.slug}</h2>
+        <h2 className="font-display text-lg font-normal mb-6">✏️ แก้ไข Banner — {config.slug}</h2>
 
         <div className="space-y-4">
           <Field label="Title (EN)">

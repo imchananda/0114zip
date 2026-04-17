@@ -35,8 +35,8 @@ export function Footer() {
 
   return (
     <footer
-      className="border-t border-[var(--color-border)] py-20 transition-colors duration-300"
-      style={{ background: 'var(--color-bg)' }}
+      className="py-20 transition-colors duration-300"
+      style={{ background: 'var(--color-footer-bg)' }}
     >
       <div className="container mx-auto px-6 md:px-12 text-center">
         <h3 className="text-[var(--color-text-primary)] text-3xl font-light tracking-[0.2em] mb-4">
