@@ -239,13 +239,18 @@ function PostCard({ post, eventTitle }: { post: MediaPost & { eventTitle: string
 
 type PostWithEvent = MediaPost & { eventTitle: string };
 
-export function MediaTagsSection() {
+interface MediaTagsSectionProps {
+  initialEvents?: MediaEvent[];
+}
+
+export function MediaTagsSection({ initialEvents }: MediaTagsSectionProps = {}) {
   const { state } = useViewState();
-  const [events, setEvents] = useState<MediaEvent[]>([]);
+  const [events, setEvents] = useState<MediaEvent[]>(initialEvents ?? []);
   const [selectedEventId, setSelectedEventId] = useState<string>('all');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialEvents);
 
   useEffect(() => {
+    if (initialEvents !== undefined) return;
     supabase
       .from('media_events')
       .select('id, title, hashtags, is_active, media_posts(*)')

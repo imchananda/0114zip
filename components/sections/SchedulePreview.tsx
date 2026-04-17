@@ -39,28 +39,26 @@ function formatDate(dateStr: string) {
 
 import { useViewState } from '@/context/ViewStateContext';
 
-export function SchedulePreview() {
+export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEvent[] } = {}) {
   const t = useTranslations();
   const { state } = useViewState();
-  const [upcoming, setUpcoming] = useState<ScheduleEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [allEvents, setAllEvents] = useState<ScheduleEvent[]>(initialEvents ?? []);
+  const [loading, setLoading] = useState(!initialEvents);
 
   useEffect(() => {
-    fetch('/api/schedule?type=upcoming&limit=10') // Fetch more to allow client-side filtering
+    if (initialEvents !== undefined) return; // server provided data, skip fetch
+    fetch('/api/schedule?type=upcoming&limit=10')
       .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          // Filter by state
-          const filtered = data.filter(item => {
-            if (state === 'both') return item.actors.includes('both') || item.actors.length >= 2;
-            if (state === 'lunar') return true; // Lunar shows all basic events
-            return item.actors.includes(state);
-          }).slice(0, 4); // Keep limit of 4 for preview
-          setUpcoming(filtered);
-        }
-      })
+      .then(data => { if (Array.isArray(data)) setAllEvents(data); })
       .finally(() => setLoading(false));
-  }, [state]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Filter client-side whenever state or allEvents changes (no re-fetch needed)
+  const upcoming = allEvents.filter(item => {
+    if (state === 'both') return item.actors.includes('both') || item.actors.length >= 2;
+    if (state === 'lunar') return true;
+    return item.actors.includes(state);
+  }).slice(0, 4);
 
   return (
     <section className="py-16 md:py-24">

@@ -22,9 +22,9 @@ export interface HeroSlide {
 
 const SLIDE_INTERVAL = 6000; // ms between auto-advance
 
-export function HeroSlider() {
-  const [slides, setSlides] = useState<HeroSlide[]>([]);
-  const [loading, setLoading] = useState(true);
+export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = {}) {
+  const [slides, setSlides] = useState<HeroSlide[]>(initialSlides ?? []);
+  const [loading, setLoading] = useState(!initialSlides);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -40,6 +40,7 @@ export function HeroSlider() {
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
+    if (initialSlides !== undefined) return; // server provided data, skip fetch
     fetch('/api/admin/hero-slides')
       .then(r => r.json())
       .then((data: HeroSlide[]) => {
@@ -48,7 +49,7 @@ export function HeroSlider() {
       })
       .catch(() => setSlides([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goTo = useCallback((idx: number) => setCurrent(idx), []);
 

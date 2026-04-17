@@ -22,11 +22,12 @@ const PLACEHOLDER_CHALLENGES: Challenge[] = [
   { id: '3', title: 'Fan Art Contest', description: 'วาดภาพ Namtan × Film ส่งเข้าประกวด', type: 'Art', participants: 432, daysLeft: 12, color: '#a78bfa', emoji: '🎨' },
 ];
 
-export function ChallengesSection() {
+export function ChallengesSection({ initialChallenges }: { initialChallenges?: Challenge[] } = {}) {
   const { state } = useViewState();
-  const [challenges, setChallenges] = useState<Challenge[]>(PLACEHOLDER_CHALLENGES);
+  const [challenges, setChallenges] = useState<Challenge[]>(initialChallenges ?? PLACEHOLDER_CHALLENGES);
 
   useEffect(() => {
+    if (initialChallenges !== undefined) return;
     fetch('/api/admin/challenges?status=active&limit=3')
       .then(r => r.json())
       .then(data => {

@@ -1,25 +1,38 @@
+import dynamic from 'next/dynamic';
 import { Header } from '@/components/navigation/Header';
 import { HeroSlider } from '@/components/hero/HeroSlider';
-import { LiveDashboard } from '@/components/dashboard/LiveDashboard';
 import { EditorialCheatSheet } from '@/components/dashboard/EditorialCheatSheet';
 import { Footer } from '@/components/ui/Footer';
 import { ScrollToTop } from '@/components/ui/ScrollToTop';
 import { FloatingArtistSelector } from '@/components/navigation/FloatingArtistSelector';
-import { ProfileSection } from '@/components/sections/ProfileSection';
-import { SchedulePreview } from '@/components/sections/SchedulePreview';
-import { ContentSection } from '@/components/content/ContentSection';
-import { FashionSection } from '@/components/sections/FashionSection';
-import { AwardsPreview } from '@/components/sections/AwardsPreview';
-import { TimelineSection } from '@/components/sections/TimelineSection';
-import { MediaTagsSection } from '@/components/sections/MediaTagsSection';
-import { ChallengesSection } from '@/components/sections/ChallengesSection';
-import { PrizeSection } from '@/components/sections/PrizeSection';
-import { BrandsSection } from '@/components/sections/BrandsSection';
 import { HomeSectionsWrapper } from '@/components/sections/HomeSectionsWrapper';
 import { supabase } from '@/lib/supabase';
+import { fetchHomeData } from '@/lib/homepage-data';
+import type { HomePageData } from '@/lib/homepage-data';
 
-// Re-fetch homepage section settings at most every 30 seconds
-export const revalidate = 30;
+// ── Below-the-fold sections: code-split so they don't bloat the initial bundle ─
+const SectionSkeleton = () => (
+  <div className="w-full py-16 md:py-24 animate-pulse">
+    <div className="container mx-auto px-6 md:px-12 space-y-4">
+      <div className="h-6 w-40 rounded-lg bg-[var(--color-surface)]" />
+      <div className="h-4 w-64 rounded-lg bg-[var(--color-surface)]" />
+    </div>
+  </div>
+);
+
+const BrandsSection    = dynamic(() => import('@/components/sections/BrandsSection').then(m => m.BrandsSection),    { loading: SectionSkeleton });
+const ProfileSection   = dynamic(() => import('@/components/sections/ProfileSection').then(m => m.ProfileSection),   { loading: SectionSkeleton });
+const SchedulePreview  = dynamic(() => import('@/components/sections/SchedulePreview').then(m => m.SchedulePreview), { loading: SectionSkeleton });
+const ContentSection   = dynamic(() => import('@/components/content/ContentSection').then(m => m.ContentSection),    { loading: SectionSkeleton });
+const FashionSection   = dynamic(() => import('@/components/sections/FashionSection').then(m => m.FashionSection),   { loading: SectionSkeleton });
+const AwardsPreview    = dynamic(() => import('@/components/sections/AwardsPreview').then(m => m.AwardsPreview),     { loading: SectionSkeleton });
+const TimelineSection  = dynamic(() => import('@/components/sections/TimelineSection').then(m => m.TimelineSection), { loading: SectionSkeleton });
+const MediaTagsSection = dynamic(() => import('@/components/sections/MediaTagsSection').then(m => m.MediaTagsSection), { loading: SectionSkeleton });
+const ChallengesSection = dynamic(() => import('@/components/sections/ChallengesSection').then(m => m.ChallengesSection), { loading: SectionSkeleton });
+const PrizeSection     = dynamic(() => import('@/components/sections/PrizeSection').then(m => m.PrizeSection),       { loading: SectionSkeleton });
+
+// Re-fetch homepage section settings at most every 2 minutes
+export const revalidate = 120;
 
 export type SectionConfig = { enabled: boolean; order: number };
 
@@ -82,13 +95,52 @@ const SECTION_COMPONENTS: Record<string, any> = {
 };
 
 export default async function HomePage() {
-  const sections = await getSections();
+  // Fetch sections config and all homepage data in parallel
+  const [sections, homeData] = await Promise.all([
+    getSections(),
+    fetchHomeData().catch(() => null) as Promise<HomePageData | null>,
+  ]);
 
   // Sort enabled sections (excluding fixed-position utilities) by order
   const orderedKeys = Object.entries(sections)
     .filter(([key, cfg]) => cfg.enabled && key in SECTION_COMPONENTS)
     .sort(([, a], [, b]) => a.order - b.order)
     .map(([key]) => key);
+
+  // Initial props to pass to each data-dependent section
+  const sectionInitialProps: Record<string, Record<string, unknown>> = homeData
+    ? {
+        heroBanner: {
+          initialSlides: homeData.heroSlides,
+        },
+        liveDashboard: {
+          initialEng:          homeData.engData,
+          initialProfiles:     homeData.profiles,
+          initialFanCountries: homeData.fanCountries,
+          initialFeaturedWork: homeData.featuredWork,
+          initialNtSeries:     homeData.ntSeries,
+          initialFlSeries:     homeData.flSeries,
+        },
+        schedule: {
+          initialEvents: homeData.scheduleEvents,
+        },
+        brands: {
+          initialBrands:        homeData.brands,
+          initialYears:         homeData.brandYears,
+          initialSectionImages: homeData.brandSectionImages,
+          initialProfileImages: homeData.brandProfileImages,
+        },
+        mediaTags: {
+          initialEvents: homeData.mediaEvents,
+        },
+        challenges: {
+          initialChallenges: homeData.challenges,
+        },
+        prize: {
+          initialPrizes: homeData.prizes,
+        },
+      }
+    : {};
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -99,7 +151,8 @@ export default async function HomePage() {
       <HomeSectionsWrapper>
         {orderedKeys.map(key => {
           const Comp = SECTION_COMPONENTS[key];
-          return <Comp key={key} />;
+          const props = sectionInitialProps[key] ?? {};
+          return <Comp key={key} {...props} />;
         })}
       </HomeSectionsWrapper>
 

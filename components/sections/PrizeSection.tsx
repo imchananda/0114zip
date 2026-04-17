@@ -28,11 +28,12 @@ const STATUS_STYLE: Record<string, { label: string; bg: string; text: string }> 
   announced:  { label: 'ประกาศผล', bg: 'bg-[#fbdf74]/10', text: 'text-[#fbdf74]' },
 };
 
-export function PrizeSection() {
+export function PrizeSection({ initialPrizes }: { initialPrizes?: Prize[] } = {}) {
   const { state } = useViewState();
-  const [prizes, setPrizes] = useState<Prize[]>(PLACEHOLDER_PRIZES);
+  const [prizes, setPrizes] = useState<Prize[]>(initialPrizes ?? PLACEHOLDER_PRIZES);
 
   useEffect(() => {
+    if (initialPrizes !== undefined) return;
     fetch('/api/admin/prizes?status=open&limit=3')
       .then(r => r.json())
       .then(data => {

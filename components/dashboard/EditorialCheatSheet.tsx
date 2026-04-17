@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { works } from '@/data/works';
 import { awards } from '@/data/awards';
@@ -162,11 +163,14 @@ function PortraitCard({
       transition={{ delay }}
     >
       {/* Photo */}
-      <img
+      <Image
         src={src}
         alt={label}
+        fill
+        sizes="(max-width: 768px) 50vw, 30vw"
+        className="object-cover object-top opacity-60"
         onError={() => setSrc(fallbackSrc)}
-        className="absolute inset-0 w-full h-full object-cover object-top opacity-60"
+        priority
       />
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/10 to-transparent" />
@@ -189,17 +193,34 @@ function PortraitCard({
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function EditorialCheatSheet() {
+export function EditorialCheatSheet({
+  initialEng,
+  initialProfiles,
+  initialFanCountries,
+  initialFeaturedWork,
+  initialNtSeries,
+  initialFlSeries,
+}: {
+  initialEng?:          EngData | null;
+  initialProfiles?:     Record<string, ArtistProfile>;
+  initialFanCountries?: FanCountry[];
+  initialFeaturedWork?: ContentDbItem | null;
+  initialNtSeries?:     number | null;
+  initialFlSeries?:     number | null;
+} = {}) {
   const [mounted,      setMounted]      = useState(false);
-  const [eng,          setEng]          = useState<EngData | null>(null);
-  const [profiles,     setProfiles]     = useState<Record<string, ArtistProfile>>({});
-  const [countries,    setCountries]    = useState<FanCountry[]>([]);
-  const [featuredWork, setFeaturedWork] = useState<ContentDbItem | null>(null);
-  const [dbNtSeries,   setDbNtSeries]   = useState<number | null>(null);
-  const [dbFlSeries,   setDbFlSeries]   = useState<number | null>(null);
+  const [eng,          setEng]          = useState<EngData | null>(initialEng ?? null);
+  const [profiles,     setProfiles]     = useState<Record<string, ArtistProfile>>(initialProfiles ?? {});
+  const [countries,    setCountries]    = useState<FanCountry[]>(initialFanCountries ?? []);
+  const [featuredWork, setFeaturedWork] = useState<ContentDbItem | null>(initialFeaturedWork ?? null);
+  const [dbNtSeries,   setDbNtSeries]   = useState<number | null>(initialNtSeries ?? null);
+  const [dbFlSeries,   setDbFlSeries]   = useState<number | null>(initialFlSeries ?? null);
 
   useEffect(() => {
     setMounted(true);
+
+    // Skip all fetches when the server already provided initial data
+    if (initialEng !== undefined) return;
 
     // Engagement data: follower snapshots (incl. Weibo), igPosts, brandCollabs
     fetch('/api/engagement')
@@ -239,7 +260,7 @@ export function EditorialCheatSheet() {
       if (typeof ntd?.total === 'number') setDbNtSeries(ntd.total);
       if (typeof fld?.total === 'number') setDbFlSeries(fld.total);
     }).catch(() => {});
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Snapshot values ──────────────────────────────────────────────────────
   const nt = eng?.latestSnapshots?.namtan ?? {};

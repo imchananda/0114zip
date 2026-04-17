@@ -1,8 +1,12 @@
 import { ContentSectionClient } from './ContentSectionClient';
-import { getAllContent } from '@/lib/google-sheets';
+import { series } from '@/data/series';
+import { variety } from '@/data/variety';
+import { events } from '@/data/events';
+import { magazines } from '@/data/magazines';
+import { awards } from '@/data/awards';
 
-export async function ContentSection() {
-  const allContent = await getAllContent();
+const allContent = [...series, ...variety, ...events, ...magazines, ...awards];
 
+export function ContentSection() {
   return <ContentSectionClient initialContent={allContent} />;
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 const PROXY_HOSTS = ['upload.wikimedia.org', 'commons.wikimedia.org', 'encrypted-tbn0.gstatic.com'];
 function logoSrc(url: string): string {
@@ -65,6 +66,7 @@ function BrandLogoItem({ brand, accent, index, onClick }: {
   brand: Brand; accent: string; index: number; onClick: () => void;
 }) {
   const textAccent = accent === FL ? '#9c7a00' : accent;
+  const [logoErr, setLogoErr] = useState(false);
   return (
     <motion.button
       layout
@@ -78,12 +80,17 @@ function BrandLogoItem({ brand, accent, index, onClick }: {
     >
       {/* Logo */}
       <div className="w-16 h-12 flex items-center justify-center overflow-hidden">
-        {brand.brand_logo
-          // eslint-disable-next-line @next/next/no-img-element
-          ? <img src={logoSrc(brand.brand_logo)} alt={brand.brand_name} className="w-full h-full object-contain" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute('style'); }} />
+        {brand.brand_logo && !logoErr
+          ? <Image
+              src={logoSrc(brand.brand_logo)}
+              alt={brand.brand_name}
+              width={64} height={48}
+              className="object-contain w-full h-full"
+              onError={() => setLogoErr(true)}
+              unoptimized
+            />
           : <span className="text-3xl">🏷️</span>
         }
-        {brand.brand_logo && <span className="text-3xl" style={{ display: 'none' }}>🏷️</span>}
       </div>
 
     </motion.button>
@@ -127,8 +134,13 @@ function BrandModal({ brand, accent, onClose }: {
               style={{ background: 'rgba(255,255,255,0.09)' }}
             >
               {brand.brand_logo
-                // eslint-disable-next-line @next/next/no-img-element
-                ? <img src={brand.brand_logo} alt={brand.brand_name} className="w-full h-full object-contain p-1" />
+                ? <Image
+                    src={logoSrc(brand.brand_logo)}
+                    alt={brand.brand_name}
+                    width={48} height={48}
+                    className="object-contain p-1"
+                    unoptimized
+                  />
                 : <span className="text-xl">🏷️</span>
               }
             </div>
@@ -246,26 +258,44 @@ function BrandModal({ brand, accent, onClose }: {
 }
 
 // ─── BrandsSection ────────────────────────────────────────────────────────────
-export function BrandsSection() {
+export function BrandsSection({
+  initialBrands,
+  initialYears,
+  initialSectionImages,
+  initialProfileImages,
+}: {
+  initialBrands?:        Brand[];
+  initialYears?:         number[];
+  initialSectionImages?: { both?: string; namtan?: string; film?: string };
+  initialProfileImages?: { namtan?: string; film?: string };
+} = {}) {
   const [artistFilter, setArtistFilter] = useState<ArtistFilter>('both');
-  const [yearFilter,   setYearFilter]   = useState<number | null>(null);
-  const [allBrands,    setAllBrands]    = useState<Brand[]>([]);
-  const [years,        setYears]        = useState<number[]>([]);
-  const [sectionImages, setSectionImages] = useState<{ both?: string; namtan?: string; film?: string }>({});
-  const [profileImages, setProfileImages] = useState<{ namtan?: string; film?: string }>({});
-  const [loading,      setLoading]      = useState(true);
+  const [allBrands,    setAllBrands]    = useState<Brand[]>(initialBrands ?? []);
+  const [years,        setYears]        = useState<number[]>(initialYears ?? []);
+  const [sectionImages, setSectionImages] = useState<{ both?: string; namtan?: string; film?: string }>(initialSectionImages ?? {});
+  const [profileImages, setProfileImages] = useState<{ namtan?: string; film?: string }>(initialProfileImages ?? {});
+  const [loading,      setLoading]      = useState(!initialBrands);
   const [selected,     setSelected]     = useState<Brand | null>(null);
+
+  // Set initial year filter once we have years (prefer current year)
+  const [yearFilter, setYearFilter] = useState<number | null>(() => {
+    if (!initialYears || initialYears.length === 0) return null;
+    const current = new Date().getFullYear();
+    return initialYears.includes(current) ? current : (initialYears[0] ?? null);
+  });
 
   // Section-specific portrait (admin-configurable, separate from profile)
   useEffect(() => {
+    if (initialSectionImages !== undefined) return;
     fetch('/api/admin/settings')
       .then(r => r.json())
       .then(d => { if (d.brands_section_images) setSectionImages(d.brands_section_images); })
       .catch(() => {});
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Artist profile photos as fallback
   useEffect(() => {
+    if (initialProfileImages !== undefined) return;
     fetch('/api/admin/profile')
       .then(r => r.json())
       .then(d => {
@@ -278,10 +308,11 @@ export function BrandsSection() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load brands
   useEffect(() => {
+    if (initialBrands !== undefined) return;
     setLoading(true);
     fetch('/api/brands')
       .then(r => r.json())

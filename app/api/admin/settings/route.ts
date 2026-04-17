@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminClient, supabase } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
 
+// Cache GET for 5 minutes — settings change infrequently
+export const revalidate = 300;
+
 // GET /api/admin/settings — returns { general, features, social, maintenance }
 export async function GET(req: NextRequest) {
   // Settings are public-readable

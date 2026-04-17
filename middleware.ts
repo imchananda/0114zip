@@ -10,22 +10,35 @@ const intlMiddleware = createIntlMiddleware(routing);
 const API_ROUTES_PREFIX = '/api/';
 const AUTH_ROUTES = ['/login', '/register', '/api/auth'];
 
-// Simple in-memory cache for maintenance flag (refresh every 60s)
+// In-memory cache for maintenance flag (refresh every 5 min)
+// Querying Supabase REST directly avoids an internal HTTP round-trip through Next.js routing
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 let maintenanceCached: { enabled: boolean; message: string } | null = null;
 let maintenanceCacheExpiry = 0;
 
-async function getMaintenanceSettings(origin: string): Promise<{ enabled: boolean; message: string }> {
+async function getMaintenanceSettings(): Promise<{ enabled: boolean; message: string }> {
   const now = Date.now();
   if (maintenanceCached && now < maintenanceCacheExpiry) return maintenanceCached;
   try {
-    const res = await fetch(`${origin}/api/admin/settings`, { next: { revalidate: 60 } });
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/site_settings?select=key,value&key=eq.maintenance`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        next: { revalidate: 300 },
+      }
+    );
     if (res.ok) {
-      const data = await res.json();
+      const rows: { key: string; value: Record<string, any> }[] = await res.json();
+      const value = rows?.[0]?.value ?? {};
       maintenanceCached = {
-        enabled: data.maintenance?.enabled ?? false,
-        message:  data.maintenance?.message  ?? 'เว็บไซต์กำลังปรับปรุง กรุณากลับมาใหม่ภายหลัง',
+        enabled: value.enabled ?? false,
+        message: value.message ?? 'เว็บไซต์กำลังปรับปรุง กรุณากลับมาใหม่ภายหลัง',
       };
-      maintenanceCacheExpiry = now + 60_000;
+      maintenanceCacheExpiry = now + 300_000;
       return maintenanceCached;
     }
   } catch {}
@@ -79,8 +92,7 @@ export async function middleware(request: NextRequest) {
   // ── Maintenance Mode ──────────────────────────────────────────────────────
   // Only check for non-admin, non-api page routes
   if (!isAdminRoute && !isApiRoute) {
-    const origin = request.nextUrl.origin;
-    const { enabled, message } = await getMaintenanceSettings(origin);
+    const { enabled, message } = await getMaintenanceSettings();
     if (enabled) {
       // Allow /auth pages so admins can still log in
       const isAuthPage = path.includes('/auth/');

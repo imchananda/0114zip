@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminClient, supabase } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
 
+export const revalidate = 300; // Cache for 5 minutes
+
 // GET /api/admin/profile — public read (artist pages also use this)
 export async function GET() {
   const { data, error } = await supabase

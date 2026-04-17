@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 
 export function UserMenu() {
@@ -39,7 +40,7 @@ export function UserMenu() {
         className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6cbfd0] to-[#fbdf74] flex items-center justify-center text-[#141413] text-sm font-medium hover:scale-105 transition-transform overflow-hidden"
       >
         {profile?.avatar_url ? (
-          <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+          <Image src={profile.avatar_url} alt="" fill className="object-cover" />
         ) : (
           initial
         )}
