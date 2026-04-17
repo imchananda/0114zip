@@ -736,7 +736,7 @@ export default function AdminMediaPage() {
                   {posts.map(post => {
                     const plat     = PLATFORM_MAP[post.platform];
                     const hasGoals = METRICS.some(m =>
-                      ((post as Record<string, unknown>)[m.goalKey as string] as number) > 0
+                      ((post as unknown as Record<string, unknown>)[m.goalKey as string] as number) > 0
                     );
                     const isEditingThis = editingPost?.id === post.id;
 
