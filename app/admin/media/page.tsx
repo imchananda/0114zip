@@ -785,8 +785,8 @@ export default function AdminMediaPage() {
                               <div className="grid grid-cols-5 gap-2 mt-1">
                                 {METRICS.map(({ icon, key, goalKey }) => (
                                   <MetricBar key={String(key)} icon={icon}
-                                    value={(post as Record<string, number>)[key as string] ?? 0}
-                                    goal={(post as Record<string, number>)[goalKey as string] ?? 0} />
+                                    value={(post[key] as number) ?? 0}
+                                    goal={(post[goalKey] as number) ?? 0} />
                                 ))}
                               </div>
                             ) : (
