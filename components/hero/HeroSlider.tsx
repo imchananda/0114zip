@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
 import { useLocale } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { HeroBanner } from './HeroBanner';
+import { useViewState } from '@/context/ViewStateContext';
 
 export interface HeroSlide {
   id: string;
@@ -18,6 +19,8 @@ export interface HeroSlide {
   link: string | null;
   sort_order: number;
   enabled: boolean;
+  theme: 'light' | 'dark' | 'both';
+  view_state: 'both' | 'namtan' | 'film' | 'lunar';
 }
 
 const SLIDE_INTERVAL = 6000; // ms between auto-advance
@@ -34,8 +37,19 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
   const { resolvedTheme } = useTheme();
   const locale = useLocale();
   const router = useRouter();
+  const { state: viewState } = useViewState();
 
   const isLight = mounted && resolvedTheme === 'light';
+
+  // Only show slides matching the current theme AND view state
+  const filteredSlides = useMemo(() => {
+    if (!mounted) return slides;
+    return slides.filter(s => {
+      const themeOk = s.theme === 'both' || s.theme === resolvedTheme;
+      const viewOk = !s.view_state || s.view_state === 'both' || s.view_state === viewState;
+      return themeOk && viewOk;
+    });
+  }, [slides, mounted, resolvedTheme, viewState]);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -54,19 +68,22 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
   const goTo = useCallback((idx: number) => setCurrent(idx), []);
 
   const next = useCallback(() => {
-    setCurrent(c => (c + 1) % slides.length);
-  }, [slides.length]);
+    setCurrent(c => (c + 1) % filteredSlides.length);
+  }, [filteredSlides.length]);
 
   const prev = useCallback(() => {
-    setCurrent(c => (c - 1 + slides.length) % slides.length);
-  }, [slides.length]);
+    setCurrent(c => (c - 1 + filteredSlides.length) % filteredSlides.length);
+  }, [filteredSlides.length]);
+
+  // Reset to first slide when filtered set changes (e.g. theme switch)
+  useEffect(() => { setCurrent(0); }, [filteredSlides.length]);
 
   // Auto-advance timer
   useEffect(() => {
-    if (slides.length <= 1 || paused) return;
+    if (filteredSlides.length <= 1 || paused) return;
     timerRef.current = setTimeout(next, SLIDE_INTERVAL);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [current, slides.length, paused, next]);
+  }, [current, filteredSlides.length, paused, next]);
 
   if (loading) {
     return (
@@ -74,12 +91,12 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
     );
   }
 
-  // No enabled slides → fall back to original interactive HeroBanner
-  if (slides.length === 0) {
+  // No enabled slides for current theme → fall back to original interactive HeroBanner
+  if (filteredSlides.length === 0) {
     return <HeroBanner />;
   }
 
-  const slide = slides[current];
+  const slide = filteredSlides[current] ?? filteredSlides[0];
   const cornerCls = isLight ? 'border-neutral-900/20' : 'border-white/10';
 
   const handleSlideClick = () => {
@@ -119,9 +136,15 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
             alt={slide.title ?? ''}
             fill
             priority={current === 0}
+            quality={100}
             sizes="100vw"
             className="object-cover object-center landscape:object-top md:object-top"
-            style={{ filter: isLight ? 'brightness(1.1) saturate(1.05)' : 'none' }}
+          />
+
+          {/* Brightness overlay (avoid CSS filter on <img> which causes blur on mobile) */}
+          <div
+            className="absolute inset-0"
+            style={{ background: isLight ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.22)' }}
           />
 
           {/* Gradient overlays */}
@@ -129,16 +152,16 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
             className="absolute inset-0"
             style={{
               background: isLight
-                ? 'linear-gradient(to top, rgba(255,255,255,0.65), transparent 60%)'
-                : 'linear-gradient(to top, rgba(0,0,0,0.70), transparent 60%)',
+                ? 'linear-gradient(to top, rgba(255,255,255,0.55), transparent 60%)'
+                : 'linear-gradient(to top, rgba(0,0,0,0.75), transparent 60%)',
             }}
           />
           <div
             className="absolute inset-0"
             style={{
               background: isLight
-                ? 'linear-gradient(to right, rgba(255,255,255,0.15), transparent, rgba(255,255,255,0.15))'
-                : 'linear-gradient(to right, rgba(0,0,0,0.30), transparent, rgba(0,0,0,0.30))',
+                ? 'linear-gradient(to right, rgba(255,255,255,0.10), transparent, rgba(255,255,255,0.10))'
+                : 'linear-gradient(to right, rgba(0,0,0,0.35), transparent, rgba(0,0,0,0.35))',
             }}
           />
         </motion.div>
@@ -191,7 +214,7 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
       </div>
 
       {/* ── Prev / Next arrows ── */}
-      {slides.length > 1 && (
+      {filteredSlides.length > 1 && (
         <>
           <button
             onClick={e => { e.stopPropagation(); prev(); }}
@@ -225,9 +248,9 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
       )}
 
       {/* ── Dot indicators ── */}
-      {slides.length > 1 && (
+      {filteredSlides.length > 1 && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2 items-center">
-          {slides.map((_, i) => (
+          {filteredSlides.map((_, i) => (
             <button
               key={i}
               onClick={e => { e.stopPropagation(); goTo(i); }}
@@ -243,7 +266,7 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
       )}
 
       {/* ── Progress bar (resets on each slide) ── */}
-      {slides.length > 1 && !paused && (
+      {filteredSlides.length > 1 && !paused && (
         <motion.div
           key={slide.id + '-prog'}
           className="absolute bottom-0 left-0 h-[2px] bg-white/50 z-20"

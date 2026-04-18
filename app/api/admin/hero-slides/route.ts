@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminClient, supabase } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
 
-export const revalidate = 300; // Cache for 5 minutes
+// No caching — admin needs fresh data, homepage uses its own SSR fetch
 
 // GET /api/admin/hero-slides — public read (homepage uses this)
 export async function GET() {

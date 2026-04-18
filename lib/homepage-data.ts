@@ -21,6 +21,8 @@ export interface HomeHeroSlide {
   link: string | null;
   sort_order: number;
   enabled: boolean;
+  theme: 'light' | 'dark' | 'both';
+  view_state: 'both' | 'namtan' | 'film' | 'lunar';
 }
 
 export interface HomeIgPost { artist: Artist; emv: number; post_date: string }

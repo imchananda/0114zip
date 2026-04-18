@@ -1,4 +1,10 @@
-'use client';
+// Run: node scripts/write-hero-slides-page.cjs
+const fs = require('fs');
+const path = require('path');
+
+const dest = path.join(__dirname, '..', 'app', 'admin', 'hero-slides', 'page.tsx');
+
+const content = `'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
@@ -15,7 +21,6 @@ const BLANK: Omit<HeroSlide, 'id'> = {
   sort_order: 0,
   enabled: true,
   theme: 'both',
-  view_state: 'both',
 };
 
 const THEME_OPTIONS = [
@@ -28,20 +33,6 @@ function themeBadge(theme: HeroSlide['theme']) {
   if (theme === 'light') return { label: '☀️ Light', cls: 'bg-amber-500/10 border-amber-500/30 text-amber-600' };
   if (theme === 'dark')  return { label: '🌙 Dark',  cls: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' };
   return { label: '☀️🌙 Both', cls: 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-muted)]' };
-}
-
-const VIEW_STATE_OPTIONS = [
-  { value: 'both' as const,   label: '👥 ทั้งหมด',  cls: 'bg-[var(--color-accent)]/15 border-[var(--color-accent)] text-[var(--color-accent)]' },
-  { value: 'namtan' as const, label: '💜 Namtan', cls: 'bg-purple-500/15 border-purple-500/50 text-purple-500' },
-  { value: 'film' as const,   label: '💙 Film',   cls: 'bg-blue-500/15 border-blue-500/50 text-blue-500' },
-  { value: 'lunar' as const,  label: '🌙 Lunar',  cls: 'bg-pink-500/15 border-pink-500/50 text-pink-500' },
-];
-
-function viewStateBadge(vs: HeroSlide['view_state']) {
-  if (vs === 'namtan') return { label: '💜 Namtan', cls: 'bg-purple-500/10 border-purple-500/30 text-purple-500' };
-  if (vs === 'film')   return { label: '💙 Film',   cls: 'bg-blue-500/10 border-blue-500/30 text-blue-500' };
-  if (vs === 'lunar')  return { label: '🌙 Lunar',  cls: 'bg-pink-500/10 border-pink-500/30 text-pink-500' };
-  return { label: '👥 All', cls: 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-muted)]' };
 }
 
 export default function HeroSlidesAdminPage() {
@@ -64,11 +55,11 @@ export default function HeroSlidesAdminPage() {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/hero-slides', { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) throw new Error(\`HTTP \${res.status}\`);
       const data = await res.json();
       setSlides(Array.isArray(data) ? data : []);
     } catch (e) {
-      showToast(`โหลดข้อมูลไม่สำเร็จ: ${e instanceof Error ? e.message : 'unknown'}`, false);
+      showToast(\`โหลดข้อมูลไม่สำเร็จ: \${e instanceof Error ? e.message : 'unknown'}\`, false);
     } finally {
       setLoading(false);
     }
@@ -113,10 +104,10 @@ export default function HeroSlidesAdminPage() {
             if (xhr.status >= 200 && xhr.status < 300 && data.url) {
               resolve(data.url);
             } else {
-              reject(new Error(data.error ?? `HTTP ${xhr.status}`));
+              reject(new Error(data.error ?? \`HTTP \${xhr.status}\`));
             }
           } catch {
-            reject(new Error(`HTTP ${xhr.status}`));
+            reject(new Error(\`HTTP \${xhr.status}\`));
           }
         };
         xhr.onerror = () => reject(new Error('Network error'));
@@ -129,7 +120,7 @@ export default function HeroSlidesAdminPage() {
     } catch (err) {
       setEditing(prev => prev ? { ...prev, image: prev.image === blobUrl ? '' : prev.image } : prev);
       URL.revokeObjectURL(blobUrl);
-      showToast(`อัปโหลดไม่สำเร็จ: ${err instanceof Error ? err.message : 'unknown'}`, false);
+      showToast(\`อัปโหลดไม่สำเร็จ: \${err instanceof Error ? err.message : 'unknown'}\`, false);
     } finally {
       setUploadPct(null);
     }
@@ -143,16 +134,14 @@ export default function HeroSlidesAdminPage() {
     }
     setSaving(true);
     try {
-      const { id, ...rest } = editing;
-      const payload = isNew ? rest : editing;
       const res = await fetch('/api/admin/hero-slides', {
         method: isNew ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(editing),
       });
       const text = await res.text();
       if (!res.ok) {
-        let msg = `HTTP ${res.status}`;
+        let msg = \`HTTP \${res.status}\`;
         try { msg = JSON.parse(text).error ?? msg; } catch { /* noop */ }
         throw new Error(msg);
       }
@@ -165,7 +154,7 @@ export default function HeroSlidesAdminPage() {
       closeModal();
       showToast('บันทึกสำเร็จ ✓');
     } catch (err) {
-      showToast(`บันทึกไม่สำเร็จ: ${err instanceof Error ? err.message : 'unknown'}`, false);
+      showToast(\`บันทึกไม่สำเร็จ: \${err instanceof Error ? err.message : 'unknown'}\`, false);
     } finally {
       setSaving(false);
     }
@@ -189,10 +178,10 @@ export default function HeroSlidesAdminPage() {
   };
 
   const deleteSlide = async (slide: HeroSlide) => {
-    if (!confirm(`ลบ slide "${slide.title || '(ไม่มีชื่อ)'}" ?`)) return;
+    if (!confirm(\`ลบ slide "\${slide.title || '(ไม่มีชื่อ)'}" ?\`)) return;
     setSlides(prev => prev.filter(s => s.id !== slide.id));
     try {
-      const res = await fetch(`/api/admin/hero-slides?id=${slide.id}`, { method: 'DELETE' });
+      const res = await fetch(\`/api/admin/hero-slides?id=\${slide.id}\`, { method: 'DELETE' });
       if (!res.ok) throw new Error();
       showToast('ลบสำเร็จ');
     } catch {
@@ -255,9 +244,9 @@ export default function HeroSlidesAdminPage() {
 
       {/* Toast */}
       {toast && (
-        <div className={`mb-5 px-4 py-3 rounded-xl text-sm border flex items-start gap-2 ${
+        <div className={\`mb-5 px-4 py-3 rounded-xl text-sm border flex items-start gap-2 \${
           toast.ok ? 'bg-green-500/10 border-green-500/30 text-green-600' : 'bg-red-500/10 border-red-500/30 text-red-500'
-        }`}>
+        }\`}>
           <span className="shrink-0">{toast.ok ? '✅' : '❌'}</span>
           <span className="break-all">{toast.msg}</span>
         </div>
@@ -270,11 +259,11 @@ export default function HeroSlidesAdminPage() {
           const count = key === 'all' ? slides.length : slides.filter(s => s.theme === key || s.theme === 'both').length;
           return (
             <button key={key} onClick={() => setThemeFilter(key)}
-              className={`px-4 py-1.5 rounded-full text-sm border transition-all ${
+              className={\`px-4 py-1.5 rounded-full text-sm border transition-all \${
                 themeFilter === key
                   ? 'bg-[var(--color-accent)] text-white border-transparent'
                   : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]'
-              }`}>
+              }\`}>
               {label} <span className="opacity-60 text-xs">({count})</span>
             </button>
           );
@@ -293,7 +282,7 @@ export default function HeroSlidesAdminPage() {
       ) : displaySlides.length === 0 ? (
         <div className="text-center py-16 text-[var(--color-text-muted)]">
           <div className="text-4xl mb-3">🖼️</div>
-          <p>ยังไม่มี slide{themeFilter !== 'all' ? ` สำหรับ ${themeFilter} theme` : ''}</p>
+          <p>ยังไม่มี slide{themeFilter !== 'all' ? \` สำหรับ \${themeFilter} theme\` : ''}</p>
           <button onClick={() => openNew()}
             className="mt-4 px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm hover:opacity-90 transition-opacity">
             + เพิ่ม Slide แรก
@@ -305,11 +294,11 @@ export default function HeroSlidesAdminPage() {
             const badge = themeBadge(slide.theme);
             return (
               <div key={slide.id}
-                className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
+                className={\`flex items-center gap-4 p-4 rounded-xl border transition-all \${
                   slide.enabled
                     ? 'bg-[var(--color-surface)] border-[var(--color-border)]'
                     : 'bg-[var(--color-panel)] border-[var(--color-border)] opacity-60'
-                }`}>
+                }\`}>
                 {/* Thumbnail */}
                 <div className="relative w-20 h-12 rounded-lg overflow-hidden shrink-0 bg-[var(--color-panel)]">
                   {slide.image && (
@@ -326,15 +315,11 @@ export default function HeroSlidesAdminPage() {
                   {slide.link && <p className="text-xs text-[#6cbfd0] truncate mt-0.5">🔗 {slide.link}</p>}
                 </div>
                 {/* Status badge */}
-                <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
+                <span className={\`text-xs px-2 py-0.5 rounded-full shrink-0 \${
                   slide.enabled ? 'bg-green-500/15 text-green-600' : 'bg-[#87867f]/15 text-[#87867f]'
-                }`}>{slide.enabled ? 'เปิด' : 'ปิด'}</span>
+                }\`}>{slide.enabled ? 'เปิด' : 'ปิด'}</span>
                 {/* Theme badge */}
-                <span className={`hidden sm:inline text-xs px-2 py-0.5 rounded-full shrink-0 border ${badge.cls}`}>{badge.label}</span>
-                {/* ViewState badge */}
-                {slide.view_state && slide.view_state !== 'both' && (
-                  <span className={`hidden sm:inline text-xs px-2 py-0.5 rounded-full shrink-0 border ${viewStateBadge(slide.view_state).cls}`}>{viewStateBadge(slide.view_state).label}</span>
-                )}
+                <span className={\`hidden sm:inline text-xs px-2 py-0.5 rounded-full shrink-0 border \${badge.cls}\`}>{badge.label}</span>
                 {/* Actions */}
                 <div className="flex items-center gap-1 shrink-0">
                   <button onClick={() => moveSlide(slide.id, -1)} disabled={idx === 0}
@@ -342,7 +327,7 @@ export default function HeroSlidesAdminPage() {
                   <button onClick={() => moveSlide(slide.id, 1)} disabled={idx === displaySlides.length - 1}
                     className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] disabled:opacity-30 disabled:cursor-not-allowed transition-all" title="ลง">↓</button>
                   <button onClick={() => toggleEnabled(slide)}
-                    className={`p-1.5 rounded-lg transition-all text-sm ${slide.enabled ? 'text-green-500 hover:bg-green-500/10' : 'text-[#87867f] hover:bg-[var(--color-panel)]'}`}
+                    className={\`p-1.5 rounded-lg transition-all text-sm \${slide.enabled ? 'text-green-500 hover:bg-green-500/10' : 'text-[#87867f] hover:bg-[var(--color-panel)]'}\`}
                     title={slide.enabled ? 'ปิด slide' : 'เปิด slide'}>{slide.enabled ? '👁' : '🙈'}</button>
                   <button onClick={() => openEdit(slide)}
                     className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[#6cbfd0] hover:bg-[#6cbfd0]/10 transition-all" title="แก้ไข">✏️</button>
@@ -357,8 +342,8 @@ export default function HeroSlidesAdminPage() {
 
       {/* Modal */}
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[85dvh] sm:max-h-[88dvh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-xl bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-2xl flex flex-col max-h-[92dvh]">
 
             {/* Modal header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
@@ -381,7 +366,7 @@ export default function HeroSlidesAdminPage() {
                     {isUploading && (
                       <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2">
                         <div className="w-48 h-1.5 rounded-full bg-white/20 overflow-hidden">
-                          <div className="h-full bg-white rounded-full transition-all duration-150" style={{ width: `${uploadPct}%` }} />
+                          <div className="h-full bg-white rounded-full transition-all duration-150" style={{ width: \`\${uploadPct}%\` }} />
                         </div>
                         <span className="text-white text-xs font-medium">⏳ กำลังอัปโหลด {uploadPct}%</span>
                       </div>
@@ -410,7 +395,7 @@ export default function HeroSlidesAdminPage() {
                     onClick={() => fileRef.current?.click()}
                     disabled={isUploading || saving}
                     className="px-3 py-2 text-sm rounded-lg bg-[var(--color-panel)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors disabled:opacity-50 whitespace-nowrap">
-                    {isUploading ? `${uploadPct}%` : '📁 เลือกไฟล์'}
+                    {isUploading ? \`\${uploadPct}%\` : '📁 เลือกไฟล์'}
                   </button>
                   <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleFilePick} />
                 </div>
@@ -464,25 +449,9 @@ export default function HeroSlidesAdminPage() {
                   {THEME_OPTIONS.map(opt => (
                     <button key={opt.value}
                       onClick={() => setEditing(p => p ? { ...p, theme: opt.value } : p)}
-                      className={`flex-1 py-2 rounded-lg text-xs border transition-all ${
+                      className={\`flex-1 py-2 rounded-lg text-xs border transition-all \${
                         editing.theme === opt.value ? opt.cls : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent)]'
-                      }`}>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* View State */}
-              <div>
-                <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">แสดงสำหรับ</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {VIEW_STATE_OPTIONS.map(opt => (
-                    <button key={opt.value}
-                      onClick={() => setEditing(p => p ? { ...p, view_state: opt.value } : p)}
-                      className={`py-2 rounded-lg text-xs border transition-all ${
-                        editing.view_state === opt.value ? opt.cls : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent)]'
-                      }`}>
+                      }\`}>
                       {opt.label}
                     </button>
                   ))}
@@ -501,11 +470,11 @@ export default function HeroSlidesAdminPage() {
                   <label className="block text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-1">สถานะ</label>
                   <button
                     onClick={() => setEditing(p => p ? { ...p, enabled: !p.enabled } : p)}
-                    className={`w-full px-3 py-2 text-sm rounded-lg border transition-all ${
+                    className={\`w-full px-3 py-2 text-sm rounded-lg border transition-all \${
                       editing.enabled
                         ? 'bg-green-500/15 border-green-500/40 text-green-600'
                         : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-muted)]'
-                    }`}>
+                    }\`}>
                     {editing.enabled ? '✅ เปิดแสดง' : '◻️ ปิดซ่อน'}
                   </button>
                 </div>
@@ -514,16 +483,16 @@ export default function HeroSlidesAdminPage() {
             </div>
 
             {/* Modal footer */}
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border)] shrink-0 bg-[var(--color-surface)]">
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border)] shrink-0">
               <button onClick={closeModal}
-                className="px-5 py-2.5 rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-panel)] transition-colors">
+                className="px-4 py-2 rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-panel)] transition-colors">
                 ยกเลิก
               </button>
               <button
                 onClick={saveSlide}
-                disabled={saving || isUploading}
-                className="px-6 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-w-[120px]">
-                {saving ? 'กำลังบันทึก...' : isUploading ? `อัปโหลด ${uploadPct}%` : '💾 บันทึก'}
+                disabled={saving || isUploading || !editing.image || editing.image.startsWith('blob:')}
+                className="px-5 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-w-[100px]">
+                {saving ? 'กำลังบันทึก...' : isUploading ? \`อัปโหลด \${uploadPct}%\` : 'บันทึก'}
               </button>
             </div>
 
@@ -534,3 +503,7 @@ export default function HeroSlidesAdminPage() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync(dest, content, { encoding: 'utf8' });
+console.log('Written OK, bytes:', fs.statSync(dest).size);
