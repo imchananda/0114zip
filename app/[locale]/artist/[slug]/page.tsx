@@ -23,7 +23,7 @@ export default async function ArtistPage({
     .select('*')
     .eq('visible', true)
     .order('sort_order', { ascending: true })
-    .order('year', { ascending: false });
+    .order('year', { ascending: false }) as { data: any[] | null };
 
   const allContent: any[] = data?.map(d => ({
     id: d.id,
