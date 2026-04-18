@@ -4,8 +4,16 @@ import { createBrowserClient, createServerClient } from '@supabase/ssr';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// ── Public client (server-side read) ──
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// ── Public client (server-side read) ── lazy singleton to avoid build-time init errors
+let _supabase: ReturnType<typeof createClient> | null = null;
+export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+  get(_target, prop, receiver) {
+    if (!_supabase) {
+      _supabase = createClient(supabaseUrl, supabaseAnonKey);
+    }
+    return Reflect.get(_supabase, prop, receiver);
+  },
+});
 
 // ── Browser client (client-side auth + reads) ──
 export function createSupabaseBrowser() {
