@@ -13,18 +13,41 @@ const ARTIST_META = [
   { value: 'luna'   as const, label: 'ลูน่า',  color: '#c084fc', emoji: '💜' },
 ];
 
+const ALL_PLATFORMS = [
+  { key: 'ig',     icon: '📸', label: 'IG'     },
+  { key: 'x',      icon: '𝕏',  label: 'X'      },
+  { key: 'tiktok', icon: '🎵', label: 'TikTok' },
+  { key: 'weibo',  icon: '🌐', label: 'Weibo'  },
+] as const;
+
 function formatNum(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return `${n}`;
 }
 
-const QUICK_LINKS = [
+const ALL_QUICK_LINKS = [
   { icon: '', label: 'Media', href: '/engage/media', desc: 'Post & Share' },
   { icon: '🔗', label: 'Social', href: '/engage/links', desc: 'Follow All' },
   { icon: '📊', label: 'Stats', href: '/stats', desc: 'Deep Dive' },
   { icon: '💬', label: 'Community', href: '/community', desc: 'Chat' },
 ];
+
+interface LiveDashboardConfig {
+  showArtists: string[];
+  showPlatforms: string[];
+  showFollowerSection: boolean;
+  showQuickLinks: boolean;
+  cardLinks?: Record<string, string>;
+}
+
+const DEFAULT_CONFIG: LiveDashboardConfig = {
+  showArtists: ['namtan', 'film', 'luna'],
+  showPlatforms: ['ig', 'x', 'tiktok', 'weibo'],
+  showFollowerSection: true,
+  showQuickLinks: true,
+  cardLinks: {},
+};
 
 interface LatestSnap { namtan: Record<string,number>; film: Record<string,number>; luna: Record<string,number>; }
 
@@ -37,21 +60,25 @@ export function LiveDashboard() {
 
   const [mounted, setMounted] = useState(false);
   const [latestSnap, setLatestSnap] = useState<LatestSnap>({ namtan: {}, film: {}, luna: {} });
+  const [config, setConfig] = useState<LiveDashboardConfig>(DEFAULT_CONFIG);
 
   useEffect(() => {
     setMounted(true);
-    fetch('/api/engagement')
-      .then(r => r.json())
-      .then(d => {
-        if (d?.latestSnapshots) setLatestSnap(d.latestSnapshots as LatestSnap);
-      })
-      .catch(console.error);
+    Promise.all([
+      fetch('/api/engagement').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/admin/settings').then(r => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([engagementData, settings]) => {
+      if (engagementData?.latestSnapshots) setLatestSnap(engagementData.latestSnapshots as LatestSnap);
+      if (settings?.liveDashboardConfig) setConfig({ ...DEFAULT_CONFIG, ...settings.liveDashboardConfig });
+    });
   }, []);
 
-  // Determine which artists to show
+  // Determine which artists to show: intersection of admin config and view state
+  const adminAllowedArtists = ARTIST_META.filter(a => config.showArtists.includes(a.value));
   const visibleArtists = focusArtist
-    ? ARTIST_META.filter(a => a.value === focusArtist)
-    : ARTIST_META;
+    ? adminAllowedArtists.filter(a => a.value === focusArtist)
+    : adminAllowedArtists;
+  const visiblePlatforms = ALL_PLATFORMS.filter(p => config.showPlatforms.includes(p.key));
 
   return (
     <section className="py-20 md:py-28" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -81,63 +108,64 @@ export function LiveDashboard() {
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-[0px_0px_0px_1px_var(--color-border)] p-6 md:p-10">
 
           {/* Per-Artist Follower Cards */}
-          <div className={`grid gap-6 mb-10 pb-8 border-b border-[var(--color-border)] ${visibleArtists.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' : 'grid-cols-1 sm:grid-cols-3'}`}>
-            {visibleArtists.map((a, i) => {
-              const snap = latestSnap[a.value] ?? {};
-              const ig     = snap['ig']     ?? 0;
-              const x      = snap['x']      ?? 0;
-              const tiktok = snap['tiktok'] ?? 0;
-              const weibo  = snap['weibo']  ?? 0;
-              return (
-                <motion.div
-                  key={a.value}
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="h-[2px] w-10 mx-auto rounded-full mb-4" style={{ background: a.color }} />
-                  <div className="text-lg mb-1">{a.emoji}</div>
-                  <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3 tracking-wider uppercase">{a.label}</div>
-                  <div className="space-y-1.5">
-                    {[['📸', 'IG', ig], ['𝕏', 'X', x], ['🎵', 'TikTok', tiktok], ['🌐', 'Weibo', weibo]].map(([icon, label, val]) =>
-                      (mounted && Number(val) > 0) ? (
-                        <div key={label as string} className="flex items-center justify-between text-xs px-3">
-                          <span className="text-[var(--color-text-secondary)]">{icon} {label}</span>
-                          <span className="tabular-nums font-medium" style={{ color: a.color }}>{formatNum(Number(val))}</span>
-                        </div>
-                      ) : null
-                    )}
-                    {!mounted || (!ig && !x && !tiktok && !weibo) ? (
-                      <div className="text-xs text-[var(--color-text-secondary)] opacity-40 tabular-nums pt-1">—</div>
-                    ) : null}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+          {config.showFollowerSection && visibleArtists.length > 0 && visiblePlatforms.length > 0 && (
+            <div className={`grid gap-6 ${config.showQuickLinks ? 'mb-10 pb-8 border-b border-[var(--color-border)]' : ''} ${visibleArtists.length === 1 ? 'grid-cols-1 max-w-xs mx-auto' : 'grid-cols-1 sm:grid-cols-3'}`}>
+              {visibleArtists.map((a, i) => {
+                const snap = latestSnap[a.value] ?? {};
+                return (
+                  <motion.div
+                    key={a.value}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="text-center"
+                  >
+                    <div className="h-[2px] w-10 mx-auto rounded-full mb-4" style={{ background: a.color }} />
+                    <div className="text-lg mb-1">{a.emoji}</div>
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-3 tracking-wider uppercase">{a.label}</div>
+                    <div className="space-y-1.5">
+                      {visiblePlatforms.map(({ key, icon, label }) => {
+                        const val = snap[key] ?? 0;
+                        return (mounted && val > 0) ? (
+                          <div key={key} className="flex items-center justify-between text-xs px-3">
+                            <span className="text-[var(--color-text-secondary)]">{icon} {label}</span>
+                            <span className="tabular-nums font-medium" style={{ color: a.color }}>{formatNum(val)}</span>
+                          </div>
+                        ) : null;
+                      })}
+                      {(!mounted || visiblePlatforms.every(p => !(snap[p.key] ?? 0))) && (
+                        <div className="text-xs text-[var(--color-text-secondary)] opacity-40 tabular-nums pt-1">—</div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Quick Engage Action Keys */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {QUICK_LINKS.map((link, i) => (
-              <motion.div
-                key={link.href}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 + (i * 0.05) }}
-              >
-                <Link href={link.href} className="block group">
-                  <div className="bg-[var(--color-panel)] border border-[var(--color-border)] rounded-xl py-4 px-3 flex flex-col items-center justify-center text-center hover:bg-[var(--color-surface)] hover:shadow-[0px_0px_0px_1px_var(--color-border)] hover:-translate-y-0.5 transition-all w-full h-full">
-                    <span className="text-xl mb-2 opacity-80 group-hover:opacity-100 transition-opacity">{link.icon}</span>
-                    <h3 className="text-xs font-medium text-[var(--color-text-primary)] tracking-wide">{link.label}</h3>
-                    <p className="text-[10px] text-[var(--color-text-muted)] mt-1">{link.desc}</p>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+          {config.showQuickLinks && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {ALL_QUICK_LINKS.map((link, i) => (
+                <motion.div
+                  key={link.href}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 + (i * 0.05) }}
+                >
+                  <Link href={link.href} className="block group">
+                    <div className="bg-[var(--color-panel)] border border-[var(--color-border)] rounded-xl py-4 px-3 flex flex-col items-center justify-center text-center hover:bg-[var(--color-surface)] hover:shadow-[0px_0px_0px_1px_var(--color-border)] hover:-translate-y-0.5 transition-all w-full h-full">
+                      <span className="text-xl mb-2 opacity-80 group-hover:opacity-100 transition-opacity">{link.icon}</span>
+                      <h3 className="text-xs font-medium text-[var(--color-text-primary)] tracking-wide">{link.label}</h3>
+                      <p className="text-[10px] text-[var(--color-text-muted)] mt-1">{link.desc}</p>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
 
       </div>

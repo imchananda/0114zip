@@ -124,7 +124,8 @@ export interface HomePageData {
   engData:            HomeEngData;
   profiles:           Record<string, HomeArtistProfile>;
   fanCountries:       HomeFanCountry[];
-  featuredWork:       HomeContentItem | null;
+  featuredSeries:     HomeContentItem | null;
+  featuredMusic:      HomeContentItem | null;
   ntSeries:           number | null;
   flSeries:           number | null;
   scheduleEvents:     HomeScheduleEvent[];
@@ -152,7 +153,8 @@ export async function fetchHomeData(): Promise<HomePageData> {
     brandCollabsRes,
     profilesRes,
     fanCountriesRes,
-    featuredWorkRes,
+    featuredSeriesRes,
+    featuredMusicRes,
     ntSeriesRes,
     flSeriesRes,
     scheduleRes,
@@ -186,7 +188,16 @@ export async function fetchHomeData(): Promise<HomePageData> {
       .from('content_items')
       .select('id, title, title_thai, year, content_type, actors, image, links')
       .eq('visible', true)
-      .eq('featured', true)
+      .eq('show_on_live_dashboard', true)
+      .eq('content_type', 'series')
+      .order('sort_order')
+      .limit(1),
+    db
+      .from('content_items')
+      .select('id, title, title_thai, year, content_type, actors, image, links')
+      .eq('visible', true)
+      .eq('show_on_live_dashboard', true)
+      .eq('content_type', 'music')
       .order('sort_order')
       .limit(1),
     db
@@ -331,9 +342,13 @@ export async function fetchHomeData(): Promise<HomePageData> {
   }));
 
   // ── Featured work ───────────────────────────────────────────────────────────
-  const featuredWork: HomeContentItem | null =
-    featuredWorkRes.status === 'fulfilled' && !featuredWorkRes.value.error
-      ? ((featuredWorkRes.value.data ?? [])[0] as HomeContentItem ?? null)
+  const featuredSeries: HomeContentItem | null =
+    featuredSeriesRes.status === 'fulfilled' && !featuredSeriesRes.value.error
+      ? ((featuredSeriesRes.value.data ?? [])[0] as HomeContentItem ?? null)
+      : null;
+  const featuredMusic: HomeContentItem | null =
+    featuredMusicRes.status === 'fulfilled' && !featuredMusicRes.value.error
+      ? ((featuredMusicRes.value.data ?? [])[0] as HomeContentItem ?? null)
       : null;
 
   // ── Series counts ───────────────────────────────────────────────────────────
@@ -433,7 +448,8 @@ export async function fetchHomeData(): Promise<HomePageData> {
     engData,
     profiles,
     fanCountries,
-    featuredWork,
+    featuredSeries,
+    featuredMusic,
     ntSeries,
     flSeries,
     scheduleEvents,

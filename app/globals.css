@@ -52,19 +52,20 @@
    ============================================================ */
 :root,
 .dark {
-  --color-bg:           #141413; /* Deep Dark */
-  --color-surface:      #30302e; /* Dark Surface */
-  --color-panel:        #141413; /* Deep Dark Panel */
-  --color-border:       #30302e; /* Border Dark */
+  --color-bg:           #2c2c2a; /* Deep Dark */
+  --color-surface:      #424240; /* Dark Surface */
+  --color-panel:        #2c2c2a; /* Deep Dark Panel */
+  --color-border:       #444442; /* Border Dark */
   --color-text-primary: #faf9f5; /* Ivory / Near White */
   --color-text-secondary: #b0aea5; /* Warm Silver */
   --color-text-muted:   #87867f; /* Stone Gray */
-  --skeleton-from:      #30302e;
-  --skeleton-mid:       #3d3d3a;
-  --skeleton-to:        #30302e;
+  --color-accent:       #6cbfd0; /* Namtan Teal */
+  --skeleton-from:      #424240;
+  --skeleton-mid:       #4f4f4c;
+  --skeleton-to:        #424240;
   --selection-bg:       rgba(108, 191, 208, 0.30); /* Namtan Glow */
-  --color-footer-bg:    #1e1e1c; /* Dark Footer */
-  --color-brands-bg:    #1a1a18; /* Dark Brands Section */
+  --color-footer-bg:    #333331; /* Dark Footer */
+  --color-brands-bg:    #2f2f2d; /* Dark Brands Section */
 }
 
 /* ============================================================
@@ -78,6 +79,7 @@
   --color-text-primary: #141413; /* Near Black */
   --color-text-secondary: #5e5d59; /* Olive Gray */
   --color-text-muted:   #87867f; /* Stone Gray */
+  --color-accent:       #4a9aab; /* Namtan Teal Dark (better contrast on light) */
   --skeleton-from:      #f0eee6;
   --skeleton-mid:       #e8e6dc;
   --skeleton-to:        #f0eee6;

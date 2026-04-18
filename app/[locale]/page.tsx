@@ -117,8 +117,9 @@ export default async function HomePage() {
           initialEng:          homeData.engData,
           initialProfiles:     homeData.profiles,
           initialFanCountries: homeData.fanCountries,
-          initialFeaturedWork: homeData.featuredWork,
-          initialNtSeries:     homeData.ntSeries,
+          initialFeaturedSeries: homeData.featuredSeries,
+          initialFeaturedMusic:  homeData.featuredMusic,
+          initialNtSeries:       homeData.ntSeries,
           initialFlSeries:     homeData.flSeries,
         },
         schedule: {

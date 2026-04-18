@@ -144,7 +144,7 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
           {/* Brightness overlay (avoid CSS filter on <img> which causes blur on mobile) */}
           <div
             className="absolute inset-0"
-            style={{ background: isLight ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.22)' }}
+            style={{ background: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.10)' }}
           />
 
           {/* Gradient overlays */}
@@ -152,16 +152,16 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
             className="absolute inset-0"
             style={{
               background: isLight
-                ? 'linear-gradient(to top, rgba(255,255,255,0.55), transparent 60%)'
-                : 'linear-gradient(to top, rgba(0,0,0,0.75), transparent 60%)',
+                ? 'linear-gradient(to top, rgba(245,244,237,0.65), transparent 60%)'
+                : 'linear-gradient(to top, rgba(0,0,0,0.55), transparent 60%)',
             }}
           />
           <div
             className="absolute inset-0"
             style={{
               background: isLight
-                ? 'linear-gradient(to right, rgba(255,255,255,0.10), transparent, rgba(255,255,255,0.10))'
-                : 'linear-gradient(to right, rgba(0,0,0,0.35), transparent, rgba(0,0,0,0.35))',
+                ? 'linear-gradient(to right, rgba(245,244,237,0.10), transparent, rgba(245,244,237,0.10))'
+                : 'linear-gradient(to right, rgba(0,0,0,0.20), transparent, rgba(0,0,0,0.20))',
             }}
           />
         </motion.div>

@@ -308,7 +308,7 @@ export default function HeroSlidesAdminPage() {
                 className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
                   slide.enabled
                     ? 'bg-[var(--color-surface)] border-[var(--color-border)]'
-                    : 'bg-[var(--color-panel)] border-[var(--color-border)] opacity-60'
+                    : 'bg-[var(--color-panel)] border-[var(--color-border)] opacity-75'
                 }`}>
                 {/* Thumbnail */}
                 <div className="relative w-20 h-12 rounded-lg overflow-hidden shrink-0 bg-[var(--color-panel)]">
@@ -338,16 +338,20 @@ export default function HeroSlidesAdminPage() {
                 {/* Actions */}
                 <div className="flex items-center gap-1 shrink-0">
                   <button onClick={() => moveSlide(slide.id, -1)} disabled={idx === 0}
-                    className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] disabled:opacity-30 disabled:cursor-not-allowed transition-all" title="ขึ้น">↑</button>
+                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-accent)] disabled:opacity-25 disabled:cursor-not-allowed transition-all text-xs font-bold" title="ขึ้น">↑</button>
                   <button onClick={() => moveSlide(slide.id, 1)} disabled={idx === displaySlides.length - 1}
-                    className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-panel)] disabled:opacity-30 disabled:cursor-not-allowed transition-all" title="ลง">↓</button>
+                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)] hover:border-[var(--color-accent)] disabled:opacity-25 disabled:cursor-not-allowed transition-all text-xs font-bold" title="ลง">↓</button>
                   <button onClick={() => toggleEnabled(slide)}
-                    className={`p-1.5 rounded-lg transition-all text-sm ${slide.enabled ? 'text-green-500 hover:bg-green-500/10' : 'text-[#87867f] hover:bg-[var(--color-panel)]'}`}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all text-sm ${
+                      slide.enabled
+                        ? 'bg-green-500/15 border-green-500/40 text-green-600 hover:bg-green-500/25'
+                        : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-green-500/40'
+                    }`}
                     title={slide.enabled ? 'ปิด slide' : 'เปิด slide'}>{slide.enabled ? '👁' : '🙈'}</button>
                   <button onClick={() => openEdit(slide)}
-                    className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[#6cbfd0] hover:bg-[#6cbfd0]/10 transition-all" title="แก้ไข">✏️</button>
+                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#6cbfd0]/15 border border-[#6cbfd0]/40 text-[#6cbfd0] hover:bg-[#6cbfd0]/25 transition-all" title="แก้ไข">✏️</button>
                   <button onClick={() => deleteSlide(slide)}
-                    className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all" title="ลบ">🗑️</button>
+                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all" title="ลบ">🗑️</button>
                 </div>
               </div>
             );
@@ -516,14 +520,14 @@ export default function HeroSlidesAdminPage() {
             {/* Modal footer */}
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--color-border)] shrink-0 bg-[var(--color-surface)]">
               <button onClick={closeModal}
-                className="px-5 py-2.5 rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-panel)] transition-colors">
+                className="px-5 py-2.5 rounded-lg text-sm border border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-text-primary)] hover:border-[var(--color-accent)] transition-colors">
                 ยกเลิก
               </button>
               <button
                 onClick={saveSlide}
                 disabled={saving || isUploading}
-                className="px-6 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-w-[120px]">
-                {saving ? 'กำลังบันทึก...' : isUploading ? `อัปโหลด ${uploadPct}%` : '💾 บันทึก'}
+                className="px-6 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-w-[130px] shadow-sm">
+                {saving ? '⏳ กำลังบันทึก...' : isUploading ? `⏳ อัปโหลด ${uploadPct}%` : '💾 บันทึก'}
               </button>
             </div>
 

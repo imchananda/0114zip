@@ -12,7 +12,7 @@ function imgSrc(url: string): string {
   return url.replace(/^http:\/\//, 'https://');
 }
 
-type ContentType = 'series' | 'variety' | 'event' | 'magazine' | 'award';
+type ContentType = 'series' | 'variety' | 'music' | 'magazine' | 'award';
 
 interface PlatformLink { platform: string; url: string; }
 
@@ -26,16 +26,17 @@ interface ContentItem {
   image?: string;
   visible: boolean;
   featured?: boolean;
+  show_on_live_dashboard?: boolean;
   role?: string;
   links?: PlatformLink[];
 }
 
 const TYPE_LABELS: Record<ContentType, string> = {
-  series: '📺 Series', variety: '🎭 Variety', event: '🎪 Event',
+  series: '📺 Series', variety: '🎭 Variety', music: '🎵 งานเพลง',
   magazine: '📰 Magazine', award: '🏆 Award',
 };
 const TYPE_COLORS: Record<ContentType, string> = {
-  series: '#4CAF50', variety: '#FF9800', event: '#E91E63',
+  series: '#4CAF50', variety: '#FF9800', music: '#E91E63',
   magazine: '#9C27B0', award: '#fbdf74',
 };
 
@@ -61,7 +62,10 @@ export default function ContentManagementPage() {
   const fetchContent = useCallback(async () => {
     const url = filter === 'all' ? '/api/admin/content' : `/api/admin/content?type=${filter}`;
     const res = await fetch(url);
-    if (res.ok) setItems(await res.json());
+    if (res.ok) {
+      const data: ContentItem[] = await res.json();
+      setItems(data.filter(item => item.content_type !== 'event'));
+    }
     setLoading(false);
   }, [filter]);
 
@@ -147,8 +151,8 @@ export default function ContentManagementPage() {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: TYPE_COLORS[item.content_type] + '20', color: TYPE_COLORS[item.content_type] }}>
-                    {TYPE_LABELS[item.content_type]}
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: (TYPE_COLORS[item.content_type] ?? '#888') + '20', color: TYPE_COLORS[item.content_type] ?? '#888' }}>
+                    {TYPE_LABELS[item.content_type] ?? item.content_type}
                   </span>
                   <span className="text-xs text-[var(--color-text-secondary)]">{item.year || '—'}</span>
                   {item.featured && (
@@ -230,7 +234,7 @@ function FilterBtn({ active, onClick, children }: { active: boolean; onClick: ()
 function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null; onClose: () => void; onSave: () => void }) {
   const isEdit = !!item;
   const [form, setForm] = useState({
-    content_type: item?.content_type || 'series',
+    content_type: (item?.content_type === 'event' ? 'music' : item?.content_type) || 'series',
     title:        item?.title        || '',
     title_thai:   item?.title_thai   || '',
     year:         item?.year         || new Date().getFullYear(),
@@ -239,6 +243,7 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
     image:        item?.image        || '',
     visible:      item?.visible      ?? true,
     featured:     item?.featured     ?? false,
+    show_on_live_dashboard: item?.show_on_live_dashboard ?? false,
   });
   const [links,   setLinks]   = useState<PlatformLink[]>(item?.links ?? []);
   const [newLink, setNewLink] = useState<PlatformLink>({ platform: 'youtube', url: '' });
@@ -277,6 +282,7 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
       year:   Number(form.year),
       role:   form.role.trim() || null,
       links:  links.length > 0 ? links : null,
+      show_on_live_dashboard: form.show_on_live_dashboard,
       ...(isEdit ? { id: item!.id } : {}),
     };
     await fetch('/api/admin/content', {
@@ -288,7 +294,7 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
     onSave();
   };
 
-  const showLinksEditor = ['series', 'variety'].includes(form.content_type);
+  const showLinksEditor = ['series', 'variety', 'music'].includes(form.content_type);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
@@ -321,6 +327,24 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
             </div>
           </label>
 
+          {/* ── Live Dashboard toggle ── */}
+          <label className="flex items-center gap-3 p-3 bg-[var(--color-panel)] rounded-xl border border-[var(--color-border)] cursor-pointer hover:border-[#6cbfd0]/40 transition-colors">
+            <input
+              type="checkbox"
+              checked={form.show_on_live_dashboard}
+              onChange={e => setForm(f => ({ ...f, show_on_live_dashboard: e.target.checked }))}
+              className="w-4 h-4 accent-[#6cbfd0]"
+            />
+            <div>
+              <div className="text-sm font-medium flex items-center gap-1.5">
+                <span>📺</span><span>แสดงบน Live Dashboard</span>
+              </div>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                แสดงในหน้า Live Dashboard
+              </p>
+            </div>
+          </label>
+
           <Field label="ประเภท">
             <select
               value={form.content_type}
@@ -329,7 +353,7 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
             >
               <option value="series">Series &amp; Drama</option>
               <option value="variety">Variety</option>
-              <option value="event">Event</option>
+              <option value="music">งานเพลง</option>
               <option value="magazine">Magazine</option>
               <option value="award">Award</option>
             </select>

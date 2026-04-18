@@ -42,8 +42,9 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'ระบบ',
     items: [
-      { href: '/admin/hero-slides', icon: '🖼️', label: 'Hero Slides' },
-      { href: '/admin/banners',   icon: '🎨', label: 'Banners' },
+      { href: '/admin/hero-slides',     icon: '🖼️', label: 'Hero Slides'      },
+      { href: '/admin/live-dashboard',  icon: '📊', label: 'Live Dashboard'    },
+      { href: '/admin/banners',         icon: '🎨', label: 'Banners'           },
       { href: '/admin/footer',    icon: '🦶', label: 'Footer' },
       { href: '/admin/users',     icon: '👥', label: 'Users', superOnly: true },
       { href: '/admin/settings',  icon: '⚙️', label: 'Settings' },

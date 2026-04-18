@@ -10,7 +10,7 @@ datasource db {
 
 model ContentItem {
   id          String   @id @default(uuid())
-  contentType String   @map("content_type") // series, variety, event, magazine, award
+  contentType String   @map("content_type") // series, variety, music, magazine, award
   title       String
   titleThai   String?  @map("title_thai")
   year        Int      @default(0)

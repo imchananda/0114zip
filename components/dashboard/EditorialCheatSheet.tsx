@@ -16,8 +16,38 @@ function imgSrc(url: string): string {
   return url.replace(/^http:\/\//, 'https://');
 }
 
+// ─── Card link wrapper ────────────────────────────────────────────────────────
+function CardLink({ href, children }: { href?: string; children: React.ReactNode }) {
+  if (!href) return <>{children}</>;
+  const isExternal = href.startsWith('http');
+  return (
+    <a
+      href={href}
+      {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      className="contents"
+    >
+      {children}
+    </a>
+  );
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Artist = 'namtan' | 'film' | 'luna';
+
+interface LiveDashboardConfig {
+  showArtists:        string[];
+  showPlatforms:      string[];
+  showFollowerSection: boolean;
+  showQuickLinks:     boolean;
+  cardLinks?:         Record<string, string>;
+}
+const CFG_DEFAULT: LiveDashboardConfig = {
+  showArtists: ['namtan', 'film', 'luna'],
+  showPlatforms: ['ig', 'x', 'tiktok', 'weibo'],
+  showFollowerSection: true,
+  showQuickLinks: true,
+  cardLinks: {},
+};
 
 interface IgPost    { artist: Artist; emv: number; post_date: string; }
 interface BrandCollab { artists: Artist[]; }
@@ -144,16 +174,17 @@ function BarRow({ label, val, color, max, mounted }: {
 
 // ─── Portrait card (Namtan or Film — tall, editorial dark) ────────────────────
 function PortraitCard({
-  label, labelShort, emv, color, photoUrl, fallbackSrc, mounted, delay, gridClass,
+  label, labelShort, emv, color, photoUrl, fallbackSrc, mounted, delay, gridClass, href,
 }: {
   label: string; labelShort: string; emv: number; color: string;
   photoUrl?: string | null; fallbackSrc: string;
-  mounted: boolean; delay: number; gridClass: string;
+  mounted: boolean; delay: number; gridClass: string; href?: string;
 }) {
   const [src, setSrc] = useState(photoUrl ? imgSrc(photoUrl) : fallbackSrc);
   useEffect(() => { setSrc(photoUrl ? imgSrc(photoUrl) : fallbackSrc); }, [photoUrl, fallbackSrc]);
 
   return (
+    <CardLink href={href}>
     <motion.div
       className={`rounded-2xl overflow-hidden relative ${gridClass}`}
       style={{ background: '#0b0b09' }}
@@ -189,6 +220,85 @@ function PortraitCard({
         <p className="text-[8px] mt-1 tracking-wide text-white/40">{label}</p>
       </div>
     </motion.div>
+    </CardLink>
+  );
+}
+
+// ─── Featured Content Card ────────────────────────────────────────────────────
+function FeaturedCard({
+  work, label, delay, gridClass, href,
+}: {
+  work: ContentDbItem | null;
+  label: string;
+  delay: number;
+  gridClass: string;
+  href?: string;
+}) {
+  return (
+    <CardLink href={href}>
+    <motion.div
+      className={`rounded-2xl overflow-hidden relative ${gridClass}`}
+      style={{ background: '#141413', border: '1px solid #252523' }}
+      initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+      transition={{ delay }}
+    >
+      {work?.image && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imgSrc(work.image)}
+          alt={work.title}
+          className="absolute inset-0 w-full h-full object-cover object-center"
+          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+        />
+      )}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: work?.image
+            ? 'linear-gradient(to top, rgba(0,0,0,0.92) 40%, rgba(0,0,0,0.45) 75%, rgba(0,0,0,0.15) 100%)'
+            : 'transparent',
+        }}
+      />
+      <div className="relative z-10 p-5 flex flex-col h-full">
+        <p className="text-[8px] tracking-[0.3em] uppercase text-white/40 mb-2">{label}</p>
+        {work ? (
+          <div className="flex flex-col justify-between flex-1">
+            <div className="mt-auto">
+              <div className="font-display text-xl leading-tight text-white line-clamp-2">
+                {work.title}
+              </div>
+              <p className="text-[9px] text-white/50 mt-1 leading-relaxed">
+                {work.title_thai && <>{work.title_thai}<br /></>}
+                {work.year}
+              </p>
+            </div>
+            {work.links && work.links.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {work.links.slice(0, 4).map(l => (
+                  <a
+                    key={l.platform}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[7px] px-1.5 py-0.5 rounded border border-white/20
+                      text-white/50 hover:text-white/90 hover:border-white/50 transition-all"
+                  >
+                    {PLATFORM_META[l.platform]?.label ?? l.platform}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-[9px] text-white/20 text-center leading-relaxed">
+              ตั้งค่าได้ที่<br />admin → content ☆
+            </p>
+          </div>
+        )}
+      </div>
+    </motion.div>
+    </CardLink>
   );
 }
 
@@ -197,29 +307,41 @@ export function EditorialCheatSheet({
   initialEng,
   initialProfiles,
   initialFanCountries,
-  initialFeaturedWork,
+  initialFeaturedSeries,
+  initialFeaturedMusic,
   initialNtSeries,
   initialFlSeries,
 }: {
-  initialEng?:          EngData | null;
-  initialProfiles?:     Record<string, ArtistProfile>;
-  initialFanCountries?: FanCountry[];
-  initialFeaturedWork?: ContentDbItem | null;
-  initialNtSeries?:     number | null;
-  initialFlSeries?:     number | null;
+  initialEng?:            EngData | null;
+  initialProfiles?:       Record<string, ArtistProfile>;
+  initialFanCountries?:   FanCountry[];
+  initialFeaturedSeries?: ContentDbItem | null;
+  initialFeaturedMusic?:  ContentDbItem | null;
+  initialNtSeries?:       number | null;
+  initialFlSeries?:       number | null;
 } = {}) {
-  const [mounted,      setMounted]      = useState(false);
-  const [eng,          setEng]          = useState<EngData | null>(initialEng ?? null);
-  const [profiles,     setProfiles]     = useState<Record<string, ArtistProfile>>(initialProfiles ?? {});
-  const [countries,    setCountries]    = useState<FanCountry[]>(initialFanCountries ?? []);
-  const [featuredWork, setFeaturedWork] = useState<ContentDbItem | null>(initialFeaturedWork ?? null);
-  const [dbNtSeries,   setDbNtSeries]   = useState<number | null>(initialNtSeries ?? null);
-  const [dbFlSeries,   setDbFlSeries]   = useState<number | null>(initialFlSeries ?? null);
+  const [mounted,        setMounted]        = useState(false);
+  const [eng,            setEng]            = useState<EngData | null>(initialEng ?? null);
+  const [profiles,       setProfiles]       = useState<Record<string, ArtistProfile>>(initialProfiles ?? {});
+  const [countries,      setCountries]      = useState<FanCountry[]>(initialFanCountries ?? []);
+  const [featuredSeries, setFeaturedSeries] = useState<ContentDbItem | null>(initialFeaturedSeries ?? null);
+  const [featuredMusic,  setFeaturedMusic]  = useState<ContentDbItem | null>(initialFeaturedMusic ?? null);
+  const [dbNtSeries,     setDbNtSeries]     = useState<number | null>(initialNtSeries ?? null);
+  const [dbFlSeries,     setDbFlSeries]     = useState<number | null>(initialFlSeries ?? null);
+  const [cfg,            setCfg]            = useState<LiveDashboardConfig>(CFG_DEFAULT);
 
   useEffect(() => {
     setMounted(true);
 
-    // Skip all fetches when the server already provided initial data
+    // Always load admin config (controls what to show)
+    fetch('/api/admin/settings')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.liveDashboardConfig) setCfg({ ...CFG_DEFAULT, ...data.liveDashboardConfig });
+      })
+      .catch(() => {});
+
+    // Skip engagement fetches when the server already provided initial data
     if (initialEng !== undefined) return;
 
     // Engagement data: follower snapshots (incl. Weibo), igPosts, brandCollabs
@@ -246,10 +368,14 @@ export function EditorialCheatSheet({
       .then(d => { if (Array.isArray(d?.fanCountries)) setCountries(d.fanCountries); })
       .catch(() => {});
 
-    // Featured work for "ผลงานโดดเด่น" card
-    fetch('/api/works?featured=true&limit=1')
+    // Featured series + music (show_on_live_dashboard)
+    fetch('/api/works?show_on_live_dashboard=true&type=series&limit=1')
       .then(r => r.json())
-      .then(d => { if (d?.data?.[0]) setFeaturedWork(d.data[0]); })
+      .then(d => { if (d?.data?.[0]) setFeaturedSeries(d.data[0]); })
+      .catch(() => {});
+    fetch('/api/works?show_on_live_dashboard=true&type=music&limit=1')
+      .then(r => r.json())
+      .then(d => { if (d?.data?.[0]) setFeaturedMusic(d.data[0]); })
       .catch(() => {});
 
     // Series count from DB (falls back to static if fetch fails)
@@ -266,14 +392,9 @@ export function EditorialCheatSheet({
   const nt = eng?.latestSnapshots?.namtan ?? {};
   const fl = eng?.latestSnapshots?.film   ?? {};
 
-  // EMV = most recent IG post per artist (not a sum)
+  // EMV for portrait cards
   const ntEMV = eng?.igPosts?.namtan?.[0]?.emv ?? 0;
   const flEMV = eng?.igPosts?.film?.[0]?.emv   ?? 0;
-
-  // EMV split % for donut
-  const combined = ntEMV + flEMV;
-  const ntPct = combined > 0 ? Math.round((ntEMV / combined) * 100) : 50;
-  const flPct = 100 - ntPct;
 
   // Brand collabs counts
   const ntBrands = (eng?.brandCollabs ?? []).filter(b => b.artists.includes('namtan')).length;
@@ -295,7 +416,9 @@ export function EditorialCheatSheet({
   const ntSeries = dbNtSeries ?? staticNtSeries;
   const flSeries = dbFlSeries ?? staticFlSeries;
 
-  const igMax = Math.max(nt.ig ?? 0, fl.ig ?? 0, 1);
+  const igMax     = Math.max(nt.ig     ?? 0, fl.ig     ?? 0, 1);
+  const xMax      = Math.max(nt.x      ?? 0, fl.x      ?? 0, 1);
+  const tiktokMax = Math.max(nt.tiktok ?? 0, fl.tiktok ?? 0, 1);
 
   // Shared card class
   const CARD = 'rounded-2xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)]';
@@ -329,45 +452,55 @@ export function EditorialCheatSheet({
         ─────────────────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[155px] md:auto-rows-[185px] gap-2.5">
 
-          {/* ── A : Namtan · Latest EMV ─────────────────────────────── */}
+          {/* ── A : Instagram followers ──────────────────────────────────── */}
+          <CardLink href={cfg.cardLinks?.A}>
           <motion.div
-            className={`${CARD} col-start-1 row-start-1 p-5 flex flex-col justify-between`}
+            className={`${CARD} col-start-1 row-start-1 md:col-start-1 md:row-start-1 p-4 flex flex-col`}
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
           >
-            <p className="text-[9px] tracking-[0.3em] uppercase text-[var(--color-text-muted)]">
-              น้ำตาล · EMV
-            </p>
-            <div>
-              <div
-                className="font-display text-[2.4rem] md:text-[2.8rem] leading-none tabular-nums"
-                style={{ color: NT }}
-              >
-                {mounted ? fmtEMV(ntEMV) : '฿—'}
+            <p className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-text-muted)] mb-3">Instagram</p>
+            {cfg.showFollowerSection && cfg.showPlatforms.includes('ig') ? (
+              <div className="flex-1 flex flex-col justify-center gap-3">
+                {cfg.showArtists.includes('namtan') && (
+                  <BarRow label="น้ำตาล" val={nt.ig ?? 0} color={NT} max={igMax} mounted={mounted} />
+                )}
+                {cfg.showArtists.includes('film') && (
+                  <BarRow label="ฟิล์ม" val={fl.ig ?? 0} color={FL} max={igMax} mounted={mounted} />
+                )}
               </div>
-              <p className="text-[8px] text-[var(--color-text-muted)] mt-1.5 tracking-[0.2em] uppercase">
-                Latest Post · Instagram
-              </p>
-            </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-[9px] text-[var(--color-text-muted)]">—</div>
+            )}
+            <p className="text-[8px] text-[var(--color-text-muted)] mt-2">📸 ผู้ติดตาม</p>
           </motion.div>
+          </CardLink>
 
-          {/* ── B : EMV Split donut ─────────────────────────────────── */}
+          {/* ── B : X (Twitter) followers ──────────────────────────────── */}
+          <CardLink href={cfg.cardLinks?.B}>
           <motion.div
-            className={`${CARD} col-start-2 row-start-1
-              p-4 flex flex-col items-center justify-center gap-1.5`}
+            className={`${CARD} col-start-2 row-start-1 md:col-start-2 md:row-start-1 p-4 flex flex-col`}
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ delay: 0.07 }}
           >
-            <p className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-text-muted)]">
-              EMV Split
-            </p>
-            <DonutChart pct={ntPct} color={NT} size={74} />
-            <div className="flex gap-3 text-[9px]">
-              <span style={{ color: NT }}>● น้ำตาล {ntPct}%</span>
-              <span style={{ color: FL }}>● ฟิล์ม {flPct}%</span>
-            </div>
+            <p className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-text-muted)] mb-3">X (Twitter)</p>
+            {cfg.showFollowerSection && cfg.showPlatforms.includes('x') ? (
+              <div className="flex-1 flex flex-col justify-center gap-3">
+                {cfg.showArtists.includes('namtan') && (
+                  <BarRow label="น้ำตาล" val={nt.x ?? 0} color={NT} max={xMax} mounted={mounted} />
+                )}
+                {cfg.showArtists.includes('film') && (
+                  <BarRow label="ฟิล์ม" val={fl.x ?? 0} color={FL} max={xMax} mounted={mounted} />
+                )}
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-[9px] text-[var(--color-text-muted)]">—</div>
+            )}
+            <p className="text-[8px] text-[var(--color-text-muted)] mt-2">𝕏 ผู้ติดตาม</p>
           </motion.div>
+          </CardLink>
 
           {/* ── C : Fan Audience donut (desktop col-4 row-1) ────────── */}
+          <CardLink href={cfg.cardLinks?.C}>
           <motion.div
             className={`${CARD}
               col-start-1 row-start-3
@@ -407,6 +540,7 @@ export function EditorialCheatSheet({
                 text-[9px] text-[var(--color-text-muted)]">—</div>
             )}
           </motion.div>
+          </CardLink>
 
           {/* ── D : Namtan Portrait  tall (desktop col-3 rows 1-2) ──── */}
           <PortraitCard
@@ -418,123 +552,11 @@ export function EditorialCheatSheet({
             fallbackSrc="/images/banners/nt.png"
             mounted={mounted}
             delay={0.14}
-            gridClass="col-start-2 row-start-3 row-span-2 md:col-start-3 md:row-start-1 md:row-span-2"
+            gridClass="col-start-1 row-start-2 md:col-start-3 md:row-start-1 md:row-span-2"
+            href={cfg.cardLinks?.D}
           />
 
-          {/* ── E : Film · Latest EMV ────────────────────────────────── */}
-          <motion.div
-            className={`${CARD}
-              col-start-1 row-start-2
-              md:col-start-1 md:row-start-2
-              p-5 flex flex-col justify-between`}
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ delay: 0.19 }}
-          >
-            <p className="text-[9px] tracking-[0.3em] uppercase text-[var(--color-text-muted)]">
-              ฟิล์ม · EMV
-            </p>
-            <div>
-              <div
-                className="font-display text-[2.4rem] md:text-[2.8rem] leading-none tabular-nums"
-                style={{ color: FL }}
-              >
-                {mounted ? fmtEMV(flEMV) : '฿—'}
-              </div>
-              <p className="text-[8px] text-[var(--color-text-muted)] mt-1.5 tracking-[0.2em] uppercase">
-                Latest Post · Instagram
-              </p>
-            </div>
-          </motion.div>
-
-          {/* ── F : Instagram followers ──────────────────────────────── */}
-          <motion.div
-            className={`${CARD}
-              col-start-2 row-start-2
-              md:col-start-2 md:row-start-2
-              p-4 flex flex-col`}
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ delay: 0.23 }}
-          >
-            <p className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-text-muted)] mb-3">
-              Instagram
-            </p>
-            <div className="flex-1 flex flex-col justify-center gap-3">
-              <BarRow label="น้ำตาล" val={nt.ig ?? 0} color={NT} max={igMax} mounted={mounted} />
-              <BarRow label="ฟิล์ม"  val={fl.ig ?? 0} color={FL} max={igMax} mounted={mounted} />
-            </div>
-            <p className="text-[8px] text-[var(--color-text-muted)] mt-2">📸 ผู้ติดตาม</p>
-          </motion.div>
-
-          {/* ── G : ผลงานโดดเด่น — dark editorial card ─────────────── */}
-          <motion.div
-            className="rounded-2xl overflow-hidden relative
-              col-start-1 row-start-4
-              md:col-start-4 md:row-start-2"
-            style={{ background: '#141413', border: '1px solid #252523' }}
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ delay: 0.27 }}
-          >
-            {/* Cover image — plain img to allow any admin-supplied URL */}
-            {featuredWork?.image && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={imgSrc(featuredWork.image)}
-                alt={featuredWork.title}
-                className="absolute inset-0 w-full h-full object-cover object-center"
-                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-              />
-            )}
-            {/* Gradient overlay — heavier when image present */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background: featuredWork?.image
-                  ? 'linear-gradient(to top, rgba(0,0,0,0.92) 40%, rgba(0,0,0,0.45) 75%, rgba(0,0,0,0.15) 100%)'
-                  : 'transparent',
-              }}
-            />
-            {/* Content */}
-            <div className="relative z-10 p-5 flex flex-col h-full">
-              <p className="text-[8px] tracking-[0.3em] uppercase text-white/40 mb-2">ผลงานโดดเด่น</p>
-              {featuredWork ? (
-                <div className="flex flex-col justify-between flex-1">
-                  <div className="mt-auto">
-                    <div className="font-display text-xl leading-tight text-white line-clamp-2">
-                      {featuredWork.title}
-                    </div>
-                    <p className="text-[9px] text-white/50 mt-1 leading-relaxed">
-                      {featuredWork.title_thai && <>{featuredWork.title_thai}<br /></>}
-                      {featuredWork.year}
-                    </p>
-                  </div>
-                  {featuredWork.links && featuredWork.links.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {featuredWork.links.slice(0, 4).map(l => (
-                        <a
-                          key={l.platform}
-                          href={l.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[7px] px-1.5 py-0.5 rounded border border-white/20
-                            text-white/50 hover:text-white/90 hover:border-white/50 transition-all"
-                        >
-                          {PLATFORM_META[l.platform]?.label ?? l.platform}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex-1 flex items-center justify-center">
-                  <p className="text-[9px] text-white/20 text-center leading-relaxed">
-                    ตั้งค่าได้ที่<br />admin → content ☆
-                  </p>
-                </div>
-              )}
-            </div>
-          </motion.div>
-
-          {/* ── H : Film Portrait  tall (desktop col-4 rows 3, col-1 mobile) */}
+          {/* ── E : Film Portrait  tall (desktop col-1 rows 2-3) ───── */}
           <PortraitCard
             label="Film Rachanun"
             labelShort="ฟิล์ม"
@@ -543,81 +565,65 @@ export function EditorialCheatSheet({
             photoUrl={profiles['film']?.photo_url}
             fallbackSrc="/images/banners/f.png"
             mounted={mounted}
-            delay={0.31}
-            gridClass="col-start-2 row-start-5 row-span-2 md:col-start-1 md:row-start-3 md:row-span-1"
+            delay={0.19}
+            gridClass="col-start-2 row-start-2 md:col-start-1 md:row-start-2 md:row-span-2"
+            href={cfg.cardLinks?.E}
           />
 
-          {/* ── I : TikTok & X followers ─────────────────────────────── */}
+          {/* ── F : TikTok followers ────────────────────────────────────────── */}
+          <CardLink href={cfg.cardLinks?.F}>
+          <motion.div
+            className={`${CARD}
+              col-start-2 row-start-3
+              md:col-start-2 md:row-start-2
+              p-4 flex flex-col`}
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ delay: 0.23 }}
+          >
+            <p className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-text-muted)] mb-3">TikTok</p>
+            {cfg.showFollowerSection && cfg.showPlatforms.includes('tiktok') ? (
+              <div className="flex-1 flex flex-col justify-center gap-3">
+                {cfg.showArtists.includes('namtan') && (
+                  <BarRow label="น้ำตาล" val={nt.tiktok ?? 0} color={NT} max={tiktokMax} mounted={mounted} />
+                )}
+                {cfg.showArtists.includes('film') && (
+                  <BarRow label="ฟิล์ม" val={fl.tiktok ?? 0} color={FL} max={tiktokMax} mounted={mounted} />
+                )}
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-[9px] text-[var(--color-text-muted)]">—</div>
+            )}
+            <p className="text-[8px] text-[var(--color-text-muted)] mt-2">🎵 ผู้ติดตาม</p>
+          </motion.div>
+          </CardLink>
+
+          {/* ── G : ผลงานโดดเด่น · ซีรีส์ ───────────────────────── */}
+          <FeaturedCard
+            work={featuredSeries}
+            label="ผลงานโดดเด่น · ซีรีส์"
+            delay={0.27}
+            gridClass="col-start-1 row-start-4 md:col-start-4 md:row-start-2"
+            href={cfg.cardLinks?.G}
+          />
+
+          {/* ── H : ผลงานโดดเด่น · งานเพลง ──────────────────────────── */}
+          <FeaturedCard
+            work={featuredMusic}
+            label="ผลงานโดดเด่น · งานเพลง"
+            delay={0.31}
+            gridClass="col-start-2 row-start-4 md:col-start-2 md:row-start-3"
+            href={cfg.cardLinks?.H}
+          />
+
+          {/* ── I : Series count ─────────────────────────────────────── */}
+          <CardLink href={cfg.cardLinks?.I}>
           <motion.div
             className={`${CARD}
               col-start-1 row-start-5
-              md:col-start-2 md:row-start-3
+              md:col-start-3 md:row-start-3
               p-4`}
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ delay: 0.35 }}
-          >
-            <p className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-text-muted)] mb-3">
-              TikTok & X
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { icon: '🎵', label: 'TikTok', nv: nt.tiktok ?? 0, fv: fl.tiktok ?? 0 },
-                { icon: '𝕏',  label: 'X',      nv: nt.x     ?? 0, fv: fl.x     ?? 0 },
-              ].map(({ icon, label, nv, fv }) => (
-                <div key={label} className="text-center">
-                  <p className="text-[8px] text-[var(--color-text-muted)] mb-1.5">{icon} {label}</p>
-                  <div className="text-[11px] font-medium tabular-nums" style={{ color: NT }}>
-                    {mounted ? fmtFol(nv) : '—'}
-                  </div>
-                  <div className="text-[8px] text-[var(--color-text-muted)]">น้ำตาล</div>
-                  <div className="text-[11px] font-medium tabular-nums mt-1.5" style={{ color: FL }}>
-                    {mounted ? fmtFol(fv) : '—'}
-                  </div>
-                  <div className="text-[8px] text-[var(--color-text-muted)]">ฟิล์ม</div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* ── J : Weibo followers (0 if no snapshots yet) ──────────── */}
-          <motion.div
-            className={`${CARD}
-              col-start-1 row-start-6
-              md:col-start-3 md:row-start-3
-              p-4 flex flex-col justify-between`}
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ delay: 0.39 }}
-          >
-            <p className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-text-muted)] mb-2">
-              Weibo
-            </p>
-            <div className="space-y-2.5">
-              {[
-                { label: 'น้ำตาล', val: nt.weibo ?? 0, color: NT },
-                { label: 'ฟิล์ม',  val: fl.weibo ?? 0, color: FL },
-              ].map(({ label, val, color }) => (
-                <div key={label} className="flex items-baseline justify-between">
-                  <span className="text-[10px] text-[var(--color-text-secondary)]">{label}</span>
-                  <span
-                    className="font-display text-[1.6rem] leading-none tabular-nums"
-                    style={{ color }}
-                  >
-                    {mounted ? (val > 0 ? fmtFol(val) : '0') : '—'}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <p className="text-[8px] text-[var(--color-text-muted)]">🌐 ผู้ติดตาม</p>
-          </motion.div>
-
-          {/* ── K : Series & Works count ──────────────────────────────── */}
-          <motion.div
-            className={`${CARD}
-              col-start-2 row-start-6
-              md:col-start-4 md:row-start-3
-              p-4`}
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ delay: 0.43 }}
           >
             <p className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-text-muted)] mb-2">
               Series &amp; Works
@@ -637,25 +643,53 @@ export function EditorialCheatSheet({
             </div>
             <p className="text-[8px] text-[var(--color-text-muted)]">🎬 ผลงานการแสดง</p>
           </motion.div>
+          </CardLink>
 
+          {/* ── J : Brands count ─────────────────────────────────────── */}
+          <CardLink href={cfg.cardLinks?.J}>
+          <motion.div
+            className={`${CARD}
+              col-start-2 row-start-5
+              md:col-start-4 md:row-start-3
+              p-4`}
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ delay: 0.39 }}
+          >
+            <p className="text-[9px] tracking-[0.25em] uppercase text-[var(--color-text-muted)] mb-2">
+              Brand Collabs
+            </p>
+            <div className="grid grid-cols-2 gap-1 mb-2">
+              {[
+                { count: ntBrands > 0 ? ntBrands : '—', label: 'น้ำตาล', color: NT },
+                { count: flBrands > 0 ? flBrands : '—', label: 'ฟิล์ม',  color: FL },
+              ].map(({ count, label, color }) => (
+                <div key={label} className="text-center">
+                  <div className="font-display text-[3.2rem] leading-none" style={{ color }}>
+                    {count}
+                  </div>
+                  <div className="text-[8px] text-[var(--color-text-muted)] mt-0.5">{label}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[8px] text-[var(--color-text-muted)]">🤝 พาร์ทเนอร์แบรนด์</p>
+          </motion.div>
+          </CardLink>
         </div>
 
         {/* ── Bottom stats strip ─────────────────────────────────────────────── */}
         <div className="mt-2.5 grid grid-cols-3 md:grid-cols-6 gap-2.5">
           {[
-            { v: `${ntAwards}`,                       top: 'Awards',    sub: 'น้ำตาล' },
-            { v: `${flAwards}`,                       top: 'Awards',    sub: 'ฟิล์ม'  },
-            { v: ntBrands > 0 ? `${ntBrands}` : '—', top: 'Brands',    sub: 'น้ำตาล' },
-            { v: flBrands > 0 ? `${flBrands}` : '—', top: 'Brands',    sub: 'ฟิล์ม'  },
-            {
-              v:   mounted ? (nt.ig ?? 0) > 0 ? fmtFol(nt.ig!) : '—' : '—',
-              top: 'Instagram', sub: 'น้ำตาล',
-            },
-            {
-              v:   mounted ? (fl.ig ?? 0) > 0 ? fmtFol(fl.ig!) : '—' : '—',
-              top: 'Instagram', sub: 'ฟิล์ม',
-            },
-          ].map((s, i) => (
+            cfg.showArtists.includes('namtan') ? { v: `${ntAwards}`,                       top: 'Awards',    sub: 'น้ำตาล' } : null,
+            cfg.showArtists.includes('film')   ? { v: `${flAwards}`,                       top: 'Awards',    sub: 'ฟิล์ม'  } : null,
+            cfg.showArtists.includes('namtan') ? { v: ntBrands > 0 ? `${ntBrands}` : '—', top: 'Brands',    sub: 'น้ำตาล' } : null,
+            cfg.showArtists.includes('film')   ? { v: flBrands > 0 ? `${flBrands}` : '—', top: 'Brands',    sub: 'ฟิล์ม'  } : null,
+            (cfg.showFollowerSection && cfg.showPlatforms.includes('ig') && cfg.showArtists.includes('namtan'))
+              ? { v: mounted ? (nt.ig ?? 0) > 0 ? fmtFol(nt.ig!) : '—' : '—', top: 'Instagram', sub: 'น้ำตาล' }
+              : null,
+            (cfg.showFollowerSection && cfg.showPlatforms.includes('ig') && cfg.showArtists.includes('film'))
+              ? { v: mounted ? (fl.ig ?? 0) > 0 ? fmtFol(fl.ig!) : '—' : '—', top: 'Instagram', sub: 'ฟิล์ม' }
+              : null,
+          ].filter(Boolean).map((s, i) => (
             <motion.div
               key={i}
               className="rounded-xl p-3 text-center
