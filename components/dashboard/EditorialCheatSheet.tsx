@@ -689,7 +689,7 @@ export function EditorialCheatSheet({
             (cfg.showFollowerSection && cfg.showPlatforms.includes('ig') && cfg.showArtists.includes('film'))
               ? { v: mounted ? (fl.ig ?? 0) > 0 ? fmtFol(fl.ig!) : '—' : '—', top: 'Instagram', sub: 'ฟิล์ม' }
               : null,
-          ].filter(Boolean).map((s, i) => (
+          ].filter(Boolean).map((s: any, i: number) => (
             <motion.div
               key={i}
               className="rounded-xl p-3 text-center

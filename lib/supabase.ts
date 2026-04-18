@@ -5,11 +5,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // ── Public client (server-side read) ── lazy singleton to avoid build-time init errors
-let _supabase: ReturnType<typeof createClient> | null = null;
-export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+let _supabase: ReturnType<typeof createClient<any>> | null = null;
+export const supabase = new Proxy({} as ReturnType<typeof createClient<any>>, {
   get(_target, prop, receiver) {
     if (!_supabase) {
-      _supabase = createClient(supabaseUrl, supabaseAnonKey);
+      _supabase = createClient<any>(supabaseUrl, supabaseAnonKey);
     }
     return Reflect.get(_supabase, prop, receiver);
   },
@@ -49,5 +49,5 @@ export function getAdminClient() {
     console.warn('[Supabase] SERVICE_ROLE_KEY not configured, using anon key');
     return supabase;
   }
-  return createClient(supabaseUrl, serviceKey);
+  return createClient<any>(supabaseUrl, serviceKey);
 }

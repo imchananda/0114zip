@@ -15,7 +15,7 @@ export async function GET() {
     // Aggregate Works by Year (Total works grouped by year)
     // Structure needed: { year: 2021, series: 1, variety: 2, total: 3 }
     const worksAggr: Record<number, any> = {};
-    works?.forEach(w => {
+    (works as any[])?.forEach(w => {
       const y = w.year || 2020;
       if (!worksAggr[y]) worksAggr[y] = { year: y, total: 0, series: 0, variety: 0, event: 0, magazine: 0 };
       worksAggr[y].total += 1;

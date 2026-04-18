@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const settings: Record<string, any> = {};
-  for (const row of data ?? []) {
+  for (const row of (data as any[]) ?? []) {
     settings[row.key] = row.value;
   }
   return NextResponse.json(settings);

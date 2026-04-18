@@ -64,7 +64,7 @@ export default function ContentManagementPage() {
     const res = await fetch(url);
     if (res.ok) {
       const data: ContentItem[] = await res.json();
-      setItems(data.filter(item => item.content_type !== 'event'));
+      setItems(data.filter(item => (item.content_type as string) !== 'event'));
     }
     setLoading(false);
   }, [filter]);
@@ -234,7 +234,7 @@ function FilterBtn({ active, onClick, children }: { active: boolean; onClick: ()
 function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null; onClose: () => void; onSave: () => void }) {
   const isEdit = !!item;
   const [form, setForm] = useState({
-    content_type: (item?.content_type === 'event' ? 'music' : item?.content_type) || 'series',
+    content_type: ((item?.content_type as string) === 'event' ? 'music' : item?.content_type) || 'series',
     title:        item?.title        || '',
     title_thai:   item?.title_thai   || '',
     year:         item?.year         || new Date().getFullYear(),

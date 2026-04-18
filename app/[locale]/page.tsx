@@ -62,9 +62,10 @@ async function getSections(): Promise<Record<string, SectionConfig>> {
       .select('value')
       .eq('key', 'homeSections')
       .single();
-    if (data?.value && typeof data.value === 'object') {
+    const typedData = data as any;
+    if (typedData?.value && typeof typedData.value === 'object') {
       const merged = { ...DEFAULT_SECTIONS };
-      for (const [key, val] of Object.entries(data.value as Record<string, unknown>)) {
+      for (const [key, val] of Object.entries(typedData.value as Record<string, unknown>)) {
         if (typeof val === 'boolean') {
           // backward-compat: old boolean format
           merged[key] = { ...(merged[key] ?? { order: 50 }), enabled: val };

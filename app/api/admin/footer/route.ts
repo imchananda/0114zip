@@ -33,7 +33,8 @@ export async function GET() {
   if (error || !data) {
     return NextResponse.json(DEFAULT_FOOTER);
   }
-  return NextResponse.json({ ...DEFAULT_FOOTER, ...(data.value as object) });
+  const typedData = data as any;
+  return NextResponse.json({ ...DEFAULT_FOOTER, ...(typedData.value as object) });
 }
 
 // PUT /api/admin/footer

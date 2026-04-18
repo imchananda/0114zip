@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       path,
       country,
       user_agent: userAgent,
-    });
+    } as any);
 
     return NextResponse.json({ ok: true });
   } catch {
