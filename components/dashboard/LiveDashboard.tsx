@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from '@/i18n/routing';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
@@ -61,17 +61,34 @@ export function LiveDashboard() {
   const [mounted, setMounted] = useState(false);
   const [latestSnap, setLatestSnap] = useState<LatestSnap>({ namtan: {}, film: {}, luna: {} });
   const [config, setConfig] = useState<LiveDashboardConfig>(DEFAULT_CONFIG);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+
+  const YEAR_OPTIONS: { label: string; value: number | null }[] = [
+    { label: 'ทั้งหมด', value: null },
+    { label: '2024',     value: 2024 },
+    { label: '2025',     value: 2025 },
+    { label: '2026',     value: 2026 },
+  ];
+
+  const fetchEngagement = useCallback((year: number | null) => {
+    const yq = year ? `?year=${year}` : '';
+    fetch(`/api/engagement${yq}`).then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.latestSnapshots) setLatestSnap(data.latestSnapshots as LatestSnap); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setMounted(true);
-    Promise.all([
-      fetch('/api/engagement').then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch('/api/admin/settings').then(r => r.ok ? r.json() : null).catch(() => null),
-    ]).then(([engagementData, settings]) => {
-      if (engagementData?.latestSnapshots) setLatestSnap(engagementData.latestSnapshots as LatestSnap);
-      if (settings?.liveDashboardConfig) setConfig({ ...DEFAULT_CONFIG, ...settings.liveDashboardConfig });
-    });
-  }, []);
+    fetch('/api/admin/settings').then(r => r.ok ? r.json() : null)
+      .then(settings => { if (settings?.liveDashboardConfig) setConfig({ ...DEFAULT_CONFIG, ...settings.liveDashboardConfig }); })
+      .catch(() => {});
+    fetchEngagement(null);
+  }, [fetchEngagement]);
+
+  const handleYearChange = useCallback((year: number | null) => {
+    setSelectedYear(year);
+    fetchEngagement(year);
+  }, [fetchEngagement]);
 
   // Determine which artists to show: intersection of admin config and view state
   const adminAllowedArtists = ARTIST_META.filter(a => config.showArtists.includes(a.value));
@@ -95,7 +112,23 @@ export function LiveDashboard() {
           <p className="text-[var(--color-text-secondary)] text-sm font-light tracking-wide max-w-xl mx-auto">
             {t('preview.engage.sub')}
           </p>
-          <div className="flex items-center justify-center gap-2 mt-4">
+          {/* Year filter pills */}
+          <div className="flex items-center justify-center gap-1 mt-4">
+            {YEAR_OPTIONS.map(opt => (
+              <button
+                key={opt.value ?? 'all'}
+                onClick={() => handleYearChange(opt.value)}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wide transition-all duration-200
+                  ${selectedYear === opt.value
+                    ? 'bg-[#6cbfd0] text-[#141413]'
+                    : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface)]'
+                  }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center justify-center gap-2 mt-3">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />

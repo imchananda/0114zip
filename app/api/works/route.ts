@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     const actor = searchParams.get('actor');
     const featured = searchParams.get('featured');
     const liveDashboard = searchParams.get('show_on_live_dashboard');
+    const yearParam = searchParams.get('year');
     const pageParam = parseInt(searchParams.get('page') || '1', 10);
     const limitParam = parseInt(searchParams.get('limit') || String(PAGE_SIZE), 10);
 
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
     if (actor && actor !== 'both' && actor !== 'all') countQ = countQ.contains('actors', [actor]);
     if (featured === 'true') countQ = countQ.eq('featured', true);
     if (liveDashboard === 'true') countQ = countQ.eq('show_on_live_dashboard', true);
+    if (yearParam && /^\d{4}$/.test(yearParam)) countQ = countQ.eq('year', parseInt(yearParam, 10));
 
     // Data query
     let dataQ = supabase
@@ -45,6 +47,7 @@ export async function GET(req: NextRequest) {
     if (actor && actor !== 'both' && actor !== 'all') dataQ = dataQ.contains('actors', [actor]);
     if (featured === 'true') dataQ = dataQ.eq('featured', true);
     if (liveDashboard === 'true') dataQ = dataQ.eq('show_on_live_dashboard', true);
+    if (yearParam && /^\d{4}$/.test(yearParam)) dataQ = dataQ.eq('year', parseInt(yearParam, 10));
 
     const [{ count, error: countErr }, { data, error: dataErr }] = await Promise.all([countQ, dataQ]);
 

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export const revalidate = 120; // Cache for 2 minutes
@@ -11,23 +11,45 @@ const supabase = createClient(
 const ARTISTS   = ['namtan', 'film', 'luna'] as const;
 const PLATFORMS = ['ig', 'x', 'tiktok', 'weibo'] as const;
 
-// GET /api/engagement
+// GET /api/engagement?year=2025
 // Returns: latestSnapshots, snapshotHistory, igPosts, brandCollabs
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const yearParam = req.nextUrl.searchParams.get('year');
+  const year = yearParam && /^\d{4}$/.test(yearParam) ? parseInt(yearParam, 10) : null;
+
+  // Date range for filtering (null = all time)
+  const dateFrom = year ? `${year}-01-01` : null;
+  const dateTo   = year ? `${year}-12-31` : null;
+
+  let snapshotsQ = supabase
+    .from('artist_follower_snapshots')
+    .select('*')
+    .order('recorded_date', { ascending: true });
+  if (dateFrom && dateTo) {
+    snapshotsQ = snapshotsQ.gte('recorded_date', dateFrom).lte('recorded_date', dateTo);
+  }
+
+  let igPostsQ = supabase
+    .from('ig_posts')
+    .select('*')
+    .order('post_date', { ascending: false });
+  if (dateFrom && dateTo) {
+    igPostsQ = igPostsQ.gte('post_date', dateFrom).lte('post_date', dateTo);
+  }
+
+  let brandsQ = supabase
+    .from('brand_collaborations')
+    .select('*')
+    .eq('visible', true)
+    .order('start_date', { ascending: false });
+  if (dateFrom && dateTo) {
+    brandsQ = brandsQ.gte('start_date', dateFrom).lte('start_date', dateTo);
+  }
+
   const [snapshotsRes, igPostsRes, brandsRes] = await Promise.allSettled([
-    supabase
-      .from('artist_follower_snapshots')
-      .select('*')
-      .order('recorded_date', { ascending: true }),
-    supabase
-      .from('ig_posts')
-      .select('*')
-      .order('post_date', { ascending: false }),
-    supabase
-      .from('brand_collaborations')
-      .select('*')
-      .eq('visible', true)
-      .order('start_date', { ascending: false }),
+    snapshotsQ,
+    igPostsQ,
+    brandsQ,
   ]);
 
   // ── Follower snapshots ──────────────────────────────────────────────────────

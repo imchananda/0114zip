@@ -1,21 +1,93 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  WIDGET_OPTIONS, SLOT_DEFS, type WidgetType,
+  STATS_TILE_OPTIONS, STATS_STRIP_DEFS, DEFAULT_STATS_STRIP, type StatsTileType,
+  type BentoSlotLink, isDualWidget,
+} from '@/components/dashboard/EditorialCheatSheet';
+
+// ── Widget visual metadata (for miniature preview) ────────────────────────────
+const WIDGET_META: Record<WidgetType, { icon: string; short: string; accent?: string }> = {
+  ig_followers:     { icon: '📸', short: 'IG',        accent: '#E1306C' },
+  x_followers:      { icon: '𝕏',  short: 'X',         accent: '#888' },
+  tiktok_followers: { icon: '🎵', short: 'TikTok',    accent: '#00f2ea' },
+  weibo_followers:  { icon: '🌐', short: 'Weibo',     accent: '#e6162d' },
+  namtan_emv:       { icon: '💙', short: 'NT EMV',    accent: '#6cbfd0' },
+  film_emv:         { icon: '💛', short: 'FL EMV',    accent: '#fbdf74' },
+  emv_split:        { icon: '🍩', short: 'EMV Split' },
+  fan_audience:     { icon: '🌍', short: 'Audience' },
+  namtan_portrait:  { icon: '🖼️', short: 'น้ำตาล',    accent: '#6cbfd0' },
+  film_portrait:    { icon: '🖼️', short: 'ฟิล์ม',     accent: '#fbdf74' },
+  featured_series:  { icon: '🎥', short: 'ซีรีส์' },
+  featured_music:   { icon: '🎶', short: 'เพลง' },
+  series_count:     { icon: '📊', short: 'Series' },
+  brands_count:     { icon: '🏷️', short: 'Brands' },
+  awards_count:     { icon: '🏆', short: 'Awards' },
+  nt_brands_list:   { icon: '🏷️', short: 'NT Brands', accent: '#6cbfd0' },
+  fl_brands_list:   { icon: '🏷️', short: 'FL Brands', accent: '#fbdf74' },
+  nt_works_pie:     { icon: '🥧', short: 'NT งาน',    accent: '#6cbfd0' },
+  fl_works_pie:     { icon: '🥧', short: 'FL งาน',    accent: '#fbdf74' },
+  hidden:           { icon: '✕',  short: 'ซ่อน',      accent: '#555' },
+};
+
+// Stats tile visual metadata (for miniature preview)
+const STATS_TILE_META: Record<StatsTileType, { icon: string; short: string; accent?: string }> = {
+  nt_awards:  { icon: '🏆', short: 'NT Awards',  accent: '#6cbfd0' },
+  fl_awards:  { icon: '🏆', short: 'FL Awards',  accent: '#fbdf74' },
+  nt_brands:  { icon: '🏷️', short: 'NT Brands',  accent: '#6cbfd0' },
+  fl_brands:  { icon: '🏷️', short: 'FL Brands',  accent: '#fbdf74' },
+  nt_ig:      { icon: '📸', short: 'NT IG',      accent: '#6cbfd0' },
+  fl_ig:      { icon: '📸', short: 'FL IG',      accent: '#fbdf74' },
+  nt_x:       { icon: '𝕏',  short: 'NT X',       accent: '#6cbfd0' },
+  fl_x:       { icon: '𝕏',  short: 'FL X',       accent: '#fbdf74' },
+  nt_tiktok:  { icon: '🎵', short: 'NT TikTok',  accent: '#6cbfd0' },
+  fl_tiktok:  { icon: '🎵', short: 'FL TikTok',  accent: '#fbdf74' },
+  nt_weibo:   { icon: '🌐', short: 'NT Weibo',   accent: '#6cbfd0' },
+  fl_weibo:   { icon: '🌐', short: 'FL Weibo',   accent: '#fbdf74' },
+  nt_series:  { icon: '📺', short: 'NT Series',  accent: '#6cbfd0' },
+  fl_series:  { icon: '📺', short: 'FL Series',  accent: '#fbdf74' },
+  nt_emv:     { icon: '💙', short: 'NT EMV',     accent: '#6cbfd0' },
+  fl_emv:     { icon: '💛', short: 'FL EMV',     accent: '#fbdf74' },
+  hidden:     { icon: '✕',  short: 'ซ่อน',       accent: '#555' },
+};
+
+// Grid position map for the miniature 4×3 preview
+const SLOT_GRID: Record<string, string> = {
+  A: 'col-start-1 row-start-1',
+  B: 'col-start-2 row-start-1',
+  C: 'col-start-4 row-start-1 row-span-2',
+  D: 'col-start-3 row-start-1 row-span-2',
+  E: 'col-start-1 row-start-2',
+  F: 'col-start-2 row-start-2',
+  H: 'col-start-1 row-start-3',
+  I: 'col-start-2 row-start-3',
+  J: 'col-start-3 row-start-3',
+  K: 'col-start-4 row-start-3',
+};
 
 interface LiveDashboardConfig {
-  showArtists: string[];
-  showPlatforms: string[];
+  showArtists:         string[];
+  showPlatforms:       string[];
   showFollowerSection: boolean;
-  showQuickLinks: boolean;
-  cardLinks?: Record<string, string>;
+  showQuickLinks:      boolean;
+  bento:               Record<string, WidgetType>;
+  statsStrip:          Record<string, StatsTileType>;
+  bentoLinks?:         Record<string, BentoSlotLink>;
 }
+
+const DEFAULT_BENTO: Record<string, WidgetType> = Object.fromEntries(
+  SLOT_DEFS.map(s => [s.id, s.defaultWidget])
+) as Record<string, WidgetType>;
 
 const DEFAULT_CONFIG: LiveDashboardConfig = {
   showArtists: ['namtan', 'film', 'luna'],
   showPlatforms: ['ig', 'x', 'tiktok', 'weibo'],
   showFollowerSection: true,
-  showQuickLinks: true,
-  cardLinks: {},
+  showQuickLinks:      true,
+  bento:               DEFAULT_BENTO,
+  statsStrip:          DEFAULT_STATS_STRIP,
+  bentoLinks:          {},
 };
 
 const ARTISTS = [
@@ -41,13 +113,31 @@ export default function LiveDashboardSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(true);
+  const [highlightSlot, setHighlightSlot] = useState<string | null>(null);
+  const [highlightTile, setHighlightTile] = useState<string | null>(null);
+
+  const changedCount = useMemo(
+    () => SLOT_DEFS.filter(s => (config.bento[s.id] ?? s.defaultWidget) !== s.defaultWidget).length,
+    [config.bento]
+  );
+  const statsChangedCount = useMemo(
+    () => STATS_STRIP_DEFS.filter(s => (config.statsStrip[s.id] ?? s.defaultTile) !== s.defaultTile).length,
+    [config.statsStrip]
+  );
 
   useEffect(() => {
     fetch('/api/admin/settings')
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.liveDashboardConfig) {
-          setConfig({ ...DEFAULT_CONFIG, ...data.liveDashboardConfig });
+          setConfig({
+            ...DEFAULT_CONFIG,
+            ...data.liveDashboardConfig,
+            bento: { ...DEFAULT_BENTO, ...(data.liveDashboardConfig.bento ?? {}) },
+            statsStrip: { ...DEFAULT_STATS_STRIP, ...(data.liveDashboardConfig.statsStrip ?? {}) },
+            bentoLinks: { ...(data.liveDashboardConfig.bentoLinks ?? {}) },
+          });
         }
       })
       .catch(() => {})
@@ -66,11 +156,32 @@ export default function LiveDashboardSettingsPage() {
       if (!res.ok) throw new Error('บันทึกไม่สำเร็จ');
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
-    } catch (e: any) {
-      setError(e.message ?? 'เกิดข้อผิดพลาด');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     } finally {
       setSaving(false);
     }
+  }
+
+  function setBento(slotId: string, widget: WidgetType) {
+    setConfig(c => ({ ...c, bento: { ...c.bento, [slotId]: widget } }));
+  }
+
+  function setBentoLink(slotId: string, field: keyof BentoSlotLink, value: string) {
+    setConfig(c => {
+      const prev = c.bentoLinks?.[slotId] ?? {};
+      const updated = { ...prev, [field]: value || undefined };
+      // Clean empty entries
+      if (!updated.namtan && !updated.film && !updated.single) {
+        const { [slotId]: _, ...rest } = c.bentoLinks ?? {};
+        return { ...c, bentoLinks: rest };
+      }
+      return { ...c, bentoLinks: { ...(c.bentoLinks ?? {}), [slotId]: updated } };
+    });
+  }
+
+  function setStatsTile(tileId: string, tile: StatsTileType) {
+    setConfig(c => ({ ...c, statsStrip: { ...c.statsStrip, [tileId]: tile } }));
   }
 
   if (loading) {
@@ -82,7 +193,7 @@ export default function LiveDashboardSettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8">
+    <div className="max-w-3xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="mb-8 pb-4 border-b border-[var(--color-border)]">
         <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">
@@ -167,48 +278,338 @@ export default function LiveDashboardSettingsPage() {
           </div>
         </div>
 
-        {/* Card Links */}
-        <div className="bg-[var(--color-surface)] rounded-xl p-6 border border-[var(--color-border)]">
-          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">🔗 ลิงก์ประจำ Card</h2>
-          <p className="text-xs text-[var(--color-text-muted)] mb-4">
-            ใส่ URL เพื่อให้แต่ละ card สามารถกดเข้าไปดูรายละเอียดได้ (เว้นว่างหากไม่ต้องการลิงก์)
-          </p>
-          <div className="space-y-3">
-            {([
-              { key: 'A', label: 'A — Instagram Followers', icon: '📸' },
-              { key: 'B', label: 'B — X Followers',         icon: '𝕏' },
-              { key: 'C', label: 'C — Fan Audience',        icon: '🌍' },
-              { key: 'D', label: 'D — น้ำตาล Portrait',     icon: '💙' },
-              { key: 'E', label: 'E — ฟิล์ม Portrait',      icon: '💛' },
-              { key: 'F', label: 'F — TikTok Followers',    icon: '🎵' },
-              { key: 'G', label: 'G — ผลงานโดดเด่น · ซีรีส์', icon: '🎬' },
-              { key: 'H', label: 'H — ผลงานโดดเด่น · งานเพลง', icon: '🎶' },
-              { key: 'I', label: 'I — Series Count',        icon: '📺' },
-              { key: 'J', label: 'J — Brand Collabs',       icon: '🤝' },
-            ] as const).map(({ key, label, icon }) => (
-              <div key={key}>
-                <label className="text-xs text-[var(--color-text-secondary)] mb-1 block">
-                  {icon} {label}
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={config.cardLinks?.[key] ?? ''}
-                  onChange={e =>
-                    setConfig(c => ({
-                      ...c,
-                      cardLinks: { ...(c.cardLinks ?? {}), [key]: e.target.value },
-                    }))
-                  }
-                  className="w-full px-3 py-2 rounded-lg text-sm
-                    bg-[var(--color-bg)] border border-[var(--color-border)]
-                    text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]
-                    focus:outline-none focus:ring-1 focus:ring-[#6cbfd0]"
-                />
+        {/* ── Bento Grid Visual Preview ──────────────────────────────────── */}
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+          <button
+            onClick={() => setShowPreview(p => !p)}
+            className="w-full flex items-center justify-between p-6 text-left hover:bg-[var(--color-border)]/10 transition-colors"
+          >
+            <div>
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                👁 Preview — Bento Grid Layout
+              </h2>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                ตัวอย่าง layout ที่จะแสดงบนหน้าแรก
+                {changedCount > 0 && (
+                  <span className="ml-2 text-[#6cbfd0]">({changedCount} ช่องที่เปลี่ยน)</span>
+                )}
+              </p>
+            </div>
+            <span className="text-[var(--color-text-muted)] text-sm">{showPreview ? '▲' : '▼'}</span>
+          </button>
+
+          {showPreview && (
+            <div className="px-6 pb-6">
+              {/* 4-col x 3-row miniature grid */}
+              <div className="grid grid-cols-4 auto-rows-[72px] gap-1.5">
+                {SLOT_DEFS.map(slot => {
+                  const widget = (config.bento[slot.id] ?? slot.defaultWidget) as WidgetType;
+                  const meta = WIDGET_META[widget];
+                  const isHidden = widget === 'hidden';
+                  const isHighlighted = highlightSlot === slot.id;
+                  const isChanged = widget !== slot.defaultWidget;
+
+                  return (
+                    <div
+                      key={slot.id}
+                      className={`rounded-lg border relative flex flex-col items-center justify-center gap-0.5 transition-all duration-200 cursor-default
+                        ${SLOT_GRID[slot.id]}
+                        ${isHidden
+                          ? 'border-dashed border-[var(--color-border)] bg-transparent opacity-40'
+                          : isHighlighted
+                            ? 'border-[#6cbfd0] bg-[#6cbfd0]/10 scale-[1.03] shadow-lg shadow-[#6cbfd0]/10'
+                            : 'border-[var(--color-border)] bg-[var(--color-panel)]'
+                        }`}
+                      onMouseEnter={() => setHighlightSlot(slot.id)}
+                      onMouseLeave={() => setHighlightSlot(null)}
+                    >
+                      {/* Slot badge */}
+                      <span className={`absolute top-1 left-1.5 text-[8px] font-bold ${isChanged ? 'text-[#6cbfd0]' : 'text-[var(--color-text-muted)]'}`}>
+                        {slot.id}
+                      </span>
+                      {/* Widget icon */}
+                      <span className="text-lg leading-none">{meta.icon}</span>
+                      {/* Widget short name */}
+                      <span
+                        className="text-[9px] font-medium leading-tight text-center"
+                        style={{ color: meta.accent ?? 'var(--color-text-secondary)' }}
+                      >
+                        {meta.short}
+                      </span>
+                      {/* Changed dot */}
+                      {isChanged && !isHidden && (
+                        <span className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-[#6cbfd0]" />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+
+              {/* Legend */}
+              <div className="flex items-center gap-4 mt-3 text-[9px] text-[var(--color-text-muted)]">
+                <span className="flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#6cbfd0]" /> เปลี่ยนจาก default
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-4 h-3 rounded border border-dashed border-[var(--color-border)] inline-block opacity-40" /> ซ่อน
+                </span>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* ── Bento Grid Layout ─────────────────────────────────────────── */}
+        <div className="bg-[var(--color-surface)] rounded-xl p-6 border border-[var(--color-border)]">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">
+            🔲 Data Cheat Sheet — กำหนด Widget แต่ละช่อง
+          </h2>
+          <p className="text-xs text-[var(--color-text-muted)] mb-5">
+            เลือกว่าแต่ละช่องใน Bento Grid จะแสดงข้อมูลอะไร
+            (ตำแหน่ง A–K คงที่, เปลี่ยนได้แค่เนื้อหา)
+          </p>
+
+          <div className="space-y-2">
+            {SLOT_DEFS.map(slot => {
+              const current = config.bento[slot.id] ?? slot.defaultWidget;
+              const isHighlighted = highlightSlot === slot.id;
+              const dual = isDualWidget(current);
+              const link = config.bentoLinks?.[slot.id] ?? {};
+              return (
+                <div
+                  key={slot.id}
+                  className={`rounded-lg px-3 py-2.5 border transition-all duration-200
+                    ${isHighlighted
+                      ? 'bg-[#6cbfd0]/10 border-[#6cbfd0]/40'
+                      : 'bg-[var(--color-panel)] border-[var(--color-border)]'
+                    }`}
+                  onMouseEnter={() => setHighlightSlot(slot.id)}
+                  onMouseLeave={() => setHighlightSlot(null)}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-md text-xs font-bold bg-[var(--color-border)] text-[var(--color-text-muted)]">
+                      {slot.id}
+                    </span>
+                    <span className="text-xs text-[var(--color-text-muted)] w-28 flex-shrink-0 hidden sm:block">
+                      {slot.label}
+                    </span>
+                    <select
+                      value={current}
+                      onChange={e => setBento(slot.id, e.target.value as WidgetType)}
+                      className="flex-1 text-sm px-2 py-1.5 rounded-lg
+                        bg-[var(--color-bg)] border border-[var(--color-border)]
+                        text-[var(--color-text-primary)]
+                        focus:outline-none focus:ring-1 focus:ring-[#6cbfd0]"
+                    >
+                      {WIDGET_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                    {current !== slot.defaultWidget && (
+                      <>
+                        <span className="text-[9px] text-[#6cbfd0] flex-shrink-0">✦ แก้ไว้</span>
+                        <button
+                          onClick={() => setBento(slot.id, slot.defaultWidget)}
+                          title="คืนค่าเดิม"
+                          className="text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex-shrink-0 transition-colors"
+                        >
+                          ↩
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  {/* Link inputs */}
+                  {current !== 'hidden' && (
+                    <div className="mt-2 ml-10 flex flex-col gap-1.5">
+                      {dual ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-[#6cbfd0] flex-shrink-0" />
+                            <input
+                              type="url"
+                              placeholder="🔗 Link น้ำตาล (optional)"
+                              value={link.namtan ?? ''}
+                              onChange={e => setBentoLink(slot.id, 'namtan', e.target.value)}
+                              className="flex-1 text-[11px] px-2 py-1 rounded-md
+                                bg-[var(--color-bg)] border border-[var(--color-border)]
+                                text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]/40
+                                focus:outline-none focus:ring-1 focus:ring-[#6cbfd0]/50"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-[#fbdf74] flex-shrink-0" />
+                            <input
+                              type="url"
+                              placeholder="🔗 Link ฟิล์ม (optional)"
+                              value={link.film ?? ''}
+                              onChange={e => setBentoLink(slot.id, 'film', e.target.value)}
+                              className="flex-1 text-[11px] px-2 py-1 rounded-md
+                                bg-[var(--color-bg)] border border-[var(--color-border)]
+                                text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]/40
+                                focus:outline-none focus:ring-1 focus:ring-[#fbdf74]/50"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-[var(--color-text-muted)]">🔗</span>
+                          <input
+                            type="url"
+                            placeholder="Link (optional)"
+                            value={link.single ?? ''}
+                            onChange={e => setBentoLink(slot.id, 'single', e.target.value)}
+                            className="flex-1 text-[11px] px-2 py-1 rounded-md
+                              bg-[var(--color-bg)] border border-[var(--color-border)]
+                              text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)]/40
+                              focus:outline-none focus:ring-1 focus:ring-[#6cbfd0]/50"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setConfig(c => ({ ...c, bento: DEFAULT_BENTO, bentoLinks: {} }))}
+            className="mt-3 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            ↩ คืนค่า default ทุกช่อง (รวม link)
+          </button>
+        </div>
+
+        {/* ── Stats Strip Visual Preview ────────────────────────────────── */}
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+          <button
+            onClick={() => setShowPreview(p => !p)}
+            className="w-full flex items-center justify-between p-6 text-left hover:bg-[var(--color-border)]/10 transition-colors"
+          >
+            <div>
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                👁 Preview — Stats Strip
+              </h2>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                แถบสรุปตัวเลขด้านล่าง Bento Grid
+                {statsChangedCount > 0 && (
+                  <span className="ml-2 text-[#6cbfd0]">({statsChangedCount} ช่องที่เปลี่ยน)</span>
+                )}
+              </p>
+            </div>
+            <span className="text-[var(--color-text-muted)] text-sm">{showPreview ? '▲' : '▼'}</span>
+          </button>
+
+          {showPreview && (
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-6 gap-1.5">
+                {STATS_STRIP_DEFS.map(def => {
+                  const tile = (config.statsStrip[def.id] ?? def.defaultTile) as StatsTileType;
+                  const meta = STATS_TILE_META[tile];
+                  const isHidden = tile === 'hidden';
+                  const isHighlighted = highlightTile === def.id;
+                  const isChanged = tile !== def.defaultTile;
+
+                  return (
+                    <div
+                      key={def.id}
+                      className={`rounded-lg border relative flex flex-col items-center justify-center gap-0.5 py-3 transition-all duration-200 cursor-default
+                        ${isHidden
+                          ? 'border-dashed border-[var(--color-border)] bg-transparent opacity-40'
+                          : isHighlighted
+                            ? 'border-[#6cbfd0] bg-[#6cbfd0]/10 scale-[1.03] shadow-lg shadow-[#6cbfd0]/10'
+                            : 'border-[var(--color-border)] bg-[var(--color-panel)]'
+                        }`}
+                      onMouseEnter={() => setHighlightTile(def.id)}
+                      onMouseLeave={() => setHighlightTile(null)}
+                    >
+                      <span className={`absolute top-1 left-1.5 text-[8px] font-bold ${isChanged ? 'text-[#6cbfd0]' : 'text-[var(--color-text-muted)]'}`}>
+                        {def.id}
+                      </span>
+                      <span className="text-base leading-none">{meta.icon}</span>
+                      <span
+                        className="text-[8px] font-medium leading-tight text-center"
+                        style={{ color: meta.accent ?? 'var(--color-text-secondary)' }}
+                      >
+                        {meta.short}
+                      </span>
+                      {isChanged && !isHidden && (
+                        <span className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-[#6cbfd0]" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Stats Strip Configurator ──────────────────────────────────── */}
+        <div className="bg-[var(--color-surface)] rounded-xl p-6 border border-[var(--color-border)]">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">
+            📊 Bottom Stats Strip — กำหนด Tile แต่ละช่อง
+          </h2>
+          <p className="text-xs text-[var(--color-text-muted)] mb-5">
+            เลือกว่า Tile 1–6 ด้านล่าง Bento Grid จะแสดงข้อมูลอะไร
+          </p>
+
+          <div className="space-y-2">
+            {STATS_STRIP_DEFS.map(def => {
+              const current = config.statsStrip[def.id] ?? def.defaultTile;
+              const isHighlighted = highlightTile === def.id;
+              return (
+                <div
+                  key={def.id}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 border transition-all duration-200
+                    ${isHighlighted
+                      ? 'bg-[#6cbfd0]/10 border-[#6cbfd0]/40'
+                      : 'bg-[var(--color-panel)] border-[var(--color-border)]'
+                    }`}
+                  onMouseEnter={() => setHighlightTile(def.id)}
+                  onMouseLeave={() => setHighlightTile(null)}
+                >
+                  <span className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-md text-xs font-bold bg-[var(--color-border)] text-[var(--color-text-muted)]">
+                    {def.id}
+                  </span>
+                  <span className="text-xs text-[var(--color-text-muted)] w-14 flex-shrink-0 hidden sm:block">
+                    {def.label}
+                  </span>
+                  <select
+                    value={current}
+                    onChange={e => setStatsTile(def.id, e.target.value as StatsTileType)}
+                    className="flex-1 text-sm px-2 py-1.5 rounded-lg
+                      bg-[var(--color-bg)] border border-[var(--color-border)]
+                      text-[var(--color-text-primary)]
+                      focus:outline-none focus:ring-1 focus:ring-[#6cbfd0]"
+                  >
+                    {STATS_TILE_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                  {current !== def.defaultTile && (
+                    <>
+                      <span className="text-[9px] text-[#6cbfd0] flex-shrink-0">✦ แก้ไว้</span>
+                      <button
+                        onClick={() => setStatsTile(def.id, def.defaultTile)}
+                        title="คืนค่าเดิม"
+                        className="text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] flex-shrink-0 transition-colors"
+                      >
+                        ↩
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setConfig(c => ({ ...c, statsStrip: DEFAULT_STATS_STRIP }))}
+            className="mt-3 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+          >
+            ↩ คืนค่า default ทุก tile
+          </button>
+        </div>
+
       </div>
 
       {/* Save */}
