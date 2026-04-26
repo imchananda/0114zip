@@ -9,7 +9,11 @@ const supabase = createClient(
 );
 
 const ARTISTS   = ['namtan', 'film', 'luna'] as const;
-const PLATFORMS = ['ig', 'x', 'tiktok', 'weibo'] as const;
+type Artist = (typeof ARTISTS)[number];
+
+interface IgPostRow {
+  artist: Artist;
+}
 
 // GET /api/engagement?year=2025
 // Returns: latestSnapshots, snapshotHistory, igPosts, brandCollabs
@@ -123,15 +127,15 @@ export async function GET(req: NextRequest) {
   );
 
   // ── IG Posts ────────────────────────────────────────────────────────────────
-  const allPosts =
+  const allPosts: IgPostRow[] =
     igPostsRes.status === 'fulfilled' && !igPostsRes.value.error
-      ? igPostsRes.value.data ?? []
+      ? (igPostsRes.value.data as IgPostRow[] | null) ?? []
       : [];
 
   // Latest 6 per artist
-  const igPosts: Record<string, typeof allPosts> = {};
+  const igPosts: Record<string, IgPostRow[]> = {};
   for (const artist of ARTISTS) {
-    igPosts[artist] = allPosts.filter((p: any) => p.artist === artist).slice(0, 6);
+    igPosts[artist] = allPosts.filter((p) => p.artist === artist).slice(0, 6);
   }
 
   // ── Brand Collabs ───────────────────────────────────────────────────────────

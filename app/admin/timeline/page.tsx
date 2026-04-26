@@ -4,19 +4,28 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { TimelineEvent } from '@/data/timeline';
 
+type TimelineApiRow = Omit<TimelineEvent, 'titleThai'> & { title_thai?: string };
+
+function isTimelineCategory(value: string): value is TimelineEvent['category'] {
+  return value === 'milestone' || value === 'debut' || value === 'work' || value === 'event' || value === 'award';
+}
+
+function isTimelineActor(value: string): value is TimelineEvent['actor'] {
+  return value === 'both' || value === 'namtan' || value === 'film';
+}
+
 // Map snake_case API response → camelCase TimelineEvent
-function fromApi(row: any): TimelineEvent {
+function fromApi(row: TimelineApiRow): TimelineEvent {
   return { ...row, titleThai: row.title_thai ?? '' };
 }
 // Map camelCase TimelineEvent → snake_case for API
-function toApi(evt: Partial<TimelineEvent>): any {
-  const { titleThai, ...rest } = evt as any;
+function toApi(evt: Partial<TimelineEvent>): Partial<TimelineApiRow> {
+  const { titleThai, ...rest } = evt;
   return { ...rest, title_thai: titleThai };
 }
 
 export default function AdminTimelinePage() {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<TimelineEvent>>({});
@@ -26,10 +35,9 @@ export default function AdminTimelinePage() {
     fetch('/api/admin/timeline')
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data)) setEvents(data.map(fromApi));
+        if (Array.isArray(data)) setEvents((data as TimelineApiRow[]).map(fromApi));
       })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      .catch(console.error);
   }, []);
 
   const handleSave = async () => {
@@ -86,7 +94,12 @@ export default function AdminTimelinePage() {
           <select
             className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)]"
             value={editForm.category || 'milestone'}
-            onChange={e => setEditForm({ ...editForm, category: e.target.value as any })}
+            onChange={e => {
+              const value = e.target.value;
+              if (isTimelineCategory(value)) {
+                setEditForm({ ...editForm, category: value });
+              }
+            }}
           >
             <option value="milestone">📍 Milestone</option>
             <option value="debut">🌟 Debut</option>
@@ -135,7 +148,12 @@ export default function AdminTimelinePage() {
           <select
             className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-[var(--color-text-primary)]"
             value={editForm.actor || 'both'}
-            onChange={e => setEditForm({ ...editForm, actor: e.target.value as any })}
+            onChange={e => {
+              const value = e.target.value;
+              if (isTimelineActor(value)) {
+                setEditForm({ ...editForm, actor: value });
+              }
+            }}
           >
             <option value="both">Both (ทั้งคู่)</option>
             <option value="namtan">Namtan</option>

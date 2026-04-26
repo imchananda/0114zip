@@ -8,6 +8,19 @@ const PLATFORM_TYPE: Record<string, string> = {
   facebook: 'Social', youtube: 'Campaign',
 };
 
+interface MediaPostRow {
+  title: string | null;
+  post_url: string;
+  platform: string;
+}
+
+interface MediaEventRow {
+  title: string;
+  link: string | null;
+  start_date: string | null;
+  description: string | null;
+}
+
 /**
  * Rebuilds brand_collaborations.media_items from ALL linked media_posts + media_events.
  * Called whenever a post or event with brand_collab_id is created/updated/deleted.
@@ -28,18 +41,18 @@ export async function syncBrandMediaItems(supabase: SupabaseAdmin, brandId: numb
       .order('start_date', { ascending: false }),
   ]);
 
-  const postItems = (posts ?? []).map((p: any) => ({
-    type: PLATFORM_TYPE[p.platform as string] ?? 'Social',
-    title: (p.title as string | null) || `${p.platform} post`,
-    url: p.post_url as string,
+  const postItems = ((posts as MediaPostRow[] | null) ?? []).map((p) => ({
+    type: PLATFORM_TYPE[p.platform] ?? 'Social',
+    title: p.title || `${p.platform} post`,
+    url: p.post_url,
   }));
 
-  const eventItems = (events ?? []).map((e: any) => ({
+  const eventItems = ((events as MediaEventRow[] | null) ?? []).map((e) => ({
     type: 'Event',
-    title: e.title as string,
-    ...(e.link ? { url: e.link as string } : {}),
-    ...(e.start_date ? { date: e.start_date as string } : {}),
-    ...(e.description ? { description: e.description as string } : {}),
+    title: e.title,
+    ...(e.link ? { url: e.link } : {}),
+    ...(e.start_date ? { date: e.start_date } : {}),
+    ...(e.description ? { description: e.description } : {}),
   }));
 
   await supabase

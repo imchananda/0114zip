@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server';
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createServerClient } from '@supabase/ssr';
 import { getAdminClient } from '@/lib/supabase';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -36,7 +35,8 @@ export async function createClient() {
   );
 }
 
-export async function getAuthUserRole(req?: NextRequest): Promise<string | null> {
+export async function getAuthUserRole(_req?: unknown): Promise<string | null> {
+  void _req;
   try {
     const supabase = await createClient();
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -60,9 +60,10 @@ export async function getAuthUserRole(req?: NextRequest): Promise<string | null>
 /**
  * Verify that the request is from an admin or moderator user.
  */
-export async function verifyAdmin(req?: NextRequest): Promise<boolean> {
+export async function verifyAdmin(_req?: unknown): Promise<boolean> {
+  void _req;
   try {
-    const role = await getAuthUserRole(req);
+    const role = await getAuthUserRole();
     // Both admin and moderator have full access to general admin routes
     return role === 'admin' || role === 'moderator';
   } catch {
@@ -74,7 +75,8 @@ export async function verifyAdmin(req?: NextRequest): Promise<boolean> {
  * Get the authenticated user's ID from the request.
  * Returns null if not authenticated.
  */
-export async function getAuthUserId(req: NextRequest): Promise<string | null> {
+export async function getAuthUserId(_req?: unknown): Promise<string | null> {
+  void _req;
   try {
     const supabase = await createClient();
     const { data: { user }, error } = await supabase.auth.getUser();

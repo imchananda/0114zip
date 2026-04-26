@@ -38,7 +38,10 @@ export default function AdminNotificationsPage() {
     finally { setHistLoading(false); }
   };
 
-  useEffect(() => { fetchHistory(); }, []);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchHistory(); }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const handleBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,8 +59,9 @@ export default function AdminNotificationsPage() {
       setResult({ success: true, msg: `ส่งแจ้งเตือนสำเร็จไปยังสมาชิก ${data.count || 0} คน` });
       setForm({ title: '', body: '', link: '', type: 'system' });
       fetchHistory();
-    } catch (err: any) {
-      setResult({ success: false, msg: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Broadcast failed';
+      setResult({ success: false, msg: message });
     } finally {
       setLoading(false);
     }

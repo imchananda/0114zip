@@ -38,8 +38,9 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(data);
-  } catch (error: any) {
-    console.error('API Error /api/media GET:', error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    console.error('API Error /api/media GET:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

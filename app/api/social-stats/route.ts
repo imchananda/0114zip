@@ -46,6 +46,12 @@ const DEFAULT_COUNTRIES = [
   { name: 'Others',      value: 9,  color: '#78909C' },
 ];
 
+interface FanCountryRow {
+  country: string;
+  percentage: number;
+  color: string;
+}
+
 export async function GET(request: NextRequest) {
   const full = request.nextUrl.searchParams.get('full') === 'true';
 
@@ -91,7 +97,7 @@ export async function GET(request: NextRequest) {
 
     const fanCountries =
       countriesRes.status === 'fulfilled' && !countriesRes.value.error && countriesRes.value.data?.length
-        ? countriesRes.value.data.map((r: any) => ({ name: r.country, value: r.percentage, color: r.color }))
+        ? (countriesRes.value.data as FanCountryRow[]).map((r) => ({ name: r.country, value: r.percentage, color: r.color }))
         : DEFAULT_COUNTRIES;
 
     return NextResponse.json({ stats, followerHistory, engagementData, fanCountries });
@@ -150,8 +156,9 @@ export async function POST(request: NextRequest) {
     if (error) throw error;
 
     return NextResponse.json({ success: true, data });
-  } catch (error: any) {
-    console.error('Error updating social stats:', error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error updating social stats:', message);
     return NextResponse.json({ error: 'Failed to update social stats' }, { status: 500 });
   }
 }

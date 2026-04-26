@@ -32,11 +32,13 @@ async function getMaintenanceSettings(): Promise<{ enabled: boolean; message: st
       }
     );
     if (res.ok) {
-      const rows: { key: string; value: Record<string, any> }[] = await res.json();
+      const rows: { key: string; value: Record<string, unknown> }[] = await res.json();
       const value = rows?.[0]?.value ?? {};
+      const enabled = typeof value.enabled === 'boolean' ? value.enabled : false;
+      const message = typeof value.message === 'string' ? value.message : 'เว็บไซต์กำลังปรับปรุง กรุณากลับมาใหม่ภายหลัง';
       maintenanceCached = {
-        enabled: value.enabled ?? false,
-        message: value.message ?? 'เว็บไซต์กำลังปรับปรุง กรุณากลับมาใหม่ภายหลัง',
+        enabled,
+        message,
       };
       maintenanceCacheExpiry = now + 300_000;
       return maintenanceCached;
@@ -47,6 +49,14 @@ async function getMaintenanceSettings(): Promise<{ enabled: boolean; message: st
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  // Support accidental locale-prefixed admin URLs, e.g. /en/admin/dashboard -> /admin/dashboard
+  const localePrefixedAdmin = path.match(/^\/([^/]+)\/admin(\/.*)?$/);
+  if (localePrefixedAdmin && routing.locales.includes(localePrefixedAdmin[1] as (typeof routing.locales)[number])) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = `/admin${localePrefixedAdmin[2] ?? ''}`;
+    return NextResponse.redirect(redirectUrl);
+  }
   
   // Only apply rate limiting to specific sensitive routes
   const isApiRoute = path.startsWith(API_ROUTES_PREFIX);

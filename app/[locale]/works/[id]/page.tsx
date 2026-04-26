@@ -1,13 +1,17 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, PlayCircle, ExternalLink, Calendar, Users, Info } from 'lucide-react';
+import { ArrowLeft, PlayCircle, ExternalLink, Calendar, Film } from 'lucide-react';
 import { getAdminClient } from '@/lib/supabase';
+import { Header } from '@/components/navigation/Header';
+import { Footer } from '@/components/ui/Footer';
 
-// Note: Using getAdminClient() just for server-side fetching public config
-// We can use createClient if needed, but since it's a server component and public read is allowed,
-// we just fetch directly.
-export const revalidate = 60; // Revalidate every 60 seconds
+export const revalidate = 60;
+
+interface WorkLink {
+  platform?: string;
+  url?: string;
+}
 
 export default async function WorkDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -24,28 +28,31 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
     notFound();
   }
 
-  // Parse links if they exist
-  let links: any[] = [];
+  let links: WorkLink[] = [];
   try {
     if (item.links) {
-      links = typeof item.links === 'string' ? JSON.parse(item.links) : item.links;
+      const parsed = typeof item.links === 'string' ? JSON.parse(item.links) : item.links;
+      if (Array.isArray(parsed)) {
+        links = parsed.filter((l): l is WorkLink => !!l && typeof l === 'object');
+      }
     }
-  } catch (e) {}
+  } catch {}
 
-  // Check if there is a YouTube trailer link
-  const trailerLink = links.find((l: any) => l.platform.toLowerCase() === 'youtube' || l.url.includes('youtube.com/watch'));
+  const trailerLink = links.find((l) => l.platform?.toLowerCase() === 'youtube' || l.url?.includes('youtube.com/watch'));
   const getYouTubeId = (url: string) => {
-    if (!url.includes('youtube.com') && !url.includes('youtu.be')) return null;
+    if (!url || (!url.includes('youtube.com') && !url.includes('youtu.be'))) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   };
-  const trailerId = trailerLink ? getYouTubeId(trailerLink.url) : null;
+  const trailerId = trailerLink?.url ? getYouTubeId(trailerLink.url) : null;
 
   return (
-    <main className="min-h-screen bg-[#141413] pb-20">
-      {/* Hero Section */}
-      <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
+    <main className="min-h-screen bg-[var(--color-bg)] transition-colors duration-500">
+      <Header />
+      
+      {/* Hero Header Section */}
+      <div className="relative h-[65vh] md:h-[80vh] w-full overflow-hidden bg-panel">
         {item.image ? (
           <Image 
             src={item.image} 
@@ -53,73 +60,73 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
             fill
             priority
             sizes="100vw"
-            className="object-cover opacity-50"
+            className="object-cover opacity-30 grayscale-[0.3]"
           />
         ) : (
-          <div className="w-full h-full bg-[#30302e]" />
+          <div className="w-full h-full bg-panel flex items-center justify-center">
+             <Film className="w-24 h-24 text-muted opacity-10" />
+          </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-[#141413] via-[#141413]/60 to-transparent"></div>
+        {/* Soft Magazine Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/40 to-transparent"></div>
         
-        <div className="absolute top-0 left-0 right-0 p-6 z-20">
-          <Link href="/works" className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors bg-black/20 hover:bg-black/40 backdrop-blur-md px-4 py-2 rounded-full text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Works
+        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 lg:p-24 z-10 w-full max-w-7xl mx-auto">
+          <Link href="/works" className="inline-flex items-center gap-2 text-muted hover:text-accent transition-all mb-10 text-[10px] font-bold uppercase tracking-[0.3em] group">
+            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
+            Back to Archive
           </Link>
-        </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 lg:p-20 z-10 w-full max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-8 items-end">
-            {/* Poster (Desktop Only) */}
-            <div className="hidden md:block relative w-64 shrink-0 rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl bg-[#30302e] aspect-[3/4]">
+          <div className="flex flex-col md:flex-row gap-12 md:items-end">
+            {/* Poster Card */}
+            <div className="hidden md:block relative w-72 shrink-0 rounded-[2.5rem] overflow-hidden border border-theme shadow-2xl bg-surface aspect-[2/3] group hover:scale-[1.02] transition-transform duration-700">
               {item.image && (
-                <Image src={item.image} alt={item.title} fill sizes="256px" className="object-cover" />
+                <Image src={item.image} alt={item.title} fill sizes="288px" className="object-cover group-hover:scale-110 transition-transform duration-1000" />
               )}
             </div>
 
-            {/* Title & Meta */}
+            {/* Title & Metadata */}
             <div className="flex-1 pb-4">
-              <div className="flex items-center gap-3 mb-4 flex-wrap">
-                <span className="px-3 py-1 bg-namtan-primary/20 text-namtan-primary rounded-full text-xs font-bold uppercase tracking-wider border border-namtan-primary/30">
+              <div className="flex flex-wrap items-center gap-4 mb-8">
+                <span className="px-4 py-1 bg-accent text-deep-dark rounded-full text-[10px] font-bold uppercase tracking-[0.2em] shadow-sm">
                   {item.content_type}
                 </span>
-                <span className="flex items-center gap-1 text-white/70 text-sm font-medium">
-                  <Calendar className="w-4 h-4" /> {item.year}
+                <span className="flex items-center gap-2 text-muted text-xs font-bold uppercase tracking-widest">
+                  <Calendar className="w-4 h-4 opacity-40" /> {item.year}
                 </span>
-                {item.actors?.length > 0 && (
-                  <span className="flex items-center gap-1 text-white/70 text-sm font-medium ml-2">
-                    <Users className="w-4 h-4" /> {item.actors.map((a: string) => a.charAt(0).toUpperCase() + a.slice(1)).join(' & ')}
-                  </span>
-                )}
+                <div className="flex -space-x-1 ml-4">
+                  {item.actors?.includes('namtan') && <div className="w-3 h-3 rounded-full bg-namtan-primary border-2 border-[var(--color-bg)]" />}
+                  {item.actors?.includes('film') && <div className="w-3 h-3 rounded-full bg-film-primary border-2 border-[var(--color-bg)]" />}
+                </div>
               </div>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-normal font-display text-white mb-2 leading-tight">
+              <h1 className="text-5xl md:text-7xl font-display text-primary leading-tight font-light mb-4 max-w-4xl">
                 {item.title}
               </h1>
               {item.title_thai && (
-                <h2 className="text-2xl text-white/60 font-thai mb-6">
+                <h2 className="text-2xl md:text-3xl text-muted font-thai font-light tracking-wide mb-10 opacity-70">
                   {item.title_thai}
                 </h2>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-4 mt-8">
+              {/* Action Toolbar */}
+              <div className="flex flex-wrap items-center gap-4">
                 {trailerLink && (
-                  <a href="#trailer" className="inline-flex items-center gap-2 bg-white text-[#141413] px-6 py-3 rounded-xl font-medium hover:bg-[#e8e6dc] transition-colors">
-                    <PlayCircle className="w-5 h-5" />
+                  <a href="#trailer" className="inline-flex items-center gap-3 bg-deep-dark text-white px-8 py-4 rounded-full text-[10px] font-bold uppercase tracking-[0.25em] hover:bg-accent hover:text-deep-dark transition-all duration-300 shadow-xl">
+                    <PlayCircle className="w-4 h-4" />
                     Watch Trailer
                   </a>
                 )}
-                {links.filter((l: any) => l.platform.toLowerCase() !== 'youtube' && !l.url.includes('youtube.com/watch')).map((link: any, idx: number) => (
+                {links.filter((l) => l.platform?.toLowerCase() !== 'youtube' && !l.url?.includes('youtube.com/watch')).map((link, idx: number) => (
                   <a 
                     key={idx} 
-                    href={link.url} 
+                    href={link.url ?? '#'} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 bg-white/10 text-white px-6 py-3 rounded-full font-medium hover:bg-white/20 transition-colors backdrop-blur-md"
+                    className="inline-flex items-center gap-3 bg-surface text-primary px-8 py-4 rounded-full text-[10px] font-bold uppercase tracking-[0.25em] border border-theme hover:border-accent transition-all duration-300 shadow-sm"
                   >
-                    Watch on {link.platform}
-                    <ExternalLink className="w-4 h-4" />
+                    View on {link.platform ?? 'Platform'}
+                    <ExternalLink className="w-3 h-3 opacity-40" />
                   </a>
                 ))}
               </div>
@@ -128,101 +135,78 @@ export default async function WorkDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-16 grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-12">
-          {/* Description */}
-          <section>
-            <h3 className="text-2xl font-medium text-white mb-6 flex items-center gap-2">
-              <Info className="w-6 h-6 text-namtan-primary" />
-              Synopsis
-            </h3>
-            <div className="text-[#b0aea5] text-lg leading-relaxed font-thai whitespace-pre-wrap bg-white/5 p-8 rounded-3xl border border-white/5">
-              {item.description ? item.description : 'No description available for this content.'}
+      {/* Main Content Body */}
+      <div className="max-w-7xl mx-auto px-8 md:px-16 lg:px-24 py-24 grid grid-cols-1 lg:grid-cols-3 gap-20">
+        
+        {/* Left Column: Description & Media */}
+        <div className="lg:col-span-2 space-y-24">
+          
+          {/* Synopsis Section */}
+          <section className="relative">
+            <div className="absolute -left-12 top-0 w-1 h-full bg-gradient-to-b from-accent to-transparent opacity-20 hidden md:block" />
+            <h3 className="text-overline text-accent font-bold mb-8 uppercase tracking-[0.4em]">Synopsis</h3>
+            <div className="text-primary/90 text-lg md:text-xl leading-relaxed font-body whitespace-pre-wrap">
+              {item.description || 'No detailed description recorded for this entry.'}
             </div>
           </section>
 
-          {/* Trailer Embed */}
+          {/* Trailer Section */}
           {trailerId && (
-            <section id="trailer" className="pt-8 scroll-mt-24">
-              <h3 className="text-2xl font-medium text-white mb-6 flex items-center gap-2">
-                <PlayCircle className="w-6 h-6 text-[#FF0000]" />
-                Official Trailer
-              </h3>
-              <div className="aspect-video w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+            <section id="trailer" className="scroll-mt-32">
+              <h3 className="text-overline text-accent font-bold mb-8 uppercase tracking-[0.4em]">Official Video</h3>
+              <div className="aspect-video w-full rounded-[3rem] overflow-hidden border border-theme shadow-2xl bg-deep-dark relative group">
                 <iframe 
                   width="100%" 
                   height="100%" 
-                  src={`https://www.youtube.com/embed/${trailerId}`} 
-                  title="YouTube video player" 
+                  src={`https://www.youtube.com/embed/${trailerId}?rel=0&showinfo=0`} 
+                  title="Official Trailer" 
                   frameBorder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowFullScreen
+                  className="opacity-90 group-hover:opacity-100 transition-opacity duration-700"
                 ></iframe>
               </div>
             </section>
           )}
         </div>
 
-        {/* Sidebar Info */}
-        <div className="space-y-8">
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
-            <h3 className="text-lg font-medium text-white mb-6 border-b border-white/10 pb-4">Details</h3>
+        {/* Right Column: Metadata Sidebar */}
+        <aside className="space-y-12">
+          <div className="bg-surface border border-theme/60 rounded-[2.5rem] p-10 shadow-sm sticky top-32">
+            <h3 className="text-[10px] font-bold text-muted uppercase tracking-[0.3em] mb-10 border-b border-theme/40 pb-4">
+              Project Intelligence
+            </h3>
             
-            <dl className="space-y-6">
-              {item.role && (
-                <div>
-                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Role</dt>
-                  <dd className="text-white font-medium">{item.role}</dd>
+            <div className="space-y-8">
+              {[
+                { label: 'Role / Character', value: item.role },
+                { label: 'Platform / Channel', value: item.event_type },
+                { label: 'Venue / Location', value: item.venue },
+                { label: 'Release Date', value: item.date },
+                { label: 'Magazine / Issue', value: item.magazine_name ? `${item.magazine_name} ${item.issue ? `(${item.issue})` : ''}` : null },
+                { label: 'Award Category', value: item.award_name },
+              ].map((row, i) => row.value && (
+                <div key={i} className="group/meta">
+                  <dt className="text-[9px] font-bold text-muted uppercase tracking-[0.2em] mb-2 opacity-50 group-hover/meta:opacity-100 transition-opacity">
+                    {row.label}
+                  </dt>
+                  <dd className="text-primary text-base font-body font-medium">{row.value}</dd>
                 </div>
-              )}
-              
-              {item.event_type && (
-                <div>
-                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Event Type</dt>
-                  <dd className="text-white font-medium">{item.event_type}</dd>
-                </div>
-              )}
-              
-              {item.venue && (
-                <div>
-                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Venue</dt>
-                  <dd className="text-white font-medium">{item.venue}</dd>
-                </div>
-              )}
-              
-              {item.date && (
-                <div>
-                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Date</dt>
-                  <dd className="text-white font-medium">{item.date}</dd>
-                </div>
-              )}
-              
-              {item.magazine_name && (
-                <div>
-                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Magazine</dt>
-                  <dd className="text-white font-medium">{item.magazine_name} {item.issue && `(Issue: ${item.issue})`}</dd>
-                </div>
-              )}
-              
-              {item.award_name && (
-                <div>
-                  <dt className="text-[#87867f] text-sm mb-1 uppercase tracking-wider">Award</dt>
-                  <dd className="text-white font-medium">{item.award_name}</dd>
-                </div>
-              )}
+              ))}
               
               {item.link && (
-                <div className="pt-4 mt-4 border-t border-white/10">
-                  <a href={item.link} target="_blank" rel="noreferrer" className="text-namtan-primary hover:underline flex items-center gap-1 text-sm font-medium">
-                    Visit Official Link <ExternalLink className="w-3 h-3" />
+                <div className="pt-8 mt-8 border-t border-theme/40">
+                  <a href={item.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-accent hover:underline">
+                    Access Official Resource <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
               )}
-            </dl>
+            </div>
           </div>
-        </div>
+        </aside>
       </div>
+
+      <Footer />
     </main>
   );
 }

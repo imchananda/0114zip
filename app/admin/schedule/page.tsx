@@ -19,6 +19,20 @@ interface ScheduleEvent {
   brand_collaborations?: { id: number; brand_name: string; brand_logo?: string | null } | null;
 }
 
+type ScheduleEventType = ScheduleEvent['event_type'];
+interface ScheduleFormState {
+  title: string;
+  title_thai: string;
+  date: string;
+  event_type: ScheduleEventType;
+  venue: string;
+  link: string;
+  description: string;
+  actors: string;
+  visible: boolean;
+  content_type: 'event';
+}
+
 const TYPE_CONFIG: Record<string, string> = {
   event: '📅 Event',
   show: '🎬 Show',
@@ -36,11 +50,7 @@ export default function AdminSchedulePage() {
   const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
   const [filterType, setFilterType] = useState('all');
 
-  useEffect(() => {
-    fetchItems();
-  }, []);
-
-  const fetchItems = async () => {
+  async function fetchItems() {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/content?type=event');
@@ -55,7 +65,12 @@ export default function AdminSchedulePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchItems(); }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm('ยืนยันการลบกิจกรรมนี้?')) return;
@@ -380,7 +395,7 @@ function ScheduleFormModal({ item, onClose, onSave }: { item: ScheduleEvent | nu
     initialDate = localISOTime;
   }
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ScheduleFormState>({
     title: item?.title || '',
     title_thai: item?.title_thai || '',
     date: initialDate,
@@ -390,7 +405,7 @@ function ScheduleFormModal({ item, onClose, onSave }: { item: ScheduleEvent | nu
     description: item?.description || '',
     actors: item?.actors?.join(', ') || 'both',
     visible: item?.visible ?? true,
-    content_type: 'event' // forced
+    content_type: 'event'
   });
   
   const [saving, setSaving] = useState(false);
@@ -432,7 +447,7 @@ function ScheduleFormModal({ item, onClose, onSave }: { item: ScheduleEvent | nu
         const data = await res.json();
         alert('Error: ' + data.error);
       }
-    } catch (err) {
+    } catch {
       alert('Save failed');
     } finally {
       setSaving(false);
@@ -472,7 +487,7 @@ function ScheduleFormModal({ item, onClose, onSave }: { item: ScheduleEvent | nu
               />
             </Field>
             <Field label="ประเภทงาน">
-              <select value={form.event_type} onChange={e => setForm(f => ({ ...f, event_type: e.target.value as any }))} className="w-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-2.5 focus:border-[var(--namtan-teal)] focus:ring-1 focus:ring-[var(--namtan-teal)] focus:outline-none transition-all text-sm">
+              <select value={form.event_type} onChange={e => setForm(f => ({ ...f, event_type: e.target.value as ScheduleEventType }))} className="w-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-2.5 focus:border-[var(--namtan-teal)] focus:ring-1 focus:ring-[var(--namtan-teal)] focus:outline-none transition-all text-sm">
                 {Object.entries(TYPE_CONFIG).map(([val, label]) => (
                   <option key={val} value={val}>{label}</option>
                 ))}

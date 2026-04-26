@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -10,38 +10,37 @@ import { actors } from '@/data/actors';
 
 export function HeroBanner() {
   const [hoveredActor, setHoveredActor] = useState<'namtan' | 'film' | null>(null);
-  const [mounted, setMounted] = useState(false);
   const t = useTranslations();
   const language = useLocale();
   const router = useRouter();
   const { resolvedTheme } = useTheme();
-  const isLight = mounted && resolvedTheme === 'light';
-
-  useEffect(() => { setMounted(true); }, []);
-  const reducedMotion = false;
+  const isLight = resolvedTheme === 'light';
 
   // Custom slow scroll function
   // ── Theme-aware values ──────────────────────────────────────
-  const overlayL  = isLight ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.40)';
-  const overlayB  = isLight ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.60)';
-  const overlayT  = isLight ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.30)';
-  const textShadow = 'none';
-  const nameClass  = isLight ? 'text-[#141413] font-georgia' : 'text-white font-georgia';
-  const valueCls   = isLight ? 'text-[#4d4c48]' : 'text-white/90';
+  const overlayL  = isLight ? 'rgba(245,244,237,0.15)' : 'rgba(0,0,0,0.40)';
+  const overlayB  = isLight ? 'rgba(245,244,237,0.20)' : 'rgba(0,0,0,0.60)';
+  const overlayT  = isLight ? 'rgba(245,244,237,0.10)' : 'rgba(0,0,0,0.30)';
+  
+  const nameClass  = isLight ? 'text-primary' : 'text-white';
+  const valueCls   = isLight ? 'text-charcoal-warm' : 'text-white/90';
   const namtanLabel = 'text-namtan-primary';
   const filmLabel   = 'text-film-primary';
+
   // Social link
   const socialCls   = isLight
-    ? 'text-[#5e5d59] hover:text-[#141413] transition-colors text-xs tracking-wide'
-    : 'text-white/50 hover:text-white transition-colors text-xs tracking-wide';
+    ? 'text-olive-gray hover:text-primary transition-colors text-[10px] tracking-[0.2em] uppercase font-medium'
+    : 'text-white/50 hover:text-white transition-colors text-[10px] tracking-[0.2em] uppercase font-medium';
+
   // CTA button
   const ctaCls = isLight
-    ? 'bg-[#141413]/80 hover:bg-[#141413] text-white backdrop-blur-sm border border-[#141413]/50 hover:border-[#141413] rounded-full transition-all duration-300'
-    : 'bg-white/10 hover:bg-white text-white hover:text-[#141413] backdrop-blur-sm border border-white/20 hover:border-white rounded-full transition-all duration-300';
-  // Scroll indicator
-  const scrollCls   = isLight ? 'text-[#5e5d59]' : 'text-white/30';
-  const cornerCls   = isLight ? 'border-[#141413]/20' : 'border-white/10';
-  const sepCls      = isLight ? 'text-[#87867f]' : 'text-white/50';
+    ? 'bg-deep-dark/90 hover:bg-deep-dark text-white backdrop-blur-md border border-deep-dark/10 hover:border-deep-dark rounded-lg transition-all duration-500 shadow-sm'
+    : 'bg-white/10 hover:bg-white text-white hover:text-deep-dark backdrop-blur-md border border-white/20 hover:border-white rounded-lg transition-all duration-500';
+
+  // UI Utilities
+  const scrollCls   = isLight ? 'text-olive-gray' : 'text-white/30';
+  const cornerCls   = isLight ? 'border-border-warm/40' : 'border-white/10';
+  const sepCls      = isLight ? 'text-stone-gray' : 'text-white/50';
 
   return (
     <section id="hero" className="relative min-h-[67dvh] h-[67dvh] landscape:min-h-[67dvh] landscape:h-[67dvh] md:min-h-[67dvh] md:h-[67dvh] w-full overflow-hidden">
@@ -55,7 +54,7 @@ export function HeroBanner() {
           priority
           sizes="100vw"
           className="object-cover object-center landscape:object-top md:object-top"
-          style={{ filter: isLight ? 'brightness(1.1) saturate(1.05)' : 'none' }}
+          style={{ filter: isLight ? 'brightness(1.05) saturate(1.05)' : 'none' }}
         />
 
         {/* Namtan Image */}
@@ -63,7 +62,7 @@ export function HeroBanner() {
           className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: hoveredActor === 'namtan' ? 1 : 0 }}
-          transition={{ duration: reducedMotion ? 0 : 0.5 }}
+          transition={{ duration: 0.6, ease: 'easeInOut' }}
         >
           <Image
             src="/images/banners/nt.png"
@@ -71,7 +70,7 @@ export function HeroBanner() {
             fill
             sizes="100vw"
             className="object-cover object-center landscape:object-top md:object-top"
-            style={{ filter: isLight ? 'brightness(1.1) saturate(1.05)' : 'none' }}
+            style={{ filter: isLight ? 'brightness(1.05) saturate(1.05)' : 'none' }}
           />
         </motion.div>
 
@@ -80,7 +79,7 @@ export function HeroBanner() {
           className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: hoveredActor === 'film' ? 1 : 0 }}
-          transition={{ duration: reducedMotion ? 0 : 0.5 }}
+          transition={{ duration: 0.6, ease: 'easeInOut' }}
         >
           <Image
             src="/images/banners/f.png"
@@ -88,21 +87,21 @@ export function HeroBanner() {
             fill
             sizes="100vw"
             className="object-cover object-center landscape:object-top md:object-top"
-            style={{ filter: isLight ? 'brightness(1.1) saturate(1.05)' : 'none' }}
+            style={{ filter: isLight ? 'brightness(1.05) saturate(1.05)' : 'none' }}
           />
         </motion.div>
 
-        {/* Persistent Gradient Overlays — ปรับตาม theme */}
+        {/* Persistent Gradient Overlays */}
         <div
           className="absolute inset-0"
-          style={{ background: `linear-gradient(to right, ${overlayL}, transparent, ${overlayL})` }}
+          style={{ background: `linear-gradient(to right, ${overlayL}, transparent 40%, transparent 60%, ${overlayL})` }}
         />
         <div
           className="absolute inset-0"
-          style={{ background: `linear-gradient(to top, ${overlayB}, ${isLight ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.10)'}, transparent)` }}
+          style={{ background: `linear-gradient(to top, ${overlayB}, transparent 70%)` }}
         />
         <div
-          className="absolute inset-0 h-32"
+          className="absolute inset-0 h-40"
           style={{ background: `linear-gradient(to bottom, ${overlayT}, transparent)` }}
         />
       </div>
@@ -123,49 +122,47 @@ export function HeroBanner() {
             className="absolute inset-0 transition-all duration-700 ease-out"
             animate={{
               background: hoveredActor === 'namtan'
-                ? 'linear-gradient(to right, rgba(108, 191, 208, 0.20), transparent)'
+                ? isLight ? 'linear-gradient(to right, rgba(108, 191, 208, 0.12), transparent)' : 'linear-gradient(to right, rgba(108, 191, 208, 0.20), transparent)'
                 : 'transparent'
             }}
-            transition={{ duration: 0.7 }}
           />
 
           {/* Actor Info */}
           <motion.div
-            className="absolute bottom-8 landscape:bottom-4 md:bottom-16 left-4 landscape:left-8 md:left-24 lg:left-32 max-w-[90%] landscape:max-w-[45%] md:max-w-none"
-            initial={{ opacity: 0, y: 20 }}
+            className="absolute bottom-12 landscape:bottom-6 md:bottom-20 left-6 landscape:left-10 md:left-28 lg:left-36 max-w-[90%] landscape:max-w-[45%] md:max-w-none"
+            initial={{ opacity: 0, y: 30 }}
             animate={{
               opacity: hoveredActor === 'namtan' ? 1 : 0,
-              y: hoveredActor === 'namtan' ? 0 : 20
+              y: hoveredActor === 'namtan' ? 0 : 30
             }}
-            transition={{ duration: reducedMotion ? 0 : 0.5 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Color Bar */}
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-1 h-16 rounded-full" style={{ backgroundColor: 'var(--namtan-teal)' }} />
-              <div className="w-12 h-px" style={{ backgroundColor: 'rgba(108, 191, 208, 0.5)' }} />
+            <div className="flex items-center gap-5 mb-6">
+              <div className="w-1 h-20 rounded-full bg-namtan-primary shadow-sm" />
+              <div className="w-16 h-px bg-namtan-primary/30" />
             </div>
 
             {/* Name */}
-            <h2 className={`${nameClass} text-4xl md:text-6xl font-normal tracking-wider mb-3 ${language === 'th' ? 'font-thai' : 'font-display'}`}>
+            <h2 className={`${nameClass} text-5xl md:text-7xl font-display font-light tracking-tight mb-4`}>
               {language === 'th' ? (actors.namtan.nicknameThai || actors.namtan.nickname) : actors.namtan.nickname}
             </h2>
 
             {/* Bio Info */}
             {actors.namtan.bio && (
               <div
-                className={`hidden md:block bg-black/30 md:bg-transparent backdrop-blur-md md:backdrop-blur-none rounded-xl p-4 md:p-0 border border-white/10 md:border-none w-full max-w-[calc(100vw-2rem)] md:max-w-lg max-h-[50vh] landscape:max-h-[40vh] md:max-h-none overflow-y-auto md:overflow-visible ${language === 'th' ? 'font-thai' : ''}`}
-                style={{ textShadow }}
+                className={`hidden md:block w-full max-w-lg overflow-visible ${language === 'th' ? 'font-thai' : ''}`}
               >
                 {[
                   { key: 'actor.realName',   val: language === 'th' ? actors.namtan.bio.fullNameThai : actors.namtan.bio.fullName },
                   { key: 'actor.birthDate',  val: language === 'th' ? actors.namtan.bio.birthDateThai : actors.namtan.bio.birthDate },
                   { key: 'actor.education',  val: language === 'th' ? actors.namtan.bio.educationThai : actors.namtan.bio.education },
                 ].map(({ key, val }) => (
-                  <div key={key} className="mb-2 md:mb-1.5 last:mb-0">
-                    <span className={`block landscape:inline md:inline ${namtanLabel} font-medium text-xs md:text-sm uppercase tracking-wider mb-0.5 md:mb-0`}>
-                      {t(key as any)}<span className="hidden landscape:inline md:inline mr-2">:</span>
+                  <div key={key} className="mb-2.5 last:mb-0">
+                    <span className={`inline-block ${namtanLabel} font-medium text-[10px] uppercase tracking-[0.2em] mr-3`}>
+                      {t(key)}
                     </span>
-                    <span className={`${valueCls} text-sm md:text-sm font-light`}>{val}</span>
+                    <span className={`${valueCls} text-sm font-light tracking-wide`}>{val}</span>
                   </div>
                 ))}
               </div>
@@ -173,7 +170,7 @@ export function HeroBanner() {
 
             {/* Social Links */}
             {actors.namtan.social && (
-              <div className="flex items-center gap-4 mt-4">
+              <div className="flex items-center gap-6 mt-6">
                 {actors.namtan.social.instagram && (
                   <a href={`https://instagram.com/${actors.namtan.social.instagram}`} target="_blank" rel="noopener noreferrer" className={socialCls}>
                     IG: @{actors.namtan.social.instagram}
@@ -184,21 +181,16 @@ export function HeroBanner() {
                     X: @{actors.namtan.social.twitter}
                   </a>
                 )}
-                {actors.namtan.social.tiktok && (
-                  <a href={`https://tiktok.com/@${actors.namtan.social.tiktok}`} target="_blank" rel="noopener noreferrer" className={socialCls}>
-                    TikTok: @{actors.namtan.social.tiktok}
-                  </a>
-                )}
               </div>
             )}
 
             {/* CTA Button */}
             <button
               onClick={() => router.push('/artist/namtan')}
-              className={`mt-6 group flex items-center gap-3 px-6 py-2.5 w-fit ${ctaCls} ${language === 'th' ? 'font-thai' : ''}`}
+              className={`mt-8 group flex items-center gap-4 px-8 py-3 w-fit ${ctaCls} ${language === 'th' ? 'font-thai' : ''}`}
             >
-              <span className="text-sm tracking-wider">{t('hero.viewWorks')}</span>
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
+              <span className="text-xs tracking-[0.2em] uppercase font-medium">{t('hero.viewWorks')}</span>
+              <span className="group-hover:translate-x-1.5 transition-transform duration-300">→</span>
             </button>
           </motion.div>
         </motion.div>
@@ -217,49 +209,47 @@ export function HeroBanner() {
             className="absolute inset-0 transition-all duration-700 ease-out"
             animate={{
               background: hoveredActor === 'film'
-                ? 'linear-gradient(to left, rgba(251, 223, 116, 0.20), transparent)'
+                ? isLight ? 'linear-gradient(to left, rgba(251, 223, 116, 0.12), transparent)' : 'linear-gradient(to left, rgba(251, 223, 116, 0.20), transparent)'
                 : 'transparent'
             }}
-            transition={{ duration: 0.7 }}
           />
 
           {/* Actor Info */}
           <motion.div
-            className="absolute bottom-8 landscape:bottom-4 md:bottom-16 right-4 landscape:right-8 md:right-24 lg:right-32 text-right max-w-[90%] landscape:max-w-[45%] md:max-w-none"
-            initial={{ opacity: 0, y: 20 }}
+            className="absolute bottom-12 landscape:bottom-6 md:bottom-20 right-6 landscape:right-10 md:right-24 lg:right-32 text-right max-w-[90%] landscape:max-w-[45%] md:max-w-none"
+            initial={{ opacity: 0, y: 30 }}
             animate={{
               opacity: hoveredActor === 'film' ? 1 : 0,
-              y: hoveredActor === 'film' ? 0 : 20
+              y: hoveredActor === 'film' ? 0 : 30
             }}
-            transition={{ duration: reducedMotion ? 0 : 0.5 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Color Bar */}
-            <div className="flex items-center justify-end gap-4 mb-4">
-              <div className="w-12 h-px" style={{ backgroundColor: 'rgba(251, 223, 116, 0.5)' }} />
-              <div className="w-1 h-16 rounded-full" style={{ backgroundColor: 'var(--film-gold)' }} />
+            <div className="flex items-center justify-end gap-5 mb-6">
+              <div className="w-16 h-px bg-film-primary/30" />
+              <div className="w-1 h-20 rounded-full bg-film-primary shadow-sm" />
             </div>
 
             {/* Name */}
-            <h2 className={`${nameClass} text-4xl md:text-6xl font-normal tracking-wider mb-3 ${language === 'th' ? 'font-thai' : 'font-display'}`}>
+            <h2 className={`${nameClass} text-5xl md:text-7xl font-display font-light tracking-tight mb-4`}>
               {language === 'th' ? (actors.film.nicknameThai || actors.film.nickname) : actors.film.nickname}
             </h2>
 
             {/* Bio Info */}
             {actors.film.bio && (
               <div
-                className={`hidden md:block bg-black/30 md:bg-transparent backdrop-blur-md md:backdrop-blur-none rounded-xl p-4 md:p-0 border border-white/10 md:border-none w-full max-w-[calc(100vw-2rem)] md:max-w-lg max-h-[50vh] landscape:max-h-[40vh] md:max-h-none overflow-y-auto md:overflow-visible text-left md:text-right ${language === 'th' ? 'font-thai' : ''}`}
-                style={{ textShadow }}
+                className={`hidden md:block w-full max-w-lg overflow-visible text-right ${language === 'th' ? 'font-thai' : ''}`}
               >
                 {[
                   { key: 'actor.realName',   val: language === 'th' ? actors.film.bio.fullNameThai : actors.film.bio.fullName },
                   { key: 'actor.birthDate',  val: language === 'th' ? actors.film.bio.birthDateThai : actors.film.bio.birthDate },
                   { key: 'actor.education',  val: language === 'th' ? actors.film.bio.educationThai : actors.film.bio.education },
                 ].map(({ key, val }) => (
-                  <div key={key} className="mb-2 md:mb-1.5 last:mb-0">
-                    <span className={`block landscape:inline md:inline ${filmLabel} font-medium text-xs md:text-sm uppercase tracking-wider mb-0.5 md:mb-0`}>
-                      {t(key as any)}<span className="hidden landscape:inline md:inline ml-2">:</span>
+                  <div key={key} className="mb-2.5 last:mb-0">
+                    <span className={`inline-block ${filmLabel} font-medium text-[10px] uppercase tracking-[0.2em] mr-3`}>
+                      {t(key)}
                     </span>
-                    <span className={`${valueCls} text-sm md:text-sm font-light`}>{val}</span>
+                    <span className={`${valueCls} text-sm font-light tracking-wide`}>{val}</span>
                   </div>
                 ))}
               </div>
@@ -267,7 +257,7 @@ export function HeroBanner() {
 
             {/* Social Links */}
             {actors.film.social && (
-              <div className="flex items-center justify-end gap-4 mt-4">
+              <div className="flex items-center justify-end gap-6 mt-6">
                 {actors.film.social.instagram && (
                   <a href={`https://instagram.com/${actors.film.social.instagram}`} target="_blank" rel="noopener noreferrer" className={socialCls}>
                     IG: @{actors.film.social.instagram}
@@ -278,21 +268,16 @@ export function HeroBanner() {
                     X: @{actors.film.social.twitter}
                   </a>
                 )}
-                {actors.film.social.tiktok && (
-                  <a href={`https://tiktok.com/@${actors.film.social.tiktok}`} target="_blank" rel="noopener noreferrer" className={socialCls}>
-                    TikTok: @{actors.film.social.tiktok}
-                  </a>
-                )}
               </div>
             )}
 
             {/* CTA Button */}
             <button
               onClick={() => router.push('/artist/film')}
-              className={`mt-6 group flex items-center gap-3 px-6 py-2.5 ml-auto w-fit ${ctaCls} ${language === 'th' ? 'font-thai' : ''}`}
+              className={`mt-8 group flex items-center gap-4 px-8 py-3 ml-auto w-fit ${ctaCls} ${language === 'th' ? 'font-thai' : ''}`}
             >
-              <span className="group-hover:-translate-x-1 transition-transform">←</span>
-              <span className="text-sm tracking-wider">{t('hero.viewWorks')}</span>
+              <span className="group-hover:-translate-x-1.5 transition-transform duration-300">←</span>
+              <span className="text-xs tracking-[0.2em] uppercase font-medium">{t('hero.viewWorks')}</span>
             </button>
           </motion.div>
         </motion.div>
@@ -303,21 +288,22 @@ export function HeroBanner() {
         className="absolute inset-0 flex items-center justify-center text-center pointer-events-none z-10 px-4"
         animate={{
           opacity: hoveredActor ? 0 : 1,
-          scale: hoveredActor ? 0.9 : 1,
-          filter: hoveredActor ? 'blur(8px)' : 'blur(0px)'
+          scale: hoveredActor ? 0.95 : 1,
+          filter: hoveredActor ? 'blur(12px)' : 'blur(0px)'
         }}
-        transition={{ duration: reducedMotion ? 0 : 0.5 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="relative">
             <h1
-              className={`${nameClass} text-3xl sm:text-5xl md:text-7xl lg:text-9xl font-light tracking-[0.1em] sm:tracking-[0.2em]`}
+              className={`${nameClass} text-5xl sm:text-7xl md:text-8xl lg:text-[10rem] font-display font-light tracking-tight leading-none`}
             >
               <span>Namtan</span>
-              <span className={`${sepCls} mx-1 sm:mx-2 md:mx-4`}>×</span>
+              <span className={`${sepCls} mx-3 sm:mx-6 md:mx-8 opacity-40 font-sans`}>×</span>
               <span>Film</span>
             </h1>
         </div>
       </motion.div>
+
 
       {/* Scroll Indicator */}
       <motion.div

@@ -3,6 +3,10 @@ import { supabase } from '@/lib/supabase';
 
 export const revalidate = 300; // Cache for 5 minutes
 
+interface BrandCollaborationRow {
+  start_date: string | null;
+}
+
 // GET /api/brands?artist=namtan&year=2026
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -24,23 +28,24 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    let brands = data ?? [];
+    let brands: BrandCollaborationRow[] = (data as BrandCollaborationRow[] | null) ?? [];
 
     if (year && Number.isFinite(year)) {
-      brands = brands.filter((b: any) =>
+      brands = brands.filter((b) =>
         b.start_date && new Date(b.start_date).getFullYear() === year,
       );
     }
 
     // Distinct years for filter pills (from full unfiltered set)
     const yearsSet = new Set<number>();
-    (data ?? []).forEach((b: any) => {
+    ((data as BrandCollaborationRow[] | null) ?? []).forEach((b) => {
       if (b.start_date) yearsSet.add(new Date(b.start_date).getFullYear());
     });
     const years = Array.from(yearsSet).sort((a, b) => b - a);
 
     return NextResponse.json({ brands, years });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

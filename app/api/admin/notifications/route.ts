@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 import * as jose from 'jose';
@@ -45,8 +45,9 @@ export async function GET() {
     }
 
     return NextResponse.json([...seen.values()].slice(0, 30));
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -98,8 +99,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, count: users.length });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Broadcast Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

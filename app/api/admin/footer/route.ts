@@ -10,6 +10,10 @@ export interface FooterSettings {
   socialLinks: { name: string; url: string }[];
 }
 
+type FooterSettingsRow = {
+  value?: Partial<FooterSettings>;
+};
+
 const DEFAULT_FOOTER: FooterSettings = {
   titleLeft: 'Namtan',
   titleRight: 'Film',
@@ -33,8 +37,8 @@ export async function GET() {
   if (error || !data) {
     return NextResponse.json(DEFAULT_FOOTER);
   }
-  const typedData = data as any;
-  return NextResponse.json({ ...DEFAULT_FOOTER, ...(typedData.value as object) });
+  const typedData = data as FooterSettingsRow;
+  return NextResponse.json({ ...DEFAULT_FOOTER, ...(typedData.value ?? {}) });
 }
 
 // PUT /api/admin/footer

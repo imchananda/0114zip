@@ -33,11 +33,7 @@ export default function AdminPrizesPage() {
   const [form, setForm] = useState<Partial<PrizeDraw>>(EMPTY_FORM);
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  useEffect(() => {
-    fetchPrizes();
-  }, []);
-
-  const fetchPrizes = async () => {
+  async function fetchPrizes() {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/prizes');
@@ -51,7 +47,12 @@ export default function AdminPrizesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchPrizes(); }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const handleCreate = async () => {
     setError('');
@@ -69,8 +70,9 @@ export default function AdminPrizesPage() {
       setIsCreating(false);
       setForm(EMPTY_FORM);
       fetchPrizes();
-    } catch (e: any) {
-      setError(`เกิดข้อผิดพลาด: ${e.message}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'เกิดข้อผิดพลาด';
+      setError(`เกิดข้อผิดพลาด: ${message}`);
     }
   };
 
@@ -86,8 +88,9 @@ export default function AdminPrizesPage() {
       setEditingId(null);
       setForm(EMPTY_FORM);
       fetchPrizes();
-    } catch (e: any) {
-      setError(`เกิดข้อผิดพลาด: ${e.message}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'เกิดข้อผิดพลาด';
+      setError(`เกิดข้อผิดพลาด: ${message}`);
     }
   };
 
@@ -97,8 +100,9 @@ export default function AdminPrizesPage() {
       const res = await fetch(`/api/admin/prizes?id=${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error((await res.json()).error);
       fetchPrizes();
-    } catch (e: any) {
-      setError(`เกิดข้อผิดพลาด: ${e.message}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'เกิดข้อผิดพลาด';
+      setError(`เกิดข้อผิดพลาด: ${message}`);
     }
   };
 
@@ -110,8 +114,8 @@ export default function AdminPrizesPage() {
         body: JSON.stringify({ id, is_active: !current }),
       });
       fetchPrizes();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'เกิดข้อผิดพลาด');
     }
   };
 
@@ -135,7 +139,7 @@ export default function AdminPrizesPage() {
     (filterStatus === 'inactive' && !p.is_active)
   );
 
-  const PrizeForm = ({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) => (
+  const renderPrizeForm = (onSave: () => void, onCancel: () => void) => (
     <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 mb-6">
       <h3 className="text-base font-normal text-[var(--color-text)] mb-4">
         {editingId ? '✏️ แก้ไขของรางวัล' : '✨ เพิ่มของรางวัลใหม่'}
@@ -246,7 +250,7 @@ export default function AdminPrizesPage() {
       </div>
 
       {/* Create Form */}
-      {isCreating && <PrizeForm onSave={handleCreate} onCancel={cancelEdit} />}
+      {isCreating && renderPrizeForm(handleCreate, cancelEdit)}
 
       {/* Stats + Filters */}
       {!loading && (
@@ -302,7 +306,7 @@ export default function AdminPrizesPage() {
         <div className="space-y-2">
           {filtered.map(prize =>
             editingId === prize.id ? (
-              <PrizeForm key={prize.id} onSave={handleUpdate} onCancel={cancelEdit} />
+              <div key={prize.id}>{renderPrizeForm(handleUpdate, cancelEdit)}</div>
             ) : (
               <div key={prize.id} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 flex items-center gap-4">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center text-base flex-shrink-0 ${

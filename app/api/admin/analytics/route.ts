@@ -4,7 +4,7 @@ import { verifyAdmin } from '@/lib/auth';
 
 // GET /api/admin/analytics?days=7
 export async function GET(req: NextRequest) {
-  if (!(await verifyAdmin(req))) {
+  if (!(await verifyAdmin())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

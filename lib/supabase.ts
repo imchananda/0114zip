@@ -3,13 +3,19 @@ import { createBrowserClient, createServerClient } from '@supabase/ssr';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+type SupabaseClient = ReturnType<typeof createClient>;
+type CookieStore = {
+  get: (name: string) => { value: string } | undefined;
+  set?: (name: string, value: string, options?: object) => void;
+  getAll?: () => { name: string; value: string }[];
+};
 
 // ── Public client (server-side read) ── lazy singleton to avoid build-time init errors
-let _supabase: ReturnType<typeof createClient<any>> | null = null;
-export const supabase = new Proxy({} as ReturnType<typeof createClient<any>>, {
+let _supabase: SupabaseClient | null = null;
+export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop, receiver) {
     if (!_supabase) {
-      _supabase = createClient<any>(supabaseUrl, supabaseAnonKey);
+      _supabase = createClient(supabaseUrl, supabaseAnonKey);
     }
     return Reflect.get(_supabase, prop, receiver);
   },
@@ -22,19 +28,20 @@ export function createSupabaseBrowser() {
 
 // ── Server client (server-side route handlers with cookie support) ──
 export function createSupabaseServer(
-  cookieStore: { get: (name: string) => { value: string } | undefined; set: (name: string, value: string, options?: object) => void; delete: (name: string, options?: object) => void }
+  cookieStore: CookieStore
 ) {
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
-        const store = cookieStore as any;
-        if (typeof store.getAll === 'function') return store.getAll();
+        if (typeof cookieStore.getAll === 'function') return cookieStore.getAll();
         return [];
       },
       setAll(cookiesToSet: { name: string; value: string; options?: object }[]) {
         try {
+          const setCookie = cookieStore.set;
+          if (typeof setCookie !== 'function') return;
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
+            setCookie(name, value, options)
           );
         } catch {}
       },
@@ -49,5 +56,5 @@ export function getAdminClient() {
     console.warn('[Supabase] SERVICE_ROLE_KEY not configured, using anon key');
     return supabase;
   }
-  return createClient<any>(supabaseUrl, serviceKey);
+  return createClient(supabaseUrl, serviceKey);
 }

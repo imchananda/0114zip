@@ -1,21 +1,18 @@
 ﻿'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { createSupabaseBrowser } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Share Result Component ────────────────────────────────────
 function ShareResult({
-  title, score, total, isVote, isDare, slug,
+  title, slug,
 }: {
   title: string;
-  score?: number;
-  total?: number;
-  isVote?: boolean;
-  isDare?: boolean;
   slug: string;
 }) {
   const [copied, setCopied] = useState(false);
@@ -223,7 +220,7 @@ export default function ChallengeDetailPage() {
     try {
       // 1. Upload to dares bucket
       const ext = dareImage.name.split('.').pop();
-      const filename = `${user.id}/${Date.now()}.${ext}`;
+      const filename = `${user.id}/${crypto.randomUUID()}.${ext}`;
       const { data: uploadData, error: uploadError } = await supabase
         .storage
         .from('dares')
@@ -239,13 +236,14 @@ export default function ChallengeDetailPage() {
       // 2. Submit Entry
       await submitEntry([{ imageUrl: publicUrl }], challenge.reward_points);
       
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unexpected error';
+      alert(message);
       setSubmitting(false);
     }
   };
 
-  const submitEntry = async (answers: any, finalScore: number) => {
+  const submitEntry = async (answers: unknown, finalScore: number) => {
     if (!challenge) return;
     setSubmitting(true);
 
@@ -397,7 +395,7 @@ export default function ChallengeDetailPage() {
                 <div className="space-y-4">
                   {darePreview ? (
                     <div className="relative rounded-xl overflow-hidden bg-black/40 border border-[var(--color-border)] aspect-video md:aspect-auto md:h-64 flex items-center justify-center">
-                      <img src={darePreview} alt="Preview" className="max-w-full max-h-full object-contain" />
+                      <Image src={darePreview} alt="Preview" width={1024} height={768} className="max-w-full max-h-full object-contain" />
                       <button 
                         onClick={() => { setDareImage(null); setDarePreview(null); }}
                         className="absolute top-2 right-2 p-2 bg-black/60 hover:bg-red-500/80 text-white rounded-full transition-colors"
@@ -525,10 +523,6 @@ export default function ChallengeDetailPage() {
         <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
           <ShareResult
             title={challenge.title}
-            score={finished && isQuiz ? score : undefined}
-            total={isQuiz ? totalQ : undefined}
-            isVote={isVote}
-            isDare={isDare}
             slug={challenge.slug}
           />
         </div>

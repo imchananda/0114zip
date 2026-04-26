@@ -50,14 +50,17 @@ export default function AdminAwardsPage() {
       const res = await fetch('/api/admin/awards');
       if (!res.ok) throw new Error(await res.text());
       setAwards(await res.json());
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'โหลดข้อมูลไม่สำเร็จ');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchAwards(); }, []);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchAwards(); }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const openCreate = () => {
     setEditingId(null);

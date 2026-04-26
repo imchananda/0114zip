@@ -23,11 +23,14 @@ export async function POST(req: NextRequest) {
 
     const userAgent = req.headers.get('user-agent') || null;
 
-    await supabase.from('page_views').insert({
+    const pageViews = supabase.from('page_views') as unknown as {
+      insert: (values: { path: string; country: string | null; user_agent: string | null }) => Promise<unknown>;
+    };
+    await pageViews.insert({
       path,
       country,
       user_agent: userAgent,
-    } as any);
+    });
 
     return NextResponse.json({ ok: true });
   } catch {
