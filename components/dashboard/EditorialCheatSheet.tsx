@@ -166,15 +166,15 @@ const CFG_DEFAULT: LiveDashboardConfig = {
 
 interface IgPost    { artist: Artist; emv: number; post_date: string; }
 interface BrandCollab { artists: Artist[]; brand_name: string; category?: string; collab_type?: string; }
-interface EngData {
+export interface EngData {
   latestSnapshots: Record<Artist, Record<string, number>>;
   igPosts:         Record<Artist, IgPost[]>;
   brandCollabs:    BrandCollab[];
 }
-interface ArtistProfile { id: string; photo_url?: string | null; }
-interface FanCountry    { name: string; value: number; color: string; }
+export interface ArtistProfile { id: string; photo_url?: string | null; }
+export interface FanCountry    { name: string; value: number; color: string; }
 
-interface ContentDbItem {
+export interface ContentDbItem {
   id: string;
   title: string;
   title_thai?: string;
@@ -198,8 +198,8 @@ const PLATFORM_META: Record<string, { label: string }> = {
 };
 
 // ─── Brand tokens ─────────────────────────────────────────────────────────────
-const NT = '#6cbfd0'; // Namtan teal
-const FL = '#fbdf74'; // Film gold
+const NT = 'var(--namtan-teal)';
+const FL = 'var(--film-gold)';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmtEMV(n: number): string {
@@ -223,13 +223,13 @@ function DonutChart({ pct, color, size = 80 }: { pct: number; color: string; siz
     <div className="relative" style={{ width: size, height: size }}>
       <svg viewBox="0 0 36 36" width={size} height={size} className="-rotate-90">
         <circle cx="18" cy="18" r={r} fill="none"
-          stroke="var(--color-border)" strokeWidth="3.5" />
+          stroke="var(--color-border)" strokeWidth="3.5" opacity="0.4" />
         <circle cx="18" cy="18" r={r} fill="none"
           stroke={color} strokeWidth="3.5" strokeLinecap="round"
           strokeDasharray={`${(pct / 100) * circ} ${circ}`} />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[13px] font-bold text-[var(--color-text-primary)]">{pct}%</span>
+        <span className="text-[13px] font-bold text-primary">{pct}%</span>
       </div>
     </div>
   );
@@ -242,15 +242,16 @@ function MultiDonut({ segments, size = 64 }: {
 }) {
   const r    = 15.9;
   const circ = 2 * Math.PI * r;
-  let offset = 0;
+  const offsets = segments.map((_, i) =>
+    segments.slice(0, i).reduce((sum, seg) => sum + seg.pct, 0)
+  );
   return (
     <svg viewBox="0 0 36 36" width={size} height={size} className="-rotate-90">
       <circle cx="18" cy="18" r={r} fill="none"
-        stroke="var(--color-border)" strokeWidth="4" />
+        stroke="var(--color-border)" strokeWidth="4" opacity="0.4" />
       {segments.map((s, i) => {
         const dash    = (s.pct / 100) * circ;
-        const dashOff = -(offset / 100) * circ;
-        offset += s.pct;
+        const dashOff = -((offsets[i] ?? 0) / 100) * circ;
         return (
           <circle key={i} cx="18" cy="18" r={r} fill="none"
             stroke={s.color} strokeWidth="4"
@@ -268,21 +269,49 @@ function BarRow({ label, val, color, max, mounted }: {
 }) {
   return (
     <div>
-      <div className="flex justify-between mb-1.5">
-        <span className="text-[11px] font-medium text-[var(--color-text-secondary)]">{label}</span>
-        <span className="text-[13px] font-bold tabular-nums" style={{ color }}>
+      <div className="flex justify-between mb-2">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted">{label}</span>
+        <span className="text-xs font-bold tabular-nums" style={{ color }}>
           {mounted ? fmtFol(val) : '—'}
         </span>
       </div>
-      <div className="h-[3.5px] w-full bg-[var(--color-border)] rounded-full overflow-hidden">
+      <div className="h-1 w-full bg-theme/20 rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-1000 delay-300"
+          className="h-full rounded-full transition-all duration-1000 delay-300 shadow-sm"
           style={{
             width:      mounted ? `${Math.max(6, (val / Math.max(max, 1)) * 100)}%` : '0%',
             background: color,
           }}
         />
       </div>
+    </div>
+  );
+}
+
+function FollowerCard({
+  title, platformKey, icon, ntVal, flVal, max, mounted, cfg, showNt, showFl,
+}: {
+  title: string;
+  platformKey: string;
+  icon: string;
+  ntVal: number;
+  flVal: number;
+  max: number;
+  mounted: boolean;
+  cfg: LiveDashboardConfig;
+  showNt: boolean;
+  showFl: boolean;
+}) {
+  return (
+    <div className="p-5 flex flex-col h-full">
+      <p className="text-[10px] tracking-[0.3em] uppercase font-semibold text-[var(--color-text-muted)] mb-3">{title}</p>
+      {cfg.showFollowerSection && cfg.showPlatforms.includes(platformKey) ? (
+        <div className="flex-1 flex flex-col justify-center gap-4">
+          {showNt && <BarRow label="น้ำตาล" val={ntVal} color={NT} max={max} mounted={mounted} />}
+          {showFl && <BarRow label="ฟิล์ม"  val={flVal} color={FL} max={max} mounted={mounted} />}
+        </div>
+      ) : <div className="flex-1 flex items-center justify-center text-[9px] text-[var(--color-text-muted)]">—</div>}
+      <p className="text-[9px] font-medium text-[var(--color-text-muted)] mt-2">{icon} ผู้ติดตาม</p>
     </div>
   );
 }
@@ -344,28 +373,13 @@ function WidgetContent({ widget, d }: { widget: WidgetType; d: WidgetData }) {
   const showNt = cfg.showArtists.includes('namtan');
   const showFl = cfg.showArtists.includes('film');
 
-  const FollowerCard = ({ title, platformKey, icon, ntVal, flVal, max, foot }: {
-    title: string; platformKey: string; icon: string; ntVal: number; flVal: number; max: number; foot: string;
-  }) => (
-    <div className="p-5 flex flex-col h-full">
-      <p className="text-[10px] tracking-[0.3em] uppercase font-semibold text-[var(--color-text-muted)] mb-3">{title}</p>
-      {cfg.showFollowerSection && cfg.showPlatforms.includes(platformKey) ? (
-        <div className="flex-1 flex flex-col justify-center gap-4">
-          {showNt && <BarRow label="น้ำตาล" val={ntVal} color={NT} max={max} mounted={mounted} />}
-          {showFl && <BarRow label="ฟิล์ม"  val={flVal} color={FL} max={max} mounted={mounted} />}
-        </div>
-      ) : <div className="flex-1 flex items-center justify-center text-[9px] text-[var(--color-text-muted)]">—</div>}
-      <p className="text-[9px] font-medium text-[var(--color-text-muted)] mt-2">{icon} ผู้ติดตาม</p>
-    </div>
-  );
-
   switch (widget) {
     case 'ig_followers':
-      return <FollowerCard title="Instagram" platformKey="ig" icon="📸" ntVal={nt.ig ?? 0} flVal={fl.ig ?? 0} max={igMax} foot="📸" />;
+      return <FollowerCard title="Instagram" platformKey="ig" icon="📸" ntVal={nt.ig ?? 0} flVal={fl.ig ?? 0} max={igMax} mounted={mounted} cfg={cfg} showNt={showNt} showFl={showFl} />;
     case 'x_followers':
-      return <FollowerCard title="X (Twitter)" platformKey="x" icon="𝕏" ntVal={nt.x ?? 0} flVal={fl.x ?? 0} max={xMax} foot="𝕏" />;
+      return <FollowerCard title="X (Twitter)" platformKey="x" icon="𝕏" ntVal={nt.x ?? 0} flVal={fl.x ?? 0} max={xMax} mounted={mounted} cfg={cfg} showNt={showNt} showFl={showFl} />;
     case 'tiktok_followers':
-      return <FollowerCard title="TikTok" platformKey="tiktok" icon="🎵" ntVal={nt.tiktok ?? 0} flVal={fl.tiktok ?? 0} max={tiktokMax} foot="🎵" />;
+      return <FollowerCard title="TikTok" platformKey="tiktok" icon="🎵" ntVal={nt.tiktok ?? 0} flVal={fl.tiktok ?? 0} max={tiktokMax} mounted={mounted} cfg={cfg} showNt={showNt} showFl={showFl} />;
 
     case 'weibo_followers': return (
       <div className="p-5 flex flex-col justify-between h-full">
@@ -575,17 +589,16 @@ function PortraitCard({
   photoUrl?: string | null; fallbackSrc: string;
   mounted: boolean; delay: number; gridClass: string;
 }) {
-  const [src, setSrc] = useState(photoUrl ? imgSrc(photoUrl) : fallbackSrc);
-  useEffect(() => { setSrc(photoUrl ? imgSrc(photoUrl) : fallbackSrc); }, [photoUrl, fallbackSrc]);
+  const src = photoUrl ? imgSrc(photoUrl) : fallbackSrc;
 
   return (
     <motion.div
-      className={`rounded-2xl overflow-hidden relative h-full ${gridClass}`}
-      style={{ background: '#0b0b09' }}
-      initial={{ opacity: 0, scale: 0.97 }}
+      className={`rounded-2xl overflow-hidden relative h-full group ${gridClass}`}
+      style={{ background: 'var(--color-bg)' }}
+      initial={{ opacity: 0, scale: 0.98 }}
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
-      transition={{ delay }}
+      transition={{ delay, duration: 0.5 }}
     >
       {/* Photo */}
       <Image
@@ -593,25 +606,26 @@ function PortraitCard({
         alt={label}
         fill
         sizes="(max-width: 768px) 50vw, 30vw"
-        className="object-cover object-top opacity-60"
-        onError={() => setSrc(fallbackSrc)}
+        className="object-cover object-top opacity-60 grayscale-[0.3] group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700"
         priority
       />
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/10 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-deep-dark via-deep-dark/20 to-transparent" />
+      
       {/* Top accent line */}
-      <div className="absolute top-4 left-4">
-        <div className="h-[2px] w-6 rounded-full" style={{ background: color }} />
+      <div className="absolute top-5 left-5">
+        <div className="h-0.5 w-8 rounded-full shadow-sm" style={{ background: color }} />
       </div>
+
       {/* Bottom info */}
-      <div className="absolute bottom-0 left-0 right-0 p-5">
-        <p className="text-[8px] tracking-[0.3em] uppercase mb-0.5" style={{ color: `${color}99` }}>
+      <div className="absolute bottom-0 left-0 right-0 p-6">
+        <p className="text-[9px] tracking-[0.3em] uppercase font-bold mb-1.5 opacity-60" style={{ color }}>
           {labelShort} · Latest EMV
         </p>
-        <div className="font-display text-3xl text-white leading-none tabular-nums">
+        <div className="font-display text-3xl md:text-4xl text-white leading-none tabular-nums font-light">
           {mounted ? fmtEMV(emv) : '฿—'}
         </div>
-        <p className="text-[8px] mt-1 tracking-wide text-white/40">{label}</p>
+        <p className="text-[10px] mt-2 tracking-widest text-white/30 uppercase font-medium">{label}</p>
       </div>
     </motion.div>
   );
@@ -628,8 +642,8 @@ function FeaturedCard({
 }) {
   return (
     <motion.div
-      className={`rounded-2xl overflow-hidden relative h-full ${gridClass}`}
-      style={{ background: '#141413', border: '1px solid #252523' }}
+      className={`rounded-2xl overflow-hidden relative h-full group border border-theme/40 ${gridClass}`}
+      style={{ background: 'var(--color-surface)' }}
       initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
       transition={{ delay }}
     >
@@ -638,7 +652,7 @@ function FeaturedCard({
         <img
           src={imgSrc(work.image)}
           alt={work.title}
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-40 group-hover:opacity-60 transition-opacity duration-700"
           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
         />
       )}
@@ -646,33 +660,34 @@ function FeaturedCard({
         className="absolute inset-0"
         style={{
           background: work?.image
-            ? 'linear-gradient(to top, rgba(0,0,0,0.92) 40%, rgba(0,0,0,0.45) 75%, rgba(0,0,0,0.15) 100%)'
+            ? 'linear-gradient(to top, var(--color-surface) 30%, transparent 100%)'
             : 'transparent',
         }}
       />
-      <div className="relative z-10 p-5 flex flex-col h-full">
-        <p className="text-[8px] tracking-[0.3em] uppercase text-white/40 mb-2">{label}</p>
+      <div className="relative z-10 p-6 flex flex-col h-full">
+        <p className="text-[9px] tracking-[0.35em] uppercase text-muted mb-3 font-bold">{label}</p>
         {work ? (
           <div className="flex flex-col justify-between flex-1">
             <div className="mt-auto">
-              <div className="font-display text-xl leading-tight text-white line-clamp-2">
+              <div className="font-display text-xl md:text-2xl leading-tight text-primary line-clamp-2">
                 {work.title}
               </div>
-              <p className="text-[9px] text-white/50 mt-1 leading-relaxed">
-                {work.title_thai && <>{work.title_thai}<br /></>}
+              <p className="text-[10px] text-muted mt-2 leading-relaxed tracking-wide">
+                {work.title_thai && <span className="font-thai">{work.title_thai}</span>}
+                {work.title_thai && <br />}
                 {work.year}
               </p>
             </div>
             {work.links && work.links.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {work.links.slice(0, 4).map(l => (
+              <div className="flex flex-wrap gap-1.5 mt-4">
+                {work.links.slice(0, 3).map(l => (
                   <a
                     key={l.platform}
                     href={l.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[7px] px-1.5 py-0.5 rounded border border-white/20
-                      text-white/50 hover:text-white/90 hover:border-white/50 transition-all"
+                    className="text-[8px] px-2 py-0.5 rounded-full border border-theme/60
+                      text-muted hover:text-primary hover:border-accent transition-all uppercase font-bold tracking-tighter"
                   >
                     {PLATFORM_META[l.platform]?.label ?? l.platform}
                   </a>
@@ -681,9 +696,9 @@ function FeaturedCard({
             )}
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="text-[9px] text-white/20 text-center leading-relaxed">
-              ตั้งค่าได้ที่<br />admin → content ☆
+          <div className="flex-1 flex items-center justify-center opacity-20">
+            <p className="text-[10px] text-muted text-center leading-relaxed font-bold uppercase tracking-widest">
+              Set in Admin
             </p>
           </div>
         )}
@@ -708,9 +723,9 @@ function LinkOverlay({ link, isDual }: { link: BentoSlotLink; isDual: boolean })
         className="absolute inset-0 z-10"
         aria-label="Open link"
       >
-        <span className="absolute bottom-2 right-2 w-5 h-5 flex items-center justify-center
-          rounded-full bg-black/30 backdrop-blur-sm text-white/70 text-[10px]
-          opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="absolute bottom-3 right-3 w-6 h-6 flex items-center justify-center
+          rounded-full bg-deep-dark/20 backdrop-blur-md text-white text-[10px]
+          opacity-0 group-hover:opacity-100 transition-all duration-300">
           ↗
         </span>
       </a>
@@ -730,37 +745,37 @@ function LinkOverlay({ link, isDual }: { link: BentoSlotLink; isDual: boolean })
         className="absolute inset-0 z-10 cursor-pointer"
         aria-label="Choose link"
       >
-        <span className="absolute bottom-2 right-2 w-5 h-5 flex items-center justify-center
-          rounded-full bg-black/30 backdrop-blur-sm text-white/70 text-[10px]
-          opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="absolute bottom-3 right-3 w-6 h-6 flex items-center justify-center
+          rounded-full bg-deep-dark/20 backdrop-blur-md text-white text-[10px]
+          opacity-0 group-hover:opacity-100 transition-all duration-300">
           ↗
         </span>
       </button>
 
       {/* Popup */}
       {open && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-[2px] rounded-2xl"
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-deep-dark/40 backdrop-blur-sm rounded-2xl"
           onClick={() => setOpen(false)}>
           <div
-            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 shadow-xl
-              flex flex-col gap-2 min-w-[140px]"
+            className="bg-surface border border-theme rounded-2xl p-5 shadow-2xl
+              flex flex-col gap-3 min-w-[160px] animate-in fade-in zoom-in-95 duration-200"
             onClick={e => e.stopPropagation()}
           >
-            <p className="text-[10px] tracking-[0.2em] uppercase text-[var(--color-text-muted)] text-center mb-1">
-              เลือกศิลปิน
+            <p className="text-[10px] tracking-[0.25em] uppercase text-muted text-center mb-1 font-bold">
+              Select Artist
             </p>
             {hasNt && (
               <a
                 href={link.namtan}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-2 rounded-lg
-                  bg-[#6cbfd0]/10 hover:bg-[#6cbfd0]/20 transition-colors"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl
+                  bg-namtan-primary/10 hover:bg-namtan-primary/20 transition-colors"
                 onClick={() => setOpen(false)}
               >
-                <span className="w-2.5 h-2.5 rounded-full bg-[#6cbfd0]" />
-                <span className="text-xs font-semibold text-[var(--color-text-primary)]">น้ำตาล</span>
-                <span className="ml-auto text-[10px] text-[var(--color-text-muted)]">↗</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-namtan-primary" />
+                <span className="text-xs font-bold text-primary">Namtan</span>
+                <span className="ml-auto text-[10px] text-muted">↗</span>
               </a>
             )}
             {hasFl && (
@@ -768,13 +783,13 @@ function LinkOverlay({ link, isDual }: { link: BentoSlotLink; isDual: boolean })
                 href={link.film}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-2 rounded-lg
-                  bg-[#fbdf74]/10 hover:bg-[#fbdf74]/20 transition-colors"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl
+                  bg-film-primary/10 hover:bg-film-primary/20 transition-colors"
                 onClick={() => setOpen(false)}
               >
-                <span className="w-2.5 h-2.5 rounded-full bg-[#fbdf74]" />
-                <span className="text-xs font-semibold text-[var(--color-text-primary)]">ฟิล์ม</span>
-                <span className="ml-auto text-[10px] text-[var(--color-text-muted)]">↗</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-film-primary" />
+                <span className="text-xs font-bold text-primary">Film</span>
+                <span className="ml-auto text-[10px] text-muted">↗</span>
               </a>
             )}
           </div>
@@ -802,7 +817,7 @@ export function EditorialCheatSheet({
   initialNtSeries?:       number | null;
   initialFlSeries?:       number | null;
 } = {}) {
-  const [mounted,        setMounted]        = useState(false);
+  const [mounted]                           = useState(true);
   const [eng,            setEng]            = useState<EngData | null>(initialEng ?? null);
   const [profiles,       setProfiles]       = useState<Record<string, ArtistProfile>>(initialProfiles ?? {});
   const [countries,      setCountries]      = useState<FanCountry[]>(initialFanCountries ?? []);
@@ -816,7 +831,7 @@ export function EditorialCheatSheet({
   const [selectedYear,   setSelectedYear]   = useState<number | null>(null); // null = ทั้งหมด
 
   const YEAR_OPTIONS: { label: string; value: number | null }[] = [
-    { label: 'ทั้งหมด', value: null },
+    { label: 'ALL TIME', value: null },
     { label: '2024',     value: 2024 },
     { label: '2025',     value: 2025 },
     { label: '2026',     value: 2026 },
@@ -864,8 +879,6 @@ export function EditorialCheatSheet({
   }, []);
 
   useEffect(() => {
-    setMounted(true);
-
     // Always load admin config (controls what to show)
     fetch('/api/admin/settings')
       .then(r => r.ok ? r.json() : null)
@@ -882,23 +895,25 @@ export function EditorialCheatSheet({
       })
       .catch(() => {});
 
-    // Artist profiles
-    fetch('/api/admin/profile')
-      .then(r => r.json())
-      .then((data: ArtistProfile[]) => {
-        if (Array.isArray(data)) {
-          const map: Record<string, ArtistProfile> = {};
-          data.forEach(p => { map[p.id] = p; });
-          setProfiles(map);
-        }
-      })
-      .catch(() => {});
+    if (initialProfiles === undefined) {
+      fetch('/api/admin/profile')
+        .then(r => r.json())
+        .then((data: ArtistProfile[]) => {
+          if (Array.isArray(data)) {
+            const map: Record<string, ArtistProfile> = {};
+            data.forEach(p => { map[p.id] = p; });
+            setProfiles(map);
+          }
+        })
+        .catch(() => {});
+    }
 
-    // Fan country breakdown
-    fetch('/api/social-stats?full=true')
-      .then(r => r.json())
-      .then(d => { if (Array.isArray(d?.fanCountries)) setCountries(d.fanCountries); })
-      .catch(() => {});
+    if (initialFanCountries === undefined) {
+      fetch('/api/social-stats?full=true')
+        .then(r => r.json())
+        .then(d => { if (Array.isArray(d?.fanCountries)) setCountries(d.fanCountries); })
+        .catch(() => {});
+    }
 
     // Skip engagement fetches when the server already provided initial data
     if (initialEng !== undefined) return;
@@ -947,20 +962,20 @@ export function EditorialCheatSheet({
   const tiktokMax = Math.max(nt.tiktok ?? 0, fl.tiktok ?? 0, 1);
 
   // Works breakdown by type for pie charts — prefer DB data, fallback to static
-  const WORK_TYPE_COLORS: Record<string, string> = {
-    drama: '#6cbfd0', series: '#6cbfd0', film: '#a78bfa',
-    variety: '#fbdf74', event: '#f472b6', award: '#34d399',
+  const WORK_TYPE_COLORS = useMemo<Record<string, string>>(() => ({
+    drama: 'var(--namtan-teal)', series: 'var(--namtan-teal)', film: '#a78bfa',
+    variety: 'var(--film-gold)', event: '#f472b6', award: '#34d399',
     music: '#c084fc', magazine: '#f59e0b',
-  };
-  const WORK_TYPE_LABELS: Record<string, string> = {
+  }), []);
+  const WORK_TYPE_LABELS = useMemo<Record<string, string>>(() => ({
     drama: 'ละคร', series: 'ซีรีส์', film: 'ภาพยนตร์',
     variety: 'วาไรตี้', event: 'อีเวนต์', award: 'รางวัล',
     music: 'เพลง', magazine: 'นิตยสาร',
-  };
+  }), []);
   const buildBreakdown = useCallback((items: { content_type?: string; type?: string }[]) => {
     const counts: Record<string, number> = {};
     for (const w of items) {
-      const t = (w as any).content_type ?? (w as any).type ?? 'other';
+      const t = w.content_type ?? w.type ?? 'other';
       counts[t] = (counts[t] ?? 0) + 1;
     }
     return Object.entries(counts).map(([type, count]) => ({
@@ -968,7 +983,7 @@ export function EditorialCheatSheet({
       count,
       color: WORK_TYPE_COLORS[type] ?? '#999',
     }));
-  }, []);
+  }, [WORK_TYPE_COLORS, WORK_TYPE_LABELS]);
   const ntWorksBreakdown = useMemo(() => {
     if (dbNtWorks.length > 0) return buildBreakdown(dbNtWorks);
     // Static fallback
@@ -982,30 +997,41 @@ export function EditorialCheatSheet({
   }, [dbFlWorks, selectedYear, buildBreakdown]);
 
   return (
-    <section className="py-16 md:py-24" style={{ backgroundColor: 'var(--color-bg)' }}>
-      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+    <section className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500">
+      <div className="container mx-auto px-6 md:px-12 max-w-7xl">
 
         {/* ── Section header ─────────────────────────────────────────────── */}
-        <div className="flex items-end justify-between mb-6 pb-3 border-b border-[var(--color-border)]">
+        <div className="flex flex-col md:flex-row items-baseline justify-between mb-12 pb-6 border-b border-theme/40">
           <div>
-            <p className="text-[9px] tracking-[0.35em] uppercase text-[var(--color-text-muted)] mb-2">
-              NamtanFilm {selectedYear ? `× ${selectedYear}` : '× All Time'} — {selectedYear ? 'Annual Recap' : 'Overview'}
-            </p>
-            <h2 className="font-display text-4xl md:text-6xl text-[var(--color-text-primary)] leading-none font-light">
-              Data Cheat Sheet
-            </h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 5 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]"
+            >
+              Live Statistics
+            </motion.p>
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="font-display text-4xl md:text-section text-primary leading-none font-light"
+            >
+              Data <br className="md:hidden" />Cheat Sheet
+            </motion.h2>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-6 mt-8 md:mt-0">
             {/* Year filter pills */}
-            <div className="flex items-center gap-1 mr-3">
+            <div className="flex items-center gap-1.5 p-1 rounded-full bg-surface/50 border border-theme/40">
               {YEAR_OPTIONS.map(opt => (
                 <button
                   key={opt.value ?? 'all'}
                   onClick={() => handleYearChange(opt.value)}
-                  className={`px-2.5 py-1 rounded-full text-[10px] font-medium tracking-wide transition-all duration-200
+                  className={`px-4 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300
                     ${selectedYear === opt.value
-                      ? 'bg-[#6cbfd0] text-[#141413]'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface)]'
+                      ? 'bg-primary text-deep-dark shadow-sm'
+                      : 'text-muted hover:text-primary'
                     }`}
                 >
                   {opt.label}
@@ -1014,20 +1040,19 @@ export function EditorialCheatSheet({
             </div>
             <Link
               href="/stats"
-              className="hidden md:block text-[9px] tracking-[0.25em] uppercase
-                text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+              className="text-[10px] tracking-[0.25em] font-bold uppercase
+                text-muted hover:text-accent transition-colors flex items-center gap-2 group"
             >
-              Full Report →
+              Full Report <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>
           </div>
         </div>
 
         {/* ── Bento grid ─────────────────────────────────────────────────────
-            Mobile  : 2 cols, rows auto ~155px
-            Desktop : 4 cols × 3 rows  ~185px each
-            Content per slot is controlled by cfg.bento (admin-configurable)
+            Mobile  : 2 cols, rows auto ~160px
+            Desktop : 4 cols × 3 rows  ~200px each
         ─────────────────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[155px] md:auto-rows-[185px] gap-2.5">
+        <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[160px] md:auto-rows-[200px] gap-3 md:gap-4">
           {SLOT_DEFS.map(slot => {
             const widget = ((cfg.bento ?? DEFAULT_BENTO)[slot.id] ?? slot.defaultWidget) as WidgetType;
             if (widget === 'hidden') return null;
@@ -1048,7 +1073,7 @@ export function EditorialCheatSheet({
                 <div key={slot.id} className={`relative group ${slot.gridClass}`}>
                   <PortraitCard
                     label={isNt ? 'Namtan Tipnaree' : 'Film Rachanun'}
-                    labelShort={isNt ? 'น้ำตาล' : 'ฟิล์ม'}
+                    labelShort={isNt ? 'Namtan' : 'Film'}
                     emv={isNt ? ntEMV : flEMV}
                     color={isNt ? NT : FL}
                     photoUrl={profiles[isNt ? 'namtan' : 'film']?.photo_url}
@@ -1068,7 +1093,7 @@ export function EditorialCheatSheet({
                 <div key={slot.id} className={`relative group ${slot.gridClass}`}>
                   <FeaturedCard
                     work={widget === 'featured_series' ? featuredSeries : featuredMusic}
-                    label={widget === 'featured_series' ? 'ผลงานโดดเด่น' : 'เพลงล่าสุด'}
+                    label={widget === 'featured_series' ? 'Featured Series' : 'Latest Music'}
                     delay={slot.delay}
                     gridClass=""
                   />
@@ -1081,7 +1106,7 @@ export function EditorialCheatSheet({
             return (
               <motion.div
                 key={slot.id}
-                className={`relative group rounded-2xl overflow-hidden bg-[var(--color-surface)] border border-[var(--color-border)] ${slot.gridClass}`}
+                className={`relative group rounded-2xl overflow-hidden bg-surface border border-theme/40 hover:border-accent/40 shadow-sm transition-all duration-500 ${slot.gridClass}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -1095,7 +1120,7 @@ export function EditorialCheatSheet({
         </div>
 
         {/* ── Bottom stats strip (data-driven by cfg.statsStrip) ────────── */}
-        <div className="mt-2.5 grid grid-cols-3 md:grid-cols-6 gap-2.5">
+        <div className="mt-4 grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
           {STATS_STRIP_DEFS.map((def, i) => {
             const tile = ((cfg.statsStrip ?? DEFAULT_STATS_STRIP)[def.id] ?? def.defaultTile) as StatsTileType;
             if (tile === 'hidden') return null;
@@ -1104,34 +1129,23 @@ export function EditorialCheatSheet({
             return (
               <motion.div
                 key={def.id}
-                className="rounded-xl p-3.5 text-center
-                  bg-[var(--color-surface)] border border-[var(--color-border)]"
+                className="rounded-2xl p-5 text-center
+                  bg-surface border border-theme/40 hover:border-theme transition-all duration-300 group"
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.48 + i * 0.05 }}
+                transition={{ delay: 0.5 + i * 0.05 }}
               >
-                <div className="font-display text-3xl font-bold text-[var(--color-text-primary)] leading-none">
+                <div className="font-display text-2xl md:text-3xl font-bold text-primary leading-none tabular-nums group-hover:scale-110 transition-transform">
                   {resolved.v}
                 </div>
-                <div className="text-[9px] tracking-[0.2em] uppercase font-semibold text-[var(--color-text-muted)] mt-1.5">
+                <div className="text-[9px] tracking-[0.25em] uppercase font-bold text-muted mt-3 opacity-60">
                   {resolved.top}
                 </div>
-                <div className="text-[10px] font-medium text-[var(--color-text-secondary)] mt-0.5">{resolved.sub}</div>
+                <div className="text-[10px] font-bold text-accent uppercase tracking-widest mt-1 opacity-80">{resolved.sub}</div>
               </motion.div>
             );
           })}
-        </div>
-
-        {/* ── Mobile "Full Report" link ──────────────────────────────────────── */}
-        <div className="mt-4 flex justify-center md:hidden">
-          <Link
-            href="/stats"
-            className="text-[9px] tracking-[0.25em] uppercase
-              text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
-          >
-            Full Report →
-          </Link>
         </div>
 
       </div>

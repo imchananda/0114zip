@@ -9,7 +9,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "perf:home": "node scripts/measure-home-perf.mjs"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
@@ -21,8 +22,6 @@
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.0",
     "framer-motion": "^11.18.1",
-    "google-auth-library": "^10.5.0",
-    "google-spreadsheet": "^5.0.2",
     "jose": "^6.2.2",
     "lucide-react": "^0.400.0",
     "motion-dom": "^11.18.1",
@@ -40,6 +39,8 @@
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.0",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.4",
     "postcss": "^8.4.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^3.4.0",

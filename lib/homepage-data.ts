@@ -11,6 +11,16 @@ type Artist = (typeof ARTISTS)[number];
 
 // ── Exported types for component initial props ─────────────────────────────────
 
+export type HeroBannerType = 'cinematic' | 'video' | 'image' | 'slide';
+
+export interface HeroBannerConfig {
+  type: HeroBannerType;
+  videoUrl?: string;
+  imageUrl?: string;
+  clickUrl?: string;
+  showScrollHint?: boolean;
+}
+
 export interface HomeHeroSlide {
   id: string;
   title: string | null;
@@ -35,7 +45,23 @@ export interface HomeEngData {
   brandCollabs:    HomeBrandCollab[];
 }
 
-export interface HomeArtistProfile { id: string; photo_url?: string | null }
+export interface HomeArtistProfile {
+  id: string;
+  nickname: string;
+  nickname_th?: string;
+  full_name: string;
+  full_name_th?: string;
+  birth_date: string;
+  birth_date_th?: string;
+  birth_place?: string;
+  birth_place_th?: string;
+  education?: string;
+  education_th?: string;
+  instagram?: string;
+  twitter?: string;
+  photo_url?: string | null;
+}
+
 export interface HomeFanCountry    { name: string; value: number; color: string }
 
 export interface HomeContentItem {
@@ -47,6 +73,11 @@ export interface HomeContentItem {
   actors: string[];
   image?: string | null;
   links?: { platform: string; url: string }[];
+  description?: string;
+  award_name?: string;
+  ceremony?: string;
+  magazine_name?: string;
+  issue?: string;
 }
 
 export interface HomeScheduleEvent {
@@ -57,24 +88,7 @@ export interface HomeScheduleEvent {
   date: string;
   venue?: string;
   actors: string[];
-  link?: string;
-}
-
-export interface HomeMediaPost {
-  id: string;
-  event_id: string | null;
-  platform: string;
-  title: string | null;
-  caption: string | null;
-  post_url: string;
-  thumbnail: string | null;
-  artist: string;
-  post_date: string;
-  views: number; likes: number; comments: number; shares: number; saves: number;
-  goal_views: number; goal_likes: number; goal_comments: number; goal_shares: number; goal_saves: number;
-  hashtags: string[];
-  is_focus: boolean;
-  is_visible: boolean;
+  link: string | null;
 }
 
 export interface HomeMediaEvent {
@@ -82,28 +96,7 @@ export interface HomeMediaEvent {
   title: string;
   hashtags: string[];
   is_active: boolean;
-  media_posts: HomeMediaPost[];
-}
-
-export interface HomeChallenge {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  participants: number;
-  daysLeft: number;
-  color: string;
-  emoji: string;
-}
-
-export interface HomePrize {
-  id: string;
-  title: string;
-  description: string;
-  value: string;
-  deadline: string;
-  status: 'open' | 'closed' | 'announced';
-  emoji: string;
+  media_posts: unknown[];
 }
 
 export interface HomeBrand {
@@ -116,7 +109,49 @@ export interface HomeBrand {
   start_date: string | null;
   end_date: string | null;
   description: string | null;
-  media_items: { type: string; title: string; url?: string }[] | null;
+  media_items: unknown[] | null;
+}
+
+type SiteSettingRow = { key: string; value: unknown };
+type SnapshotRow = { artist: string; platform: string; followers: number; recorded_date: string };
+type CountryRow = { country: string; percentage: number; color: string };
+type ScheduleRow = {
+  id: string;
+  title: string;
+  title_thai?: string;
+  content_type?: string;
+  date: string;
+  venue?: string;
+  actors?: string[];
+  link: string | null;
+};
+type TimelineRow = {
+  id: string;
+  year: number;
+  title: string;
+  title_thai?: string;
+  description?: string;
+  category: string;
+  actors?: string[];
+  icon?: string;
+  image?: string;
+};
+
+export interface HomeTimelineItem {
+  id: string;
+  year: number;
+  title: string;
+  title_thai?: string;
+  description: string;
+  category: string;
+  actor: string;
+  icon: string;
+  image?: string;
+}
+
+export interface SectionConfig {
+  enabled: boolean;
+  order: number;
 }
 
 export interface HomePageData {
@@ -132,321 +167,181 @@ export interface HomePageData {
   brands:             HomeBrand[];
   brandYears:         number[];
   brandSectionImages: Record<string, string>;
-  brandProfileImages: Record<string, string>;
   mediaEvents:        HomeMediaEvent[];
-  challenges:         HomeChallenge[];
-  prizes:             HomePrize[];
+  challenges:         unknown[];
+  prizes:             unknown[];
+  timelineItems:      HomeTimelineItem[];
+  fashionItems:       HomeContentItem[];
+  awardsItems:        HomeContentItem[];
+  allContent:         HomeContentItem[];
+  homepageConfig:     Record<string, SectionConfig>;
+  heroBannerConfig:   HeroBannerConfig;
 }
 
 // ── Server-side data fetch for the homepage ────────────────────────────────────
-// All Supabase queries fire in parallel; individual failures fall back to safe
-// defaults so a single failing table never breaks the page.
 export async function fetchHomeData(): Promise<HomePageData> {
   const now = new Date();
-  now.setHours(now.getHours() + 7); // rough GMT+7 offset
-  const nowStr = now.toISOString().slice(0, 16).replace('T', ' '); // 'YYYY-MM-DD HH:mm'
+  now.setHours(now.getHours() + 7);
+  const nowStr = now.toISOString().slice(0, 16).replace('T', ' ');
+
+  const siteSettingsRes = await db.from('site_settings').select('key, value');
+
+  const settings: Record<string, unknown> = {};
+  if (siteSettingsRes.data) {
+    (siteSettingsRes.data as SiteSettingRow[]).forEach((r) => { settings[r.key] = r.value; });
+  }
+
+  // Normalise whatever is stored (old boolean format -> new SectionConfig format)
+  function normaliseConfig(raw: Record<string, unknown>): Record<string, SectionConfig> {
+    const defaults: Record<string, SectionConfig> = {
+      about:      { enabled: true, order: 1 },
+      stats:      { enabled: true, order: 2 },
+      brands:     { enabled: true, order: 3 },
+      profile:    { enabled: true, order: 4 },
+      schedule:   { enabled: true, order: 5 },
+      content:    { enabled: true, order: 6 },
+      fashion:    { enabled: true, order: 7 },
+      awards:     { enabled: true, order: 8 },
+      timeline:   { enabled: true, order: 9 },
+      mediaTags:  { enabled: true, order: 10 },
+      challenges: { enabled: true, order: 11 },
+      prizes:     { enabled: true, order: 12 },
+    };
+    if (!raw || Object.keys(raw).length === 0) return defaults;
+    const result = { ...defaults };
+    for (const [key, val] of Object.entries(raw)) {
+      if (typeof val === 'boolean') {
+        result[key] = { ...(result[key] ?? { order: 50 }), enabled: val };
+      } else if (val && typeof val === 'object' && 'enabled' in val) {
+        result[key] = { ...(result[key] ?? { order: 50 }), ...(val as SectionConfig) };
+      }
+    }
+    return result;
+  }
+
+  const homepageConfig = normaliseConfig((settings.homeSections as Record<string, unknown>) ?? {});
+  const isEnabled = (section: keyof typeof homepageConfig) => homepageConfig[section]?.enabled !== false;
+
+  const needAbout = isEnabled('about');
+  const needStats = isEnabled('stats');
+  const needBrands = isEnabled('brands');
+  const needProfile = isEnabled('profile');
+  const needSchedule = isEnabled('schedule');
+  const needContent = isEnabled('content');
+  const needFashion = isEnabled('fashion');
+  const needAwards = isEnabled('awards');
+  const needTimeline = isEnabled('timeline');
+  const needMediaTags = isEnabled('mediaTags');
+  const needChallenges = isEnabled('challenges');
+  const needPrizes = isEnabled('prizes');
+
+  const needProfiles = needStats || needBrands || needProfile;
+  const needAllContent = needContent || needFashion || needAwards;
 
   const [
     heroSlidesRes,
-    snapshotsRes,
-    igPostsRes,
-    brandCollabsRes,
-    profilesRes,
-    fanCountriesRes,
-    featuredSeriesRes,
-    featuredMusicRes,
-    ntSeriesRes,
-    flSeriesRes,
-    scheduleRes,
-    brandSettingsRes,
-    mediaEventsRes,
-    challengesRes,
-    prizesRes,
+    snapshotsResMaybe,
+    igPostsResMaybe,
+    brandCollabsResMaybe,
+    profilesResMaybe,
+    fanCountriesResMaybe,
+    featuredSeriesResMaybe,
+    featuredMusicResMaybe,
+    ntSeriesResMaybe,
+    flSeriesResMaybe,
+    scheduleResMaybe,
+    mediaEventsResMaybe,
+    challengesResMaybe,
+    prizesResMaybe,
+    timelineResMaybe,
+    allContentResMaybe,
   ] = await Promise.allSettled([
     db.from('hero_slides').select('*').eq('enabled', true).order('sort_order'),
-    db
-      .from('artist_follower_snapshots')
-      .select('*')
-      .order('recorded_date', { ascending: true }),
-    db
-      .from('ig_posts')
-      .select('artist, emv, post_date')
-      .order('post_date', { ascending: false }),
-    db
-      .from('brand_collaborations')
-      .select(
-        'id, artists, brand_name, brand_logo, category, collab_type, start_date, end_date, description, media_items',
-      )
-      .eq('visible', true)
-      .order('start_date', { ascending: false }),
-    db.from('artist_profiles').select('id, photo_url').order('id'),
-    db
-      .from('fan_countries')
-      .select('country, percentage, color')
-      .order('sort_order', { ascending: true }),
-    db
-      .from('content_items')
-      .select('id, title, title_thai, year, content_type, actors, image, links')
-      .eq('visible', true)
-      .eq('show_on_live_dashboard', true)
-      .eq('content_type', 'series')
-      .order('sort_order')
-      .limit(1),
-    db
-      .from('content_items')
-      .select('id, title, title_thai, year, content_type, actors, image, links')
-      .eq('visible', true)
-      .eq('show_on_live_dashboard', true)
-      .eq('content_type', 'music')
-      .order('sort_order')
-      .limit(1),
-    db
-      .from('content_items')
-      .select('id', { count: 'exact', head: true })
-      .eq('visible', true)
-      .eq('content_type', 'series')
-      .contains('actors', ['namtan']),
-    db
-      .from('content_items')
-      .select('id', { count: 'exact', head: true })
-      .eq('visible', true)
-      .eq('content_type', 'series')
-      .contains('actors', ['film']),
-    db
-      .from('content_items')
-      .select('id, title, title_thai, content_type, date, venue, actors, link')
-      .eq('content_type', 'event')
-      .eq('visible', true)
-      .gte('date', nowStr)
-      .order('date', { ascending: true })
-      .limit(10),
-    db.from('site_settings').select('value').eq('key', 'brands_section_images').single(),
-    db
-      .from('media_events')
-      .select('id, title, hashtags, is_active, media_posts(*)')
-      .eq('is_active', true)
-      .order('start_date', { ascending: false, nullsFirst: true }),
-    db
-      .from('challenges')
-      .select('id, title, description, type, end_date, is_active')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-      .limit(3),
-    db
-      .from('prize_draws')
-      .select('id, title_th, title_en, description, total_prizes, end_at, is_active')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-      .limit(3),
+    needStats ? db.from('artist_follower_snapshots').select('*').order('recorded_date', { ascending: true }) : Promise.resolve({ data: [] }),
+    needStats ? db.from('ig_posts').select('artist, emv, post_date').order('post_date', { ascending: false }) : Promise.resolve({ data: [] }),
+    (needStats || needBrands) ? db.from('brand_collaborations').select('*').eq('visible', true).order('start_date', { ascending: false }) : Promise.resolve({ data: [] }),
+    needProfiles ? db.from('artist_profiles').select('*').order('id') : Promise.resolve({ data: [] }),
+    needStats ? db.from('fan_countries').select('country, percentage, color').order('sort_order', { ascending: true }) : Promise.resolve({ data: [] }),
+    needStats ? db.from('content_items').select('*').eq('visible', true).eq('show_on_live_dashboard', true).eq('content_type', 'series').limit(1) : Promise.resolve({ data: [] }),
+    needStats ? db.from('content_items').select('*').eq('visible', true).eq('show_on_live_dashboard', true).eq('content_type', 'music').limit(1) : Promise.resolve({ data: [] }),
+    (needStats || needAbout) ? db.from('content_items').select('id', { count: 'exact', head: true }).eq('visible', true).eq('content_type', 'series').contains('actors', ['namtan']) : Promise.resolve({ count: null }),
+    (needStats || needAbout) ? db.from('content_items').select('id', { count: 'exact', head: true }).eq('visible', true).eq('content_type', 'series').contains('actors', ['film']) : Promise.resolve({ count: null }),
+    needSchedule ? db.from('content_items').select('*').eq('content_type', 'event').eq('visible', true).gte('date', nowStr).order('date', { ascending: true }).limit(10) : Promise.resolve({ data: [] }),
+    needMediaTags ? db.from('media_events').select('*, media_posts(*)').eq('is_active', true).order('start_date', { ascending: false, nullsFirst: true }) : Promise.resolve({ data: [] }),
+    needChallenges ? db.from('challenges').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: [] }),
+    needPrizes ? db.from('prize_draws').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: [] }),
+    needTimeline ? db.from('timeline_items').select('*').eq('visible', true).order('year', { ascending: false }).order('sort_order', { ascending: true }) : Promise.resolve({ data: [] }),
+    needAllContent ? db.from('content_items').select('*').eq('visible', true).order('year', { ascending: false }).order('sort_order', { ascending: true }) : Promise.resolve({ data: [] }),
   ]);
 
-  // ── Hero slides ─────────────────────────────────────────────────────────────
-  const heroSlides: HomeHeroSlide[] =
-    heroSlidesRes.status === 'fulfilled' && !heroSlidesRes.value.error
-      ? (heroSlidesRes.value.data as HomeHeroSlide[]) ?? []
-      : [];
-
-  // ── Engagement: compute latestSnapshots + snapshotHistory ───────────────────
-  const allSnapshots: any[] =
-    snapshotsRes.status === 'fulfilled' && !snapshotsRes.value.error
-      ? snapshotsRes.value.data ?? []
-      : [];
-
-  const latestMap: Record<string, Record<string, number>> = {};
-  for (const a of ARTISTS) latestMap[a] = {};
-  for (const row of allSnapshots) {
-    if (!latestMap[row.artist]) latestMap[row.artist] = {};
-    latestMap[row.artist][row.platform] = row.followers;
-  }
+  const heroSlides = heroSlidesRes.status === 'fulfilled' ? (heroSlidesRes.value.data as HomeHeroSlide[] ?? []) : [];
+  
+  // Engagement
+  const allSnapshots: SnapshotRow[] = snapshotsResMaybe.status === 'fulfilled' ? (snapshotsResMaybe.value.data as SnapshotRow[] ?? []) : [];
+  const latestMap: Record<string, Record<string, number>> = { namtan: {}, film: {}, luna: {} };
+  allSnapshots.forEach((row) => { latestMap[row.artist][row.platform] = row.followers; });
 
   const historyByDate: Record<string, Record<string, number | string>> = {};
-  for (const row of allSnapshots) {
-    const month = (row.recorded_date as string).substring(0, 7);
+  allSnapshots.forEach((row) => {
+    const month = row.recorded_date.substring(0, 7);
     if (!historyByDate[month]) historyByDate[month] = { date: month };
     const key = `${row.artist}_${row.platform}`;
     const existing = historyByDate[month][key] as number | undefined;
-    if (existing === undefined || row.followers > existing) {
-      historyByDate[month][key] = row.followers;
-    }
-  }
+    if (existing === undefined || row.followers > existing) historyByDate[month][key] = row.followers;
+  });
 
-  // Fallback to legacy follower_history table if no new snapshot data
-  const hasNewData = ARTISTS.some(a => allSnapshots.some((s: any) => s.artist === a));
-  if (!hasNewData) {
-    const { data: old } = await db
-      .from('follower_history')
-      .select(
-        'month, month_order, year, namtan_ig, film_ig, namtan_x, film_x, namtan_tiktok, film_tiktok',
-      )
-      .order('year', { ascending: true })
-      .order('month_order', { ascending: true });
-    if (old && old.length > 0) {
-      for (const row of old) {
-        const month = `${row.year}-${String(row.month_order).padStart(2, '0')}`;
-        historyByDate[month] = {
-          date:          month,
-          namtan_ig:     row.namtan_ig     ?? 0,
-          film_ig:       row.film_ig       ?? 0,
-          namtan_x:      row.namtan_x      ?? 0,
-          film_x:        row.film_x        ?? 0,
-          namtan_tiktok: row.namtan_tiktok ?? 0,
-          film_tiktok:   row.film_tiktok   ?? 0,
-        };
-      }
-      const last = old[old.length - 1];
-      latestMap['namtan'] = { ig: last.namtan_ig ?? 0, x: last.namtan_x ?? 0, tiktok: last.namtan_tiktok ?? 0 };
-      latestMap['film']   = { ig: last.film_ig   ?? 0, x: last.film_x   ?? 0, tiktok: last.film_tiktok   ?? 0 };
-    }
-  }
-
-  const snapshotHistory = Object.values(historyByDate).sort(
-    (a, b) => (a.date as string).localeCompare(b.date as string),
-  );
-
-  const allPosts: any[] =
-    igPostsRes.status === 'fulfilled' && !igPostsRes.value.error
-      ? igPostsRes.value.data ?? []
-      : [];
-  const igPosts: Record<string, HomeIgPost[]> = {};
-  for (const a of ARTISTS) {
-    igPosts[a] = allPosts.filter((p: any) => p.artist === a).slice(0, 6);
-  }
-
-  const brandCollabsRaw: any[] =
-    brandCollabsRes.status === 'fulfilled' && !brandCollabsRes.value.error
-      ? brandCollabsRes.value.data ?? []
-      : [];
+  const snapshotHistory = Object.values(historyByDate).sort((a, b) => (a.date as string).localeCompare(b.date as string));
+  const allPosts = igPostsResMaybe.status === 'fulfilled' ? (igPostsResMaybe.value.data ?? []) : [];
+  const igPostsMap: Record<string, HomeIgPost[]> = { namtan: [], film: [], luna: [] };
+  ARTISTS.forEach(a => { igPostsMap[a] = allPosts.filter((p: HomeIgPost) => p.artist === a).slice(0, 6); });
 
   const engData: HomeEngData = {
     latestSnapshots: latestMap,
     snapshotHistory,
-    igPosts,
-    brandCollabs: brandCollabsRaw,
+    igPosts: igPostsMap,
+    brandCollabs: brandCollabsResMaybe.status === 'fulfilled' ? (brandCollabsResMaybe.value.data as HomeBrandCollab[] ?? []) : [],
   };
 
-  // ── Artist profiles ─────────────────────────────────────────────────────────
-  const profilesList: HomeArtistProfile[] =
-    profilesRes.status === 'fulfilled' && !profilesRes.value.error
-      ? (profilesRes.value.data ?? []) as HomeArtistProfile[]
-      : [];
-  const profiles: Record<string, HomeArtistProfile> = {};
-  profilesList.forEach(p => { profiles[p.id] = p; });
+  const profilesList = profilesResMaybe.status === 'fulfilled' ? (profilesResMaybe.value.data as HomeArtistProfile[] ?? []) : [];
+  const profilesMap: Record<string, HomeArtistProfile> = {};
+  profilesList.forEach(p => { profilesMap[p.id] = p; });
 
-  // ── Fan countries ───────────────────────────────────────────────────────────
-  const fanCountriesRaw: any[] =
-    fanCountriesRes.status === 'fulfilled' && !fanCountriesRes.value.error
-      ? fanCountriesRes.value.data ?? []
-      : [];
-  const fanCountries: HomeFanCountry[] = fanCountriesRaw.map(r => ({
-    name: r.country, value: r.percentage, color: r.color,
-  }));
+  const fanCountries = fanCountriesResMaybe.status === 'fulfilled'
+    ? (fanCountriesResMaybe.value.data as CountryRow[] ?? []).map(r => ({ name: r.country, value: r.percentage, color: r.color }))
+    : [];
 
-  // ── Featured work ───────────────────────────────────────────────────────────
-  const featuredSeries: HomeContentItem | null =
-    featuredSeriesRes.status === 'fulfilled' && !featuredSeriesRes.value.error
-      ? ((featuredSeriesRes.value.data ?? [])[0] as HomeContentItem ?? null)
-      : null;
-  const featuredMusic: HomeContentItem | null =
-    featuredMusicRes.status === 'fulfilled' && !featuredMusicRes.value.error
-      ? ((featuredMusicRes.value.data ?? [])[0] as HomeContentItem ?? null)
-      : null;
+  const featuredSeries = featuredSeriesResMaybe.status === 'fulfilled' ? (featuredSeriesResMaybe.value.data?.[0] as HomeContentItem ?? null) : null;
+  const featuredMusic = featuredMusicResMaybe.status === 'fulfilled' ? (featuredMusicResMaybe.value.data?.[0] as HomeContentItem ?? null) : null;
+  const ntSeries = ntSeriesResMaybe.status === 'fulfilled' ? (ntSeriesResMaybe.value.count ?? null) : null;
+  const flSeries = flSeriesResMaybe.status === 'fulfilled' ? (flSeriesResMaybe.value.count ?? null) : null;
 
-  // ── Series counts ───────────────────────────────────────────────────────────
-  const ntSeries: number | null =
-    ntSeriesRes.status === 'fulfilled' && !ntSeriesRes.value.error
-      ? (ntSeriesRes.value.count ?? null)
-      : null;
-  const flSeries: number | null =
-    flSeriesRes.status === 'fulfilled' && !flSeriesRes.value.error
-      ? (flSeriesRes.value.count ?? null)
-      : null;
+  const scheduleEvents = scheduleResMaybe.status === 'fulfilled'
+    ? (scheduleResMaybe.value.data as ScheduleRow[] ?? []).map(r => ({
+        id: r.id, title: r.title, title_thai: r.title_thai, event_type: r.content_type ?? 'event',
+        date: r.date, venue: r.venue, actors: r.actors ?? [], link: r.link
+      }))
+    : [];
 
-  // ── Schedule events ─────────────────────────────────────────────────────────
-  const scheduleRaw: any[] =
-    scheduleRes.status === 'fulfilled' && !scheduleRes.value.error
-      ? scheduleRes.value.data ?? []
-      : [];
-  const scheduleEvents: HomeScheduleEvent[] = scheduleRaw.map(r => ({
-    id:         r.id,
-    title:      r.title,
-    title_thai: r.title_thai,
-    event_type: r.content_type ?? 'event',
-    date:       r.date,
-    venue:      r.venue,
-    actors:     r.actors ?? [],
-    link:       r.link,
-  }));
+  const brands = engData.brandCollabs as unknown as HomeBrand[];
+  const brandYears = Array.from(new Set(brands.filter(b => b.start_date).map(b => new Date(b.start_date!).getFullYear()))).sort((a, b) => b - a);
 
-  // ── Brands ──────────────────────────────────────────────────────────────────
-  const brands: HomeBrand[] = brandCollabsRaw as HomeBrand[];
-  const brandYears = Array.from(
-    new Set(
-      brands
-        .filter(b => b.start_date)
-        .map(b => new Date(b.start_date!).getFullYear()),
-    ),
-  ).sort((a, b) => b - a);
+  const timelineItems = timelineResMaybe.status === 'fulfilled'
+    ? (timelineResMaybe.value.data as TimelineRow[] ?? []).map(r => ({
+        id: r.id, year: r.year, title: r.title, title_thai: r.title_thai, description: r.description ?? '',
+        category: r.category, actor: r.actors?.[0] ?? 'both', icon: r.icon ?? '✨', image: r.image
+      }))
+    : [];
 
-  const brandSectionImages: Record<string, string> = {};
-  if (brandSettingsRes.status === 'fulfilled') {
-    // .single() returns { data, error } — error may be PGRST116 if row not found
-    const val = (brandSettingsRes.value as any).data?.value;
-    if (val && typeof val === 'object') Object.assign(brandSectionImages, val);
-  }
-
-  const brandProfileImages: Record<string, string> = {};
-  profilesList.forEach(p => {
-    if ((p.id === 'namtan' || p.id === 'film') && p.photo_url) {
-      brandProfileImages[p.id] = p.photo_url;
-    }
-  });
-
-  // ── Media events ────────────────────────────────────────────────────────────
-  const mediaEvents: HomeMediaEvent[] =
-    mediaEventsRes.status === 'fulfilled' && !mediaEventsRes.value.error
-      ? (mediaEventsRes.value.data as HomeMediaEvent[]) ?? []
-      : [];
-
-  // ── Challenges ──────────────────────────────────────────────────────────────
-  const CHALLENGE_COLORS = ['#6cbfd0', '#fbdf74', '#a78bfa', '#f87171', '#34d399'];
-  const CHALLENGE_EMOJI: Record<string, string> = { quiz: '🎬', art: '🎨', photo: '📷', trivia: '🧠' };
-  const challengesRaw: any[] =
-    challengesRes.status === 'fulfilled' && !challengesRes.value.error
-      ? challengesRes.value.data ?? []
-      : [];
-  const today = Date.now();
-  const challenges: HomeChallenge[] = challengesRaw.map((r, i) => ({
-    id:           r.id,
-    title:        r.title,
-    description:  r.description ?? '',
-    type:         r.type ?? 'quiz',
-    participants: 0,
-    daysLeft:     r.end_date ? Math.max(0, Math.ceil((new Date(r.end_date).getTime() - today) / 86_400_000)) : 0,
-    color:        CHALLENGE_COLORS[i % CHALLENGE_COLORS.length],
-    emoji:        CHALLENGE_EMOJI[r.type?.toLowerCase()] ?? '🎮',
-  }));
-
-  // ── Prizes ──────────────────────────────────────────────────────────────────
-  const prizesRaw: any[] =
-    prizesRes.status === 'fulfilled' && !prizesRes.value.error
-      ? prizesRes.value.data ?? []
-      : [];
-  const prizes: HomePrize[] = prizesRaw.map(r => ({
-    id:          r.id,
-    title:       r.title_th,
-    description: r.description ?? '',
-    value:       `${r.total_prizes ?? 1} รางวัล`,
-    deadline:    r.end_at
-      ? new Date(r.end_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })
-      : 'ไม่กำหนด',
-    status:      r.is_active ? 'open' : 'closed',
-    emoji:       '🎁',
-  }));
+  const allContent = allContentResMaybe.status === 'fulfilled' ? (allContentResMaybe.value.data as HomeContentItem[] ?? []) : [];
+  const fashionItems = allContent.filter(c => c.content_type === 'magazine').slice(0, 6);
+  const awardsItems = allContent.filter(c => c.content_type === 'award').slice(0, 6);
+  const defaultHeroConfig: HeroBannerConfig = { type: 'cinematic', showScrollHint: true };
+  const heroBannerConfig = (settings.heroBanner as HeroBannerConfig) || defaultHeroConfig;
 
   return {
     heroSlides,
     engData,
-    profiles,
+    profiles: profilesMap,
     fanCountries,
     featuredSeries,
     featuredMusic,
@@ -455,10 +350,15 @@ export async function fetchHomeData(): Promise<HomePageData> {
     scheduleEvents,
     brands,
     brandYears,
-    brandSectionImages,
-    brandProfileImages,
-    mediaEvents,
-    challenges,
-    prizes,
+    brandSectionImages: (settings.brands_section_images as Record<string, string>) || {},
+    mediaEvents: mediaEventsResMaybe.status === 'fulfilled' ? (mediaEventsResMaybe.value.data as HomeMediaEvent[] ?? []) : [],
+    challenges: challengesResMaybe.status === 'fulfilled' ? (challengesResMaybe.value.data as unknown[] ?? []) : [],
+    prizes: prizesResMaybe.status === 'fulfilled' ? (prizesResMaybe.value.data as unknown[] ?? []) : [],
+    timelineItems,
+    fashionItems,
+    awardsItems,
+    allContent,
+    homepageConfig,
+    heroBannerConfig,
   };
 }
