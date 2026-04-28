@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+// ── Content Management ──────────────────────────────
+
+model ContentItem {
+  id          String   @id @default(uuid())
+  contentType String   @map("content_type") // series, variety, music, magazine, award
+  title       String
+  titleThai   String?  @map("title_thai")
+  year        Int      @default(0)
+  actors      String[] @default([]) // ["namtan", "film"]
+  description String?
+  image       String?  // URL to image (Supabase Storage or external)
+  visible     Boolean  @default(true)
+
+  // Series-specific
+  role        String?
+  links       Json?    // [{platform, url}]
+
+  // Event-specific
+  eventType   String?  @map("event_type")
+  venue       String?
+  date        String?
+
+  // Magazine-specific
+  magazineName String? @map("magazine_name")
+  issue        String?
+
+  // Award-specific
+  awardName    String? @map("award_name")
+  awardNameThai String? @map("award_name_thai")
+  ceremony     String?
+  workTitle    String? @map("work_title")
+
+  // Generic link (events, magazines, awards)
+  link        String?
+
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("content_items")
+  @@index([contentType])
+  @@index([visible])
+}
+
+// ── Timeline ──────────────────────────────
+
+model TimelineItem {
+  id          String   @id @default(uuid())
+  year        Int
+  title       String
+  titleThai   String?  @map("title_thai")
+  description String?
+  descriptionThai String? @map("description_thai")
+  category    String   @default("milestone") // milestone, work, award
+  actors      String[] @default([])
+  icon        String?
+  image       String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  visible     Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("timeline_items")
+  @@index([year])
+}
+
+// ── Gallery ──────────────────────────────
+
+model GalleryItem {
+  id          String   @id @default(uuid())
+  title       String?
+  titleThai   String?  @map("title_thai")
+  image       String   // Supabase Storage URL
+  category    String   @default("general")
+  actors      String[] @default([])
+  sortOrder   Int      @default(0) @map("sort_order")
+  visible     Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("gallery_items")
+}
+
+// ── Analytics ──────────────────────────────
+
+model PageView {
+  id        String   @id @default(uuid())
+  path      String
+  country   String?
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("page_views")
+  @@index([path])
+  @@index([createdAt])
+  @@index([country])
+}

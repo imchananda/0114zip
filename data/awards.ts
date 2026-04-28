@@ -1,0 +1,40 @@
+import { Award } from '@/types';
+
+export const awards: Award[] = [
+    {
+        contentType: 'award',
+        id: 'duo-3',
+        awardName: 'Best Couple Award',
+        awardNameThai: 'คู่จิ้นยอดเยี่ยม',
+        ceremony: 'Kazz Awards 2024',
+        year: 2024,
+        actors: ['namtan', 'film'],
+        description: 'Kazz Awards 2024',
+        image: 'https://images.unsplash.com/photo-1578269174936-2709b6aeb913?w=400&h=600&fit=crop',
+        link: 'https://www.youtube.com/watch?v=kazzaward2024',
+    },
+    {
+        contentType: 'award',
+        id: 'namtan-4',
+        awardName: 'Best Actress',
+        awardNameThai: 'นักแสดงนำหญิงยอดเยี่ยม',
+        ceremony: 'Nataraja Awards',
+        year: 2022,
+        actors: ['namtan'],
+        description: 'รางวัลจาก Nataraja Awards',
+        image: 'https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=400&h=600&fit=crop',
+        link: 'https://www.youtube.com/watch?v=natarajaaward',
+    },
+    {
+        contentType: 'award',
+        id: 'film-4',
+        awardName: 'Popular Actor Award',
+        awardNameThai: 'นักแสดงขวัญใจมหาชน',
+        ceremony: 'Kazz Awards 2023',
+        year: 2023,
+        actors: ['film'],
+        description: 'Kazz Awards 2023',
+        image: 'https://images.unsplash.com/photo-1531956531700-dc0ee0f1f9a5?w=400&h=600&fit=crop',
+        link: 'https://www.youtube.com/watch?v=kazzaward2023',
+    },
+];

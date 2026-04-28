@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0A0A0F"/>
+      <stop offset="100%" style="stop-color:#12121A"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6cbfd0"/>
+      <stop offset="100%" style="stop-color:#fbdf74"/>
+    </linearGradient>
+    <linearGradient id="glow-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6cbfd0;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#6cbfd0;stop-opacity:0"/>
+    </linearGradient>
+    <linearGradient id="glow-yellow" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#fbdf74;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#fbdf74;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="180" height="180" rx="36" fill="url(#bg)"/>
+  <!-- Glow orbs -->
+  <circle cx="45" cy="45" r="63" fill="url(#glow-blue)"/>
+  <circle cx="135" cy="135" r="63" fill="url(#glow-yellow)"/>
+  <!-- NF text -->
+  <text x="90" y="96.3" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="63" fill="url(#brand)" text-anchor="middle" dominant-baseline="middle">NF</text>
+  <!-- Gradient bar -->
+  <rect x="45" y="130" width="90" height="5" rx="2" fill="url(#brand)"/>
+</svg>

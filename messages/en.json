@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "works": "Works",
+    "timeline": "Timeline",
+    "profile": "Profile",
+    "about": "About",
+    "community": "Community",
+    "challenges": "Challenges",
+    "engage": "Engage Hub",
+    "schedule": "Schedule",
+    "awards": "Awards",
+    "stats": "Stats"
+  },
+  "hero": {
+    "scroll": "SCROLL",
+    "viewWorks": "View Works"
+  },
+  "actor": {
+    "realName": "Real Name:",
+    "birthDate": "Birth Date:",
+    "birthPlace": "Birth Place:",
+    "education": "Education:"
+  },
+  "state": {
+    "namtanfilm": "NamtanFilm",
+    "namtan": "Namtan",
+    "film": "Film",
+    "lunar": "Lunar"
+  },
+  "content": {
+    "together": "Together",
+    "togetherSub": "Their Story Together",
+    "togetherTitle": "Works Together",
+    "namtanJourney": "Namtan's Journey",
+    "filmJourney": "Film's Journey",
+    "lunarSpace": "Lunar's Space",
+    "filmography": "Complete Filmography",
+    "memories": "Our Memories",
+    "noWorks": "No works found",
+    "tryOther": "Try selecting another filter",
+    "backToTogether": "Back to Works Together"
+  },
+  "category": {
+    "acting": "Acting",
+    "award": "Awards",
+    "event": "Events"
+  },
+  "timeline": {
+    "title": "Timeline",
+    "sub": "Their Journey"
+  },
+  "profile": {
+    "title": "Profile",
+    "sub": "Meet The Stars"
+  },
+  "about": {
+    "title": "About Us",
+    "sub": "About This Fansite",
+    "couple": "Beloved Couple",
+    "worksCount": "Works Together",
+    "awards": "Shared Awards",
+    "fans": "Fans",
+    "description": "This website was created with love and admiration from fans, to collect the works and memorable stories of the beloved couple, Namtan Tipnaree and Film Rachanun.",
+    "disclaimer": "🎬 This website is fan-made and is not officially affiliated with the agency.",
+    "imageRights": "All images belong to their respective owners"
+  },
+  "preview": {
+    "engage": {
+      "title": "Engagement Hub",
+      "sub": "Join the Trend",
+      "live": "LIVE"
+    },
+    "schedule": {
+      "title": "Upcoming Events",
+      "sub": "Save the Date"
+    },
+    "awards": {
+      "title": "Recent Awards",
+      "sub": "Hall of Fame"
+    },
+    "all": "View All"
+  },
+  "footer": {
+    "fanmade": "Fan-Made Website",
+    "rights": "Not affiliated with any agency"
+  },
+  "lunar": {
+    "name": "Lunar",
+    "fanclub": "Official Fanclub"
+  }
+}
