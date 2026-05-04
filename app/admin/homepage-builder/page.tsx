@@ -39,8 +39,8 @@ const SECTION_META: Record<string, SectionMeta> = {
   awards:     { label: 'Awards',                  icon: '🏆', desc: 'รางวัลที่ได้รับ', hasVisualConfig: true, sourcePath: 'components/sections/AwardsPreview.tsx', adminPath: '/admin/awards' },
   timeline:   { label: 'Timeline',                icon: '📖', desc: 'ไทม์ไลน์เหตุการณ์สำคัญ', hasVisualConfig: true, sourcePath: 'components/sections/TimelineSection.tsx', adminPath: '/admin/timeline' },
   mediaTags:  { label: 'Media & Tags',            icon: '📱', desc: 'มีเดียล่าสุด + แฮชแท็กยอดนิยม', hasVisualConfig: true, sourcePath: 'components/sections/MediaTagsSection.tsx', adminPath: '/admin/media' },
-  challenges: { label: 'Challenges',              icon: '🎮', desc: 'กิจกรรมและ challenge สำหรับแฟนคลับ',        sourcePath: 'components/sections/ChallengesSection.tsx', adminPath: '/admin/challenges' },
-  prizes:     { label: 'Prizes & Giveaways',      icon: '🎁', desc: 'ของรางวัลสำหรับแฟนคลับ',                   sourcePath: 'components/sections/PrizeSection.tsx', adminPath: '/admin/prizes' },
+  challenges: { label: 'Challenges',              icon: '🎮', desc: 'กิจกรรมและ challenge สำหรับแฟนคลับ', hasVisualConfig: true, sourcePath: 'components/sections/ChallengesSection.tsx', adminPath: '/admin/challenges' },
+  prizes:     { label: 'Prizes & Giveaways',      icon: '🎁', desc: 'ของรางวัลสำหรับแฟนคลับ', hasVisualConfig: true, sourcePath: 'components/sections/PrizeSection.tsx', adminPath: '/admin/prizes' },
   floatingArtistSelector: { label: 'Floating Artist Selector', icon: '🎭', desc: 'แถบลัดเลือกศิลปิน', fixed: true, sourcePath: 'components/navigation/FloatingArtistSelector.tsx', adminPath: '/admin/floating-artist-selector' },
   scrollToTop:            { label: 'Scroll To Top Button',     icon: '⬆️', desc: 'ปุ่มเลื่อนกลับขึ้นบน', fixed: true, sourcePath: 'components/ui/ScrollToTop.tsx' },
 };
@@ -147,6 +147,26 @@ const VISUAL_CONFIGS: Record<string, VisualConfigDef> = {
     },
     limit: { label: 'จำนวนมีเดียที่โชว์', options: [4, 6, 10] },
   },
+  challenges: {
+    layout: {
+      label: 'Layout',
+      options: [
+        { value: 'grid', label: 'Grid (ตารางแนวตั้ง)', icon: '📱' },
+        { value: 'list', label: 'List (แถวแนวนอน)', icon: '📋' },
+      ],
+    },
+    limit: { label: 'จำนวนที่แสดง', options: [3, 6, 9] },
+  },
+  prizes: {
+    theme: {
+      label: 'Theme',
+      options: [
+        { value: 'default', label: 'Solid (สีทึบ)', icon: '🎨' },
+        { value: 'glass', label: 'Glass (โปร่งแสง)', icon: '✨' },
+      ],
+    },
+    limit: { label: 'จำนวนที่แสดง', options: [3, 6, 9] },
+  },
 };
 
 // ── Defaults ─────────────────────────────────────────────────────────────────
@@ -162,8 +182,8 @@ const DEFAULT_SECTIONS: Record<string, SectionConfig> = {
   awards:     { enabled: true, order: 7, limit: 6 },
   timeline:   { enabled: true, order: 8, limit: 5 },
   mediaTags:  { enabled: true, order: 9, layout: 'split', limit: 6 },
-  challenges: { enabled: true, order: 10 },
-  prizes:     { enabled: true, order: 11 },
+  challenges: { enabled: true, order: 10, layout: 'grid', limit: 3 },
+  prizes:     { enabled: true, order: 11, theme: 'default', limit: 3 },
   floatingArtistSelector: { enabled: true, order: 99 },
   scrollToTop:            { enabled: true, order: 100 },
 };

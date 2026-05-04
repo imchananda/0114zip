@@ -164,13 +164,13 @@ async function MediaTagsServer() {
 }
 
 async function ChallengesServer() {
-  const challenges = await fetchChallenges();
-  return <ChallengesSection initialChallenges={normalizeChallenges(challenges as any)} />;
+  const [challenges, settings] = await Promise.all([fetchChallenges(), fetchCoreSettings()]);
+  return <ChallengesSection initialChallenges={normalizeChallenges(challenges as any)} config={(settings.homepageConfig as any)?.challenges} />;
 }
 
 async function PrizesServer() {
-  const prizes = await fetchPrizes();
-  return <PrizeSection initialPrizes={normalizePrizes(prizes as any)} />;
+  const [prizes, settings] = await Promise.all([fetchPrizes(), fetchCoreSettings()]);
+  return <PrizeSection initialPrizes={normalizePrizes(prizes as any)} config={(settings.homepageConfig as any)?.prizes} />;
 }
 
 async function ProfileServer() {

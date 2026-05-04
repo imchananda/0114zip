@@ -173,7 +173,7 @@ export const fetchMediaTags = unstable_cache(
 
 export const fetchChallenges = unstable_cache(
   async () => {
-    const { data } = await db.from('challenges').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3);
+    const { data } = await db.from('challenges').select('*').eq('is_active', true).order('created_at', { ascending: false });
     return data ?? [];
   },
   ['home-challenges'],
@@ -182,7 +182,7 @@ export const fetchChallenges = unstable_cache(
 
 export const fetchPrizes = unstable_cache(
   async () => {
-    const { data } = await db.from('prize_draws').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3);
+    const { data } = await db.from('prize_draws').select('*').eq('is_active', true).order('created_at', { ascending: false });
     return data ?? [];
   },
   ['home-prizes'],

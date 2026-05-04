@@ -23,20 +23,16 @@ const PLACEHOLDER_CHALLENGES: Challenge[] = [
   { id: '3', title: 'Fan Art Contest', description: 'วาดภาพ Namtan × Film ส่งเข้าประกวด', type: 'Art', participants: 432, daysLeft: 12, color: '#a78bfa', emoji: '🎨' },
 ];
 
-export function ChallengesSection({ initialChallenges }: { initialChallenges?: Challenge[] } = {}) {
+export function ChallengesSection({ initialChallenges, config }: { initialChallenges?: Challenge[]; config?: { limit?: number; layout?: string } } = {}) {
   useViewState();
   const t = useTranslations();
-  const [challenges, setChallenges] = useState<Challenge[]>(initialChallenges ?? PLACEHOLDER_CHALLENGES);
-
-  useEffect(() => {
-    if (initialChallenges !== undefined) return;
-    fetch('/api/admin/challenges?status=active&limit=3')
-      .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) setChallenges(data);
-      })
-      .catch(() => {});
-  }, [initialChallenges]);
+  
+  const limit = config?.limit ?? 3;
+  const layout = config?.layout ?? 'grid';
+  const isList = layout === 'list';
+  
+  // Use server-provided challenges directly
+  const challenges = (initialChallenges ?? PLACEHOLDER_CHALLENGES).slice(0, limit);
 
   return (
     <section id="challenges" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative">
@@ -66,7 +62,7 @@ export function ChallengesSection({ initialChallenges }: { initialChallenges?: C
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className={isList ? "flex flex-col gap-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"}>
           {challenges.map((c, i) => (
             <motion.div
               key={c.id}
@@ -74,28 +70,40 @@ export function ChallengesSection({ initialChallenges }: { initialChallenges?: C
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="group rounded-[2rem] border border-theme/60 bg-surface p-8 md:p-10 flex flex-col gap-6 hover:border-accent/40 hover:shadow-2xl transition-all duration-500 relative overflow-hidden"
+              className={`group rounded-[2rem] border border-theme/60 bg-surface flex hover:border-accent/40 hover:shadow-2xl transition-all duration-500 relative overflow-hidden ${
+                isList ? "flex-col md:flex-row p-6 md:p-8 items-center gap-6 md:gap-8" : "flex-col gap-6 p-8 md:p-10"
+              }`}
             >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-theme/5 rounded-bl-[4rem] flex items-center justify-center translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:-translate-y-0 transition-transform duration-500">
+              <div className={`absolute top-0 right-0 w-24 h-24 bg-theme/5 rounded-bl-[4rem] flex items-center justify-center translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:-translate-y-0 transition-transform duration-500 ${isList ? 'hidden md:flex' : ''}`}>
                 <span className="text-4xl grayscale-[0.2] group-hover:grayscale-0 transition-all">{c.emoji}</span>
               </div>
 
-              <div>
+              {isList && (
+                <div className="md:hidden self-start flex items-center justify-center w-12 h-12 rounded-xl bg-theme/5 text-2xl">
+                  {c.emoji}
+                </div>
+              )}
+
+              <div className={isList ? "flex-1 min-w-0" : ""}>
                 <span
                   className="text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full border border-theme/60"
                   style={{ background: `${c.color}15`, color: c.color }}
                 >
                   {c.type}
                 </span>
-                <h3 className="text-xl md:text-2xl font-display text-primary mt-6 mb-3 leading-tight group-hover:text-accent transition-colors">
+                <h3 className={`font-display text-primary leading-tight group-hover:text-accent transition-colors ${isList ? "text-xl mt-3 mb-2" : "text-xl md:text-2xl mt-6 mb-3"}`}>
                   {c.title}
                 </h3>
-                <p className="text-sm text-muted leading-relaxed font-body line-clamp-2 opacity-80">
+                <p className={`text-sm text-muted leading-relaxed font-body line-clamp-2 opacity-80 ${isList ? "max-w-xl" : ""}`}>
                   {c.description}
                 </p>
               </div>
 
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.15em] text-muted mt-auto pt-6 border-t border-theme/40">
+              <div className={`flex items-center text-xs font-bold uppercase tracking-[0.15em] text-muted ${
+                isList 
+                  ? "flex-row md:flex-col gap-4 md:gap-2 shrink-0 md:min-w-[140px] md:items-end w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-theme/40 md:justify-center" 
+                  : "justify-between mt-auto pt-6 border-t border-theme/40"
+              }`}>
                 <span className="flex items-center gap-2">
                   <span className="text-base">👥</span> {(c.participants || 0).toLocaleString()} {t('challenges.joined')}
                 </span>

@@ -29,20 +29,16 @@ const STATUS_STYLE: Record<string, { label: string; color: string }> = {
   announced:  { label: 'ANNOUNCED',  color: 'var(--film-gold)' },
 };
 
-export function PrizeSection({ initialPrizes }: { initialPrizes?: Prize[] } = {}) {
+export function PrizeSection({ initialPrizes, config }: { initialPrizes?: Prize[]; config?: { limit?: number; theme?: string } } = {}) {
   useViewState();
   const t = useTranslations();
-  const [prizes, setPrizes] = useState<Prize[]>(initialPrizes ?? PLACEHOLDER_PRIZES);
-
-  useEffect(() => {
-    if (initialPrizes !== undefined) return;
-    fetch('/api/admin/prizes?status=open&limit=3')
-      .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) setPrizes(data);
-      })
-      .catch(() => {});
-  }, [initialPrizes]);
+  
+  const limit = config?.limit ?? 3;
+  const theme = config?.theme ?? 'default';
+  const isGlass = theme === 'glass';
+  
+  // Use server-provided prizes directly
+  const prizes = (initialPrizes ?? PLACEHOLDER_PRIZES).slice(0, limit);
 
   return (
     <section id="prizes" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative">
@@ -91,7 +87,11 @@ export function PrizeSection({ initialPrizes }: { initialPrizes?: Prize[] } = {}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="group rounded-[2rem] border border-theme/60 bg-surface p-8 md:p-10 flex flex-col gap-6 hover:border-accent/40 hover:shadow-2xl transition-all duration-500 relative overflow-hidden"
+                className={`group rounded-[2rem] flex flex-col gap-6 hover:border-accent/40 hover:shadow-2xl transition-all duration-500 relative overflow-hidden p-8 md:p-10 ${
+                  isGlass
+                    ? 'bg-surface/30 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-glass'
+                    : 'border border-theme/60 bg-surface'
+                }`}
               >
                 <div className="absolute top-0 right-0 w-24 h-24 bg-theme/5 rounded-bl-[4rem] flex items-center justify-center translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:-translate-y-0 transition-transform duration-500">
                   <span className="text-4xl grayscale-[0.2] group-hover:grayscale-0 transition-all">{prize.emoji}</span>
