@@ -116,6 +116,7 @@ async function BrandsServer() {
 
   return (
     <BrandsSection
+      config={(settings.homepageConfig as any)?.brands}
       initialBrands={normalizedBrands as any}
       initialYears={brandYears}
       initialSectionImages={settings.brandSectionImages}
@@ -125,8 +126,11 @@ async function BrandsServer() {
 }
 
 async function ScheduleServer() {
-  const schedule = await fetchSchedule();
-  return <SchedulePreview initialEvents={normalizeScheduleEvents(schedule as any)} />;
+  const [schedule, settings] = await Promise.all([fetchSchedule(), fetchCoreSettings()]);
+  return <SchedulePreview 
+    config={(settings.homepageConfig as any)?.schedule}
+    initialEvents={normalizeScheduleEvents(schedule as any)} 
+  />;
 }
 
 async function ContentServer() {

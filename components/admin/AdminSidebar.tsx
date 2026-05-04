@@ -48,6 +48,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/banners',         icon: '🎨', label: 'Banners'           },
       { href: '/admin/footer',    icon: '🦶', label: 'Footer' },
       { href: '/admin/floating-artist-selector', icon: '🎭', label: 'Floating Artist' },
+      { href: '/admin/homepage-builder', icon: '🏠', label: 'Page Builder' },
       { href: '/admin/users',     icon: '👥', label: 'Users', superOnly: true },
       { href: '/admin/settings',  icon: '⚙️', label: 'Settings' },
     ],

@@ -2,14 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Reorder } from 'framer-motion';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface SectionConfig {
-  enabled: boolean;
-  order: number;
-}
+
 
 interface HeroBannerConfig {
   type: 'cinematic' | 'video' | 'image' | 'slide';
@@ -23,7 +19,6 @@ interface SiteSettings {
   siteName: string;
   siteDescription: string;
   ogImage: string;
-  homeSections: Record<string, SectionConfig>;
   heroBanner: HeroBannerConfig;
   features: {
     challenges: boolean;
@@ -45,66 +40,12 @@ interface SiteSettings {
   maintenanceMessage: string;
 }
 
-// ── Section metadata ─────────────────────────────────────────────────────────
 
-interface SectionMeta {
-  label: string;
-  desc: string;
-  fixed?: boolean; // fixed-position UI — not orderable
-}
-
-const SECTION_META: Record<string, SectionMeta> = {
-  about:                  { label: '📝 About',                   desc: 'แนะนำ NamtanFilm ข้อมูลผลงานรวม' },
-  stats:                  { label: '📊 Live Dashboard',           desc: 'สถิติโซเชียล + ลิงก์ด่วน' },
-  brands:                 { label: '💼 Brands & Collaborations',  desc: 'แบรนด์และแคมเปญโฆษณา' },
-  profile:                { label: '👤 Profile',                  desc: 'ข้อมูลโปรไฟล์ Namtan & Film' },
-  schedule:               { label: '📅 Schedule',                 desc: 'กำหนดการและอีเวนต์ที่กำลังจะมาถึง' },
-  content:                { label: '🎞️ Content',                  desc: 'ซีรีส์ ละคร และผลงาน' },
-  fashion:                { label: '👗 Fashion & Style',          desc: 'แฟชั่นและลุคเด่นล่าสุด' },
-  awards:                 { label: '🏆 Awards',                   desc: 'รางวัลที่ได้รับ' },
-  timeline:               { label: '📖 Timeline',                 desc: 'ไทม์ไลน์เหตุการณ์สำคัญ' },
-  mediaTags:              { label: '📱 Media & Tags',             desc: 'มีเดียล่าสุด + แฮชแท็กยอดนิยม' },
-  challenges:             { label: '🎮 Challenges',               desc: 'กิจกรรมและ challenge สำหรับแฟนคลับ' },
-  prizes:                 { label: '🎁 Prizes & Giveaways',       desc: 'ของรางวัลสำหรับแฟนคลับ' },
-  floatingArtistSelector: { label: '🎭 Floating Artist Selector', desc: 'เปิด/ปิดแถบลัด — รายละเอียดที่เมนู Floating Artist', fixed: true },
-  scrollToTop:            { label: '⬆️ Scroll To Top Button',     desc: 'ปุ่มเลื่อนกลับขึ้นบน', fixed: true },
-};
-
-const DEFAULT_SECTIONS: Record<string, SectionConfig> = {
-  about:                  { enabled: true,  order: 0  },
-  stats:                  { enabled: true,  order: 1  },
-  brands:                 { enabled: true,  order: 2  },
-  profile:                { enabled: true,  order: 3  },
-  schedule:               { enabled: true,  order: 4  },
-  content:                { enabled: true,  order: 5  },
-  fashion:                { enabled: true,  order: 6  },
-  awards:                 { enabled: true,  order: 7  },
-  timeline:               { enabled: true,  order: 8  },
-  mediaTags:              { enabled: true,  order: 9  },
-  challenges:             { enabled: true,  order: 10 },
-  prizes:                 { enabled: true,  order: 11 },
-  floatingArtistSelector: { enabled: true,  order: 99 },
-  scrollToTop:            { enabled: true,  order: 100 },
-};
-
-// Normalise whatever is stored (old boolean format → new SectionConfig format)
-function normaliseHomeSections(raw: Record<string, unknown>): Record<string, SectionConfig> {
-  const result = { ...DEFAULT_SECTIONS };
-  for (const [key, val] of Object.entries(raw)) {
-    if (typeof val === 'boolean') {
-      result[key] = { ...(result[key] ?? { order: 50 }), enabled: val };
-    } else if (val && typeof val === 'object' && 'enabled' in val) {
-      result[key] = { ...(result[key] ?? { order: 50 }), ...(val as SectionConfig) };
-    }
-  }
-  return result;
-}
 
 const DEFAULT_SETTINGS: SiteSettings = {
   siteName: 'NamtanFilm',
   siteDescription: 'Fandom Portal for Namtan Tipnaree & Film Rachanun — NamtanFilm / หลิน คุณนาย',
   ogImage: '/images/og-image.jpg',
-  homeSections: DEFAULT_SECTIONS,
   heroBanner: { type: 'cinematic', showScrollHint: true },
   features: {
     challenges: true,
@@ -139,9 +80,6 @@ export default function SettingsPage() {
           siteName:           data.general?.siteName           ?? DEFAULT_SETTINGS.siteName,
           siteDescription:    data.general?.siteDescription    ?? DEFAULT_SETTINGS.siteDescription,
           ogImage:            data.general?.ogImage            ?? DEFAULT_SETTINGS.ogImage,
-          homeSections:       data.homeSections
-                                ? normaliseHomeSections(data.homeSections)
-                                : DEFAULT_SETTINGS.homeSections,
           heroBanner:         data.heroBanner ?? DEFAULT_SETTINGS.heroBanner,
           features:           { ...DEFAULT_SETTINGS.features, ...data.features },
           social:             { ...DEFAULT_SETTINGS.social,   ...data.social },
@@ -157,7 +95,6 @@ export default function SettingsPage() {
     try {
       const body = {
         general:      { siteName: settings.siteName, siteDescription: settings.siteDescription, ogImage: settings.ogImage },
-        homeSections: settings.homeSections,
         heroBanner:   settings.heroBanner,
         features:     settings.features,
         social:       settings.social,
@@ -177,56 +114,9 @@ export default function SettingsPage() {
     }
   };
 
-  // ── Section helpers ──────────────────────────────────────────────────────
-
-  const toggleSection = (key: string) => {
-    setSettings(s => ({
-      ...s,
-      homeSections: {
-        ...s.homeSections,
-        [key]: { ...s.homeSections[key], enabled: !s.homeSections[key].enabled },
-      },
-    }));
-  };
-
-  const moveSection = (key: string, dir: -1 | 1) => {
-    setSettings(s => {
-      const sections = { ...s.homeSections };
-      // 1. Get current sorted orderable list
-      const orderable = Object.entries(sections)
-        .filter(([k]) => !SECTION_META[k]?.fixed)
-        .sort(([, a], [, b]) => a.order - b.order);
-
-      const idx = orderable.findIndex(([k]) => k === key);
-      const swapIdx = idx + dir;
-      if (swapIdx < 0 || swapIdx >= orderable.length) return s;
-
-      // 2. Perform the array move (splice target out, insert at new index)
-      const [target] = orderable.splice(idx, 1);
-      orderable.splice(swapIdx, 0, target);
-
-      // 3. Re-assign strict sequential orders to guarantee uniqueness
-      // This completely eliminates "stuck" sections caused by duplicate order values in DB
-      orderable.forEach(([k, cfg], newIdx) => {
-        sections[k] = { ...cfg, order: newIdx };
-      });
-
-      return { ...s, homeSections: sections };
-    });
-  };
-
   const toggleFeature = (key: keyof SiteSettings['features']) => {
     setSettings(s => ({ ...s, features: { ...s.features, [key]: !s.features[key] } }));
   };
-
-  // ── Derived lists ────────────────────────────────────────────────────────
-
-  const orderableSections = Object.entries(settings.homeSections)
-    .filter(([k]) => !SECTION_META[k]?.fixed)
-    .sort(([, a], [, b]) => a.order - b.order);
-
-  const fixedSections = Object.entries(settings.homeSections)
-    .filter(([k]) => SECTION_META[k]?.fixed);
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -288,149 +178,21 @@ export default function SettingsPage() {
           </Field>
         </Section>
 
-
-
-        {/* ── Homepage Sections (orderable) ─────────────────────────────── */}
-        <Section
-          title="🏠 ส่วนหน้าหลัก — เปิด/ปิด & จัดลำดับ"
-          description="กดลูกศร ▲▼ เพื่อเรียงลำดับ · กดสถานะเพื่อ เปิด/ปิด การแสดงผล"
-        >
-          <p className="text-[11px] text-[var(--color-text-muted)] -mt-2 mb-1">
-            ลำดับที่แสดงในหน้าเว็บจากบนลงล่าง
+        {/* ── Homepage Sections → Redirect to Page Builder ─────────────── */}
+        <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
+          <h2 className="font-display text-lg font-normal text-[var(--color-text-primary)] mb-1">
+            🏠 ส่วนหน้าหลัก
+          </h2>
+          <p className="text-xs text-[var(--color-text-muted)] mb-4">
+            การจัดลำดับ เปิด/ปิด และปรับหน้าตา Section ถูกย้ายไปที่หน้า Page Builder แล้ว
           </p>
-
-          {/* Orderable sections */}
-          <Reorder.Group 
-            axis="y" 
-            values={orderableSections.map(s => s[0])} 
-            onReorder={(newKeys) => {
-              setSettings(s => {
-                const sections = { ...s.homeSections };
-                newKeys.forEach((k, idx) => {
-                  if (sections[k]) {
-                    sections[k] = { ...sections[k], order: idx };
-                  }
-                });
-                return { ...s, homeSections: sections };
-              });
-            }}
-            className="space-y-2"
+          <Link
+            href="/admin/homepage-builder"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#6cbfd0]/10 hover:bg-[#6cbfd0]/20 text-[#6cbfd0] border border-[#6cbfd0]/30 rounded-xl text-sm font-medium transition-colors"
           >
-            {orderableSections.map(([key, cfg], idx) => {
-              const meta = SECTION_META[key];
-              return (
-                <Reorder.Item
-                  key={key}
-                  value={key}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing bg-[var(--color-panel)] border-[var(--color-border)] ${
-                    cfg.enabled
-                      ? '!bg-green-500/5 !border-green-500/30'
-                      : ''
-                  }`}
-                >
-                  {/* Drag Handle Icon */}
-                  <div className="shrink-0 text-[var(--color-text-muted)] opacity-50 flex items-center justify-center -ml-1">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>
-                    </svg>
-                  </div>
-
-                  {/* Order index badge */}
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-[var(--color-border)] text-[var(--color-text-muted)] text-xs flex items-center justify-center font-mono">
-                    {idx + 1}
-                  </span>
-
-                  {/* Up / Down arrows */}
-                  <div 
-                    className="flex flex-col gap-0.5 shrink-0 ml-1"
-                    onPointerDown={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={() => moveSection(key, -1)}
-                      disabled={idx === 0}
-                      className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] disabled:opacity-20 text-xs leading-none px-1"
-                      title="ขึ้น"
-                    >
-                      ▲
-                    </button>
-                    <button
-                      onClick={() => moveSection(key, 1)}
-                      disabled={idx === orderableSections.length - 1}
-                      className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] disabled:opacity-20 text-xs leading-none px-1"
-                      title="ลง"
-                    >
-                      ▼
-                    </button>
-                  </div>
-
-                  {/* Label + desc */}
-                  <div className="flex-1 min-w-0 ml-2">
-                    <p className={`text-sm font-medium ${cfg.enabled ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}>
-                      {meta?.label ?? key}
-                    </p>
-                    {meta?.desc && (
-                      <p className="text-[11px] text-[var(--color-text-muted)]">{meta.desc}</p>
-                    )}
-                  </div>
-
-                  {/* Toggle button */}
-                  <button
-                    onClick={() => toggleSection(key)}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    className={`shrink-0 text-xs font-semibold px-3 py-1 rounded-full transition-colors ${
-                      cfg.enabled
-                        ? 'bg-green-500/20 text-green-600 hover:bg-green-500/30'
-                        : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                    }`}
-                  >
-                    {cfg.enabled ? 'เปิด' : 'ปิด'}
-                  </button>
-                </Reorder.Item>
-              );
-            })}
-          </Reorder.Group>
-
-          {/* Fixed-position utilities (not orderable) */}
-          <div className="mt-4 pt-4 border-t border-[var(--color-border)]">
-            <p className="text-[11px] text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">
-              UI ตายตัว (ไม่จัดลำดับ)
-            </p>
-            <div className="grid sm:grid-cols-2 gap-2">
-              {fixedSections.map(([key, cfg]) => {
-                const meta = SECTION_META[key];
-                return (
-                  <div
-                    key={key}
-                    className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${
-                      cfg.enabled
-                        ? 'bg-green-500/5 border-green-500/30'
-                        : 'bg-[var(--color-panel)] border-[var(--color-border)]'
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0 mr-3">
-                      <p className={`text-sm font-medium ${cfg.enabled ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-muted)]'}`}>
-                        {meta?.label ?? key}
-                      </p>
-                      {meta?.desc && (
-                        <p className="text-[11px] text-[var(--color-text-muted)]">{meta.desc}</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => toggleSection(key)}
-                      className={`shrink-0 text-xs font-semibold px-3 py-1 rounded-full transition-colors ${
-                        cfg.enabled
-                          ? 'bg-green-500/20 text-green-600 hover:bg-green-500/30'
-                          : 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                      }`}
-                    >
-                      {cfg.enabled ? 'เปิด' : 'ปิด'}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </Section>
+            🏠 เปิด Homepage Builder <span>→</span>
+          </Link>
+        </div>
 
         {/* ── Feature Flags ──────────────────────────────────────────────── */}
         <Section title="🎛️ เปิด/ปิดฟีเจอร์" description="ฟีเจอร์ทั่วทั้งเว็บไซต์">

@@ -241,11 +241,13 @@ export function BrandsSection({
   initialYears,
   initialSectionImages,
   initialProfileImages,
+  config,
 }: {
   initialBrands?:        Brand[];
   initialYears?:         number[];
   initialSectionImages?: { both?: string; namtan?: string; film?: string };
   initialProfileImages?: { namtan?: string; film?: string };
+  config?:               { layout?: 'split' | 'full-grid'; theme?: 'dark' | 'light'; title?: string };
 } = {}) {
   const [artistFilter, setArtistFilter] = useState<ArtistFilter>('both');
   const [allBrands,    setAllBrands]    = useState<Brand[]>(initialBrands ?? []);
@@ -317,50 +319,58 @@ export function BrandsSection({
     ? (sectionImages.both ?? sectionImages.namtan ?? profileImages.namtan)
     : (sectionImages[portraitKey] ?? profileImages[portraitKey]);
 
+  const isDark = config?.theme !== 'light';
+  const isFullGrid = config?.layout === 'full-grid';
+  const displayTitle = config?.title || 'Brand Partnerships';
+  
+  const bgClass = isDark ? 'bg-[var(--color-brands-bg)]' : 'bg-surface text-deep-dark';
+
   return (
     <section
-      className="relative w-full overflow-hidden bg-[var(--color-brands-bg)] border-t border-theme"
+      className={`relative w-full overflow-hidden ${bgClass} border-t border-theme`}
     >
       <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row min-h-[600px]">
 
-        {/* ── Left: Artist photo ─────────────────────────────────────────── */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={portraitKey}
-            className="relative w-full md:w-[45%] lg:w-[40%] flex-shrink-0 flex items-center justify-center bg-panel/30"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {portraitUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={portraitUrl}
-                alt={portraitKey === 'film' ? 'ฟิล์ม' : 'น้ำตาล'}
-                className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700"
-                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        {/* ── Left: Artist photo (Only show if not full-grid) ──────────────── */}
+        {!isFullGrid && (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={portraitKey}
+              className="relative w-full md:w-[45%] lg:w-[40%] flex-shrink-0 flex items-center justify-center bg-panel/30"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {portraitUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={portraitUrl}
+                  alt={portraitKey === 'film' ? 'ฟิล์ม' : 'น้ำตาล'}
+                  className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700"
+                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-panel">
+                  <span className="text-8xl opacity-10">👤</span>
+                </div>
+              )}
+              {/* Right-edge fade */}
+              <div
+                className="absolute inset-y-0 right-0 w-32 hidden md:block pointer-events-none"
+                style={{ background: isDark ? 'linear-gradient(to right, transparent, var(--color-brands-bg))' : 'linear-gradient(to right, transparent, var(--color-surface))' }}
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-panel">
-                <span className="text-8xl opacity-10">👤</span>
-              </div>
-            )}
-            {/* Right-edge fade */}
-            <div
-              className="absolute inset-y-0 right-0 w-32 hidden md:block pointer-events-none"
-              style={{ background: 'linear-gradient(to right, transparent, var(--color-brands-bg))' }}
-            />
-            {/* Bottom fade for mobile */}
-            <div
-              className="absolute bottom-0 left-0 right-0 h-32 md:hidden pointer-events-none"
-              style={{ background: 'linear-gradient(to bottom, transparent, var(--color-brands-bg))' }}
-            />
-          </motion.div>
-        </AnimatePresence>
+              {/* Bottom fade for mobile */}
+              <div
+                className="absolute bottom-0 left-0 right-0 h-32 md:hidden pointer-events-none"
+                style={{ background: isDark ? 'linear-gradient(to bottom, transparent, var(--color-brands-bg))' : 'linear-gradient(to bottom, transparent, var(--color-surface))' }}
+              />
+            </motion.div>
+          </AnimatePresence>
+        )}
 
         {/* ── Right: Content ─────────────────────────────────────────────── */}
-        <div className="flex-1 px-8 md:px-16 lg:px-24 py-20 md:py-28 flex flex-col justify-center relative">
+        <div className={`flex-1 px-8 md:px-16 lg:px-24 py-20 md:py-28 flex flex-col justify-center relative ${isFullGrid ? 'items-center text-center' : ''}`}>
           
           <div className="relative z-10">
             {/* Overline */}
@@ -375,17 +385,26 @@ export function BrandsSection({
 
             {/* Title */}
             <motion.h2
-              className="text-display-sm md:text-section font-display text-primary mb-12 leading-[1.1]"
+              className={`text-display-sm md:text-section font-display text-primary mb-12 leading-[1.1] ${isFullGrid ? 'whitespace-pre-line' : ''}`}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              Brand <br className="hidden lg:block" />Partnerships
+              {displayTitle.includes('\\n') ? (
+                displayTitle.split('\\n').map((line, i) => (
+                  <React.Fragment key={i}>
+                    {line}
+                    {i < displayTitle.split('\\n').length - 1 && <br className="hidden lg:block" />}
+                  </React.Fragment>
+                ))
+              ) : (
+                displayTitle
+              )}
             </motion.h2>
 
             {/* Filters */}
-            <div className="flex flex-col gap-6 mb-16">
+            <div className={`flex flex-col gap-6 mb-16 ${isFullGrid ? 'items-center' : ''}`}>
               {/* Artist tabs */}
               <div className="flex items-center gap-2">
                 {ARTIST_TABS.map((tab, i) => (
@@ -453,7 +472,11 @@ export function BrandsSection({
                   <motion.div
                     key={`${artistFilter}-${yearFilter}`}
                     layout
-                    className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4"
+                    className={`grid gap-3 md:gap-4 ${
+                      isFullGrid
+                        ? 'grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 justify-items-center'
+                        : 'grid-cols-4 sm:grid-cols-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+                    }`}
                   >
                     {filtered.map((brand, i) => (
                       <BrandLogoItem

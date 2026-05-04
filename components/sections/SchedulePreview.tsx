@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from '@/i18n/routing';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
@@ -39,7 +39,7 @@ function formatDate(dateStr: string) {
 
 import { useViewState } from '@/context/ViewStateContext';
 
-export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEvent[] } = {}) {
+export function SchedulePreview({ initialEvents, config }: { initialEvents?: ScheduleEvent[], config?: { layout?: 'cards' | 'list'; theme?: 'light' | 'dark'; limit?: number; title?: string } } = {}) {
   const t = useTranslations();
   const { state } = useViewState();
   const [allEvents, setAllEvents] = useState<ScheduleEvent[]>(initialEvents ?? []);
@@ -53,15 +53,23 @@ export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEve
       .finally(() => setLoading(false));
   }, [initialEvents]);
 
+  const limit = config?.limit || 4;
   const upcoming = allEvents.filter(item => {
     if (state === 'both' || state === 'lunar') return true;
     return item.actors.includes(state) || item.actors.includes('both');
-  }).slice(0, 4);
+  }).slice(0, limit);
+
+  const isListLayout = config?.layout === 'list';
+  const isDark = config?.theme === 'dark';
+  const bgClass = isDark ? 'bg-deep-dark text-white' : 'bg-[var(--color-bg)]';
+  const borderClass = isDark ? 'border-white/10' : 'border-theme/40';
+  const cardBgClass = isDark ? 'bg-white/5 border-white/10' : 'bg-surface border-theme/60';
+  const displayTitle = config?.title || t('schedulePreview.titleLine1') + '\\n' + t('schedulePreview.titleLine2');
 
   return (
-    <section id="schedule" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative">
+    <section id="schedule" className={`py-24 md:py-32 ${bgClass} transition-colors duration-500 relative`}>
       <div className="container mx-auto px-6 md:px-12 max-w-6xl">
-        <div className="flex flex-col md:flex-row items-baseline justify-between mb-12 md:mb-16 pb-6 border-b border-theme/40">
+        <div className={`flex flex-col md:flex-row items-baseline justify-between mb-12 md:mb-16 pb-6 border-b ${borderClass}`}>
           <div>
             <motion.p 
               initial={{ opacity: 0, y: 5 }}
@@ -76,9 +84,18 @@ export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEve
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="font-display text-4xl md:text-section text-primary leading-tight font-light"
+              className={`font-display text-4xl md:text-section leading-tight font-light ${isDark ? 'text-white' : 'text-primary'}`}
             >
-              {t('schedulePreview.titleLine1')} <br className="md:hidden" />{t('schedulePreview.titleLine2')}
+              {displayTitle.includes('\\n') ? (
+                displayTitle.split('\\n').map((line, i) => (
+                  <React.Fragment key={i}>
+                    {line}
+                    {i < displayTitle.split('\\n').length - 1 && <br className="md:hidden" />}
+                  </React.Fragment>
+                ))
+              ) : (
+                displayTitle
+              )}
             </motion.h2>
           </div>
           <Link
@@ -104,7 +121,7 @@ export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEve
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          <div className={isListLayout ? 'flex flex-col gap-4' : 'grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8'}>
             <AnimatePresence>
               {upcoming.map((event, i) => {
                 const style = TYPE_STYLES[event.event_type] || { icon: '🗓', color: 'var(--namtan-teal)', label: event.event_type };
@@ -119,16 +136,16 @@ export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEve
                     transition={{ delay: i * 0.05 }}
                   >
                     <Link href="/schedule" className="block group">
-                      <div className="bg-surface border border-theme/60 rounded-3xl p-6 flex gap-6 group-hover:border-accent/40 transition-all duration-500 group-hover:shadow-xl relative overflow-hidden">
+                      <div className={`${isListLayout ? `flex flex-col md:flex-row items-start md:items-center p-4 md:p-6 rounded-2xl border-b last:border-b-0 ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-theme/40 hover:bg-panel'}` : `${cardBgClass} rounded-3xl p-6 flex gap-6 hover:border-accent/40 group-hover:shadow-xl relative overflow-hidden`} transition-all duration-500`}>
                         
                         {/* Date column */}
-                        <div className="flex flex-col items-center justify-center flex-shrink-0 w-20 border-r border-theme/40 pr-6">
-                           <span className="text-3xl font-display font-light text-primary tabular-nums">{d.day}</span>
-                           <span className="text-[10px] font-bold tracking-[0.2em] text-muted uppercase mt-1">{d.month}</span>
+                        <div className={`flex items-center justify-center flex-shrink-0 ${isListLayout ? 'w-full md:w-32 mb-4 md:mb-0 md:border-r border-theme/40 md:pr-6 justify-start' : 'flex-col w-20 border-r border-theme/40 pr-6'}`}>
+                           <span className={`text-3xl font-display font-light tabular-nums ${isDark ? 'text-white' : 'text-primary'}`}>{d.day}</span>
+                           <span className="text-[10px] font-bold tracking-[0.2em] text-muted uppercase mt-1 ml-2 md:ml-0 md:mt-1">{d.month}</span>
                         </div>
 
-                        <div className="min-w-0 flex-1 py-1">
-                          <div className="flex items-center gap-3 mb-3">
+                        <div className={`min-w-0 flex-1 py-1 ${isListLayout ? 'md:pl-6 w-full' : ''}`}>
+                          <div className={`flex items-center gap-3 mb-3 ${isListLayout ? 'md:mb-1' : ''}`}>
                             <span 
                               className="text-[10px] font-bold uppercase tracking-[0.15em] px-2.5 py-0.5 rounded-full border"
                               style={{ background: `${style.color}10`, color: style.color, borderColor: `${style.color}30` }}
@@ -140,19 +157,27 @@ export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEve
                             </span>
                           </div>
 
-                          <h3 className="text-base md:text-lg font-display text-primary truncate group-hover:text-accent transition-colors">
+                          <h3 className={`text-base md:text-lg font-display truncate transition-colors ${isDark ? 'text-white/90 group-hover:text-accent' : 'text-primary group-hover:text-accent'}`}>
                             {event.title}
                           </h3>
                           
-                          <div className="flex items-center gap-4 mt-4 text-xs font-bold uppercase tracking-[0.15em] text-muted/60">
+                          <div className={`flex flex-wrap items-center gap-4 mt-4 text-xs font-bold uppercase tracking-[0.15em] text-muted/60 ${isListLayout ? 'md:mt-2' : ''}`}>
                             {d.time && <span className="flex items-center gap-1.5"><span className="text-base grayscale opacity-50">🕐</span> {d.time}</span>}
-                            {event.venue && <span className="flex items-center gap-1.5 truncate"><span className="text-base grayscale opacity-50">📍</span> {event.venue}</span>}
+                            {event.venue && <span className="flex items-center gap-1.5 truncate max-w-[200px] md:max-w-none"><span className="text-base grayscale opacity-50">📍</span> {event.venue}</span>}
                           </div>
                         </div>
 
-                        <div className="absolute top-0 right-0 w-12 h-12 bg-accent/5 rounded-bl-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                           <span className="text-accent">→</span>
-                        </div>
+                        {!isListLayout && (
+                          <div className="absolute top-0 right-0 w-12 h-12 bg-accent/5 rounded-bl-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                             <span className="text-accent">→</span>
+                          </div>
+                        )}
+                        
+                        {isListLayout && (
+                           <div className="hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity pl-4">
+                             <span className="text-accent text-xl">→</span>
+                           </div>
+                        )}
                       </div>
                     </Link>
                   </motion.div>
