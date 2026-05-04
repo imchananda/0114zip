@@ -24,23 +24,24 @@ interface SectionMeta {
   desc: string;
   fixed?: boolean;
   hasVisualConfig?: boolean;
+  sourcePath: string;
 }
 
 const SECTION_META: Record<string, SectionMeta> = {
-  about:      { label: 'About',                  icon: '📝', desc: 'แนะนำ NamtanFilm ข้อมูลผลงานรวม' },
-  stats:      { label: 'Live Dashboard',          icon: '📊', desc: 'สถิติโซเชียล + ลิงก์ด่วน' },
-  brands:     { label: 'Brands & Collaborations', icon: '💼', desc: 'แบรนด์และแคมเปญโฆษณา', hasVisualConfig: true },
-  profile:    { label: 'Profile',                 icon: '👤', desc: 'ข้อมูลโปรไฟล์ Namtan & Film' },
-  schedule:   { label: 'Schedule Preview',        icon: '📅', desc: 'กำหนดการและอีเวนต์ที่กำลังจะมาถึง', hasVisualConfig: true },
-  content:    { label: 'Content',                 icon: '🎞️', desc: 'ซีรีส์ ละคร และผลงาน' },
-  fashion:    { label: 'Fashion & Style',         icon: '👗', desc: 'แฟชั่นและลุคเด่นล่าสุด' },
-  awards:     { label: 'Awards',                  icon: '🏆', desc: 'รางวัลที่ได้รับ' },
-  timeline:   { label: 'Timeline',                icon: '📖', desc: 'ไทม์ไลน์เหตุการณ์สำคัญ' },
-  mediaTags:  { label: 'Media & Tags',            icon: '📱', desc: 'มีเดียล่าสุด + แฮชแท็กยอดนิยม' },
-  challenges: { label: 'Challenges',              icon: '🎮', desc: 'กิจกรรมและ challenge สำหรับแฟนคลับ' },
-  prizes:     { label: 'Prizes & Giveaways',      icon: '🎁', desc: 'ของรางวัลสำหรับแฟนคลับ' },
-  floatingArtistSelector: { label: 'Floating Artist Selector', icon: '🎭', desc: 'แถบลัดเลือกศิลปิน', fixed: true },
-  scrollToTop:            { label: 'Scroll To Top Button',     icon: '⬆️', desc: 'ปุ่มเลื่อนกลับขึ้นบน', fixed: true },
+  about:      { label: 'About',                  icon: '📝', desc: 'แนะนำ NamtanFilm ข้อมูลผลงานรวม',          sourcePath: 'components/sections/AboutSection.tsx' },
+  stats:      { label: 'Live Dashboard',          icon: '📊', desc: 'สถิติโซเชียล + ลิงก์ด่วน',                  sourcePath: 'components/dashboard/LiveDashboard.tsx' },
+  brands:     { label: 'Brands & Collaborations', icon: '💼', desc: 'แบรนด์และแคมเปญโฆษณา', hasVisualConfig: true, sourcePath: 'components/sections/BrandsSection.tsx' },
+  profile:    { label: 'Profile',                 icon: '👤', desc: 'ข้อมูลโปรไฟล์ Namtan & Film',               sourcePath: 'components/sections/ProfileSection.tsx' },
+  schedule:   { label: 'Schedule Preview',        icon: '📅', desc: 'กำหนดการและอีเวนต์ที่กำลังจะมาถึง', hasVisualConfig: true, sourcePath: 'components/sections/SchedulePreview.tsx' },
+  content:    { label: 'Content',                 icon: '🎞️', desc: 'ซีรีส์ ละคร และผลงาน',                     sourcePath: 'components/sections/ContentSection.tsx' },
+  fashion:    { label: 'Fashion & Style',         icon: '👗', desc: 'แฟชั่นและลุคเด่นล่าสุด',                   sourcePath: 'components/sections/FashionSection.tsx' },
+  awards:     { label: 'Awards',                  icon: '🏆', desc: 'รางวัลที่ได้รับ',                           sourcePath: 'components/sections/AwardsPreview.tsx' },
+  timeline:   { label: 'Timeline',                icon: '📖', desc: 'ไทม์ไลน์เหตุการณ์สำคัญ',                   sourcePath: 'components/sections/TimelineSection.tsx' },
+  mediaTags:  { label: 'Media & Tags',            icon: '📱', desc: 'มีเดียล่าสุด + แฮชแท็กยอดนิยม',             sourcePath: 'components/sections/MediaTagsSection.tsx' },
+  challenges: { label: 'Challenges',              icon: '🎮', desc: 'กิจกรรมและ challenge สำหรับแฟนคลับ',        sourcePath: 'components/sections/ChallengesSection.tsx' },
+  prizes:     { label: 'Prizes & Giveaways',      icon: '🎁', desc: 'ของรางวัลสำหรับแฟนคลับ',                   sourcePath: 'components/sections/PrizeSection.tsx' },
+  floatingArtistSelector: { label: 'Floating Artist Selector', icon: '🎭', desc: 'แถบลัดเลือกศิลปิน', fixed: true, sourcePath: 'components/navigation/FloatingArtistSelector.tsx' },
+  scrollToTop:            { label: 'Scroll To Top Button',     icon: '⬆️', desc: 'ปุ่มเลื่อนกลับขึ้นบน', fixed: true, sourcePath: 'components/ui/ScrollToTop.tsx' },
 };
 
 // ── Visual Config definitions per section ────────────────────────────────────
@@ -130,6 +131,7 @@ export default function HomepageBuilderPage() {
   const [saveMsg, setSaveMsg] = useState('');
   const [saving, setSaving] = useState(false);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [showDevRef, setShowDevRef] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   // ── Load data ──────────────────────────────────────────────────────────────
@@ -500,6 +502,80 @@ export default function HomepageBuilderPage() {
             );
           })}
         </div>
+      </div>
+
+      {/* ── Developer Reference (Collapsible) ─────────────────────────── */}
+      <div className="mt-6 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
+        <button
+          onClick={() => setShowDevRef(!showDevRef)}
+          className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-[var(--color-panel)]/50 transition-colors"
+        >
+          <div>
+            <h2 className="font-display text-lg font-normal text-[var(--color-text-primary)] flex items-center gap-2">
+              🛠️ Developer Reference
+            </h2>
+            <p className="text-[11px] text-[var(--color-text-muted)]">
+              ตำแหน่งไฟล์โค้ดของแต่ละ Section — สำหรับปรับดีไซน์ระดับโค้ด
+            </p>
+          </div>
+          <span className={`text-[var(--color-text-muted)] transition-transform duration-300 ${showDevRef ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </button>
+
+        {showDevRef && (
+          <div className="px-6 pb-6 space-y-4">
+            <div className="border-t border-[var(--color-border)] pt-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-3">
+                📂 ไฟล์โครงสร้างหลัก
+              </p>
+              <div className="grid gap-1.5 text-xs">
+                {[
+                  { file: 'app/[locale]/page.tsx', desc: 'ศูนย์กลางดึงข้อมูล + ส่ง Props ให้ทุก Section' },
+                  { file: 'app/[locale]/HomePageClient.tsx', desc: 'ตัวจัดเรียงลำดับ Section + Deferred Loading' },
+                  { file: 'app/globals.css', desc: 'Design Tokens — สี ฟอนต์ ระยะห่าง ทั้งเว็บ' },
+                  { file: 'components/hero/CinematicHero.tsx', desc: 'Hero Banner ด้านบนสุด' },
+                ].map(item => (
+                  <div key={item.file} className="flex items-start gap-3 px-3 py-2 rounded-lg bg-[var(--color-panel)]/50">
+                    <code className="text-[#6cbfd0] font-mono text-[11px] shrink-0 mt-0.5">📄</code>
+                    <div className="min-w-0">
+                      <p className="font-mono text-[var(--color-text-primary)] text-[11px] break-all">{item.file}</p>
+                      <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-3">
+                🧩 ไฟล์ดีไซน์แต่ละ Section
+              </p>
+              <div className="grid gap-1.5 text-xs">
+                {Object.entries(SECTION_META).map(([key, meta]) => (
+                  <div key={key} className="flex items-start gap-3 px-3 py-2 rounded-lg bg-[var(--color-panel)]/50">
+                    <span className="text-base shrink-0">{meta.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[var(--color-text-primary)] text-[11px]">{meta.label}</span>
+                        {meta.hasVisualConfig && (
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 font-bold">🎨 มี Visual Config</span>
+                        )}
+                      </div>
+                      <p className="font-mono text-[#6cbfd0] text-[10px] mt-0.5 break-all">{meta.sourcePath}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[var(--color-border)]">
+              <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed">
+                💡 <strong>Tip:</strong> อยากแก้ดีไซน์ Section ไหน → เปิดไฟล์ใน <code className="text-[#6cbfd0]">components/sections/</code> ชื่อเดียวกัน · อยากแก้สี/ฟอนต์ทั้งเว็บ → เปิด <code className="text-[#6cbfd0]">app/globals.css</code>
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
     </div>
