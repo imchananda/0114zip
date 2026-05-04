@@ -15,7 +15,7 @@ type AwardItem = {
   actors: string[];
 };
 
-export function AwardsPreview({ initialAwards }: { initialAwards?: AwardItem[] }) {
+export function AwardsPreview({ initialAwards, config }: { initialAwards?: AwardItem[]; config?: { limit?: number } }) {
   const t = useTranslations();
   const { state } = useViewState();
 

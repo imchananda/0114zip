@@ -139,23 +139,24 @@ async function ContentServer() {
 }
 
 async function FashionServer() {
-  const [fashion, brands] = await Promise.all([fetchFashion(), fetchBrands()]);
-  return <FashionSection events={fashion as any} brandLookup={brands as any} />;
+  const [fashion, brands, settings] = await Promise.all([fetchFashion(), fetchBrands(), fetchCoreSettings()]);
+  return <FashionSection events={fashion as any} brandLookup={brands as any} config={(settings.homepageConfig as any)?.fashion} />;
 }
 
 async function AwardsServer() {
-  const content = await fetchContent();
-  const awardsItems = content.filter((c: any) => c.content_type === 'award').slice(0, 6);
-  return <AwardsPreview initialAwards={awardsItems as any} />;
+  const [content, settings] = await Promise.all([fetchContent(), fetchCoreSettings()]);
+  const limit = (settings.homepageConfig as any)?.awards?.limit ?? 6;
+  const awardsItems = content.filter((c: any) => c.content_type === 'award').slice(0, limit);
+  return <AwardsPreview initialAwards={awardsItems as any} config={(settings.homepageConfig as any)?.awards} />;
 }
 
 async function TimelineServer() {
-  const timeline = await fetchTimeline();
+  const [timeline, settings] = await Promise.all([fetchTimeline(), fetchCoreSettings()]);
   const timelineRows = timeline.map((r: any) => ({
     id: r.id, year: r.year, title: r.title, title_thai: r.title_thai, description: r.description ?? '',
     category: r.category, actor: r.actors?.[0] ?? 'both', icon: r.icon ?? '✨', image: r.image
   }));
-  return <TimelineSection initialEvents={normalizeTimelineItems(timelineRows as any)} />;
+  return <TimelineSection initialEvents={normalizeTimelineItems(timelineRows as any)} config={(settings.homepageConfig as any)?.timeline} />;
 }
 
 async function MediaTagsServer() {

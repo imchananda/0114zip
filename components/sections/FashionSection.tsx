@@ -157,9 +157,9 @@ function SectionKicker({ children, className }: { children: React.ReactNode; cla
   );
 }
 
-type Props = { events: HomeFashionEvent[]; brandLookup?: HomeBrand[] };
+type Props = { events: HomeFashionEvent[]; brandLookup?: HomeBrand[]; config?: { limit?: number } };
 
-export function FashionSection({ events, brandLookup }: Props) {
+export function FashionSection({ events, brandLookup, config }: Props) {
   const t = useTranslations();
   const locale = useLocale();
   const reduceMotion = useSafeReducedMotion();
@@ -183,12 +183,13 @@ export function FashionSection({ events, brandLookup }: Props) {
   }, [events]);
 
   const highlightPool = useMemo(() => {
-    return events
+    const pool = events
       .filter(
         (e) => e.in_highlight && inFromYearRange(e, rangeFromYear) && matchesHighlightTab(e, tab)
       )
       .sort((a, b) => a.sort_order - b.sort_order || (b.event_date ?? '').localeCompare(a.event_date ?? ''));
-  }, [events, rangeFromYear, tab]);
+    return config?.limit ? pool.slice(0, config.limit) : pool;
+  }, [events, rangeFromYear, tab, config?.limit]);
 
   const activeSlide = Math.min(hlIndex, Math.max(0, highlightPool.length - 1));
 

@@ -17,7 +17,7 @@ type TimelineEvent = {
     description_thai?: string;
 };
 
-export function TimelineSection({ initialEvents }: { initialEvents?: TimelineEvent[] }) {
+export function TimelineSection({ initialEvents, config }: { initialEvents?: TimelineEvent[]; config?: { limit?: number } }) {
     const { state, reducedMotion } = useViewState();
     const t = useTranslations();
     const language = useLocale();
@@ -37,7 +37,8 @@ export function TimelineSection({ initialEvents }: { initialEvents?: TimelineEve
         }, {} as Record<number, TimelineEvent[]>);
     }, [state, initialEvents]);
 
-    const years = Object.keys(eventsByYear).map(Number).sort((a, b) => b - a);
+    const allYears = Object.keys(eventsByYear).map(Number).sort((a, b) => b - a);
+    const years = config?.limit ? allYears.slice(0, config.limit) : allYears;
 
     const getActorColor = (actor: string) => {
         if (actor === 'both') return 'var(--nf-gradient)';

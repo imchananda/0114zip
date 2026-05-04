@@ -35,9 +35,9 @@ const SECTION_META: Record<string, SectionMeta> = {
   profile:    { label: 'Profile',                 icon: '👤', desc: 'ข้อมูลโปรไฟล์ Namtan & Film',               sourcePath: 'components/sections/ProfileSection.tsx', adminPath: '/admin/profile' },
   schedule:   { label: 'Schedule Preview',        icon: '📅', desc: 'กำหนดการและอีเวนต์ที่กำลังจะมาถึง', hasVisualConfig: true, sourcePath: 'components/sections/SchedulePreview.tsx', adminPath: '/admin/schedule' },
   content:    { label: 'Content',                 icon: '🎞️', desc: 'ซีรีส์ ละคร และผลงาน',                     sourcePath: 'components/sections/ContentSection.tsx', adminPath: '/admin/content' },
-  fashion:    { label: 'Fashion & Style',         icon: '👗', desc: 'แฟชั่นและลุคเด่นล่าสุด',                   sourcePath: 'components/sections/FashionSection.tsx', adminPath: '/admin/fashion' },
-  awards:     { label: 'Awards',                  icon: '🏆', desc: 'รางวัลที่ได้รับ',                           sourcePath: 'components/sections/AwardsPreview.tsx', adminPath: '/admin/awards' },
-  timeline:   { label: 'Timeline',                icon: '📖', desc: 'ไทม์ไลน์เหตุการณ์สำคัญ',                   sourcePath: 'components/sections/TimelineSection.tsx', adminPath: '/admin/timeline' },
+  fashion:    { label: 'Fashion & Style',         icon: '👗', desc: 'แฟชั่นและลุคเด่นล่าสุด', hasVisualConfig: true, sourcePath: 'components/sections/FashionSection.tsx', adminPath: '/admin/fashion' },
+  awards:     { label: 'Awards',                  icon: '🏆', desc: 'รางวัลที่ได้รับ', hasVisualConfig: true, sourcePath: 'components/sections/AwardsPreview.tsx', adminPath: '/admin/awards' },
+  timeline:   { label: 'Timeline',                icon: '📖', desc: 'ไทม์ไลน์เหตุการณ์สำคัญ', hasVisualConfig: true, sourcePath: 'components/sections/TimelineSection.tsx', adminPath: '/admin/timeline' },
   mediaTags:  { label: 'Media & Tags',            icon: '📱', desc: 'มีเดียล่าสุด + แฮชแท็กยอดนิยม',             sourcePath: 'components/sections/MediaTagsSection.tsx', adminPath: '/admin/media' },
   challenges: { label: 'Challenges',              icon: '🎮', desc: 'กิจกรรมและ challenge สำหรับแฟนคลับ',        sourcePath: 'components/sections/ChallengesSection.tsx', adminPath: '/admin/challenges' },
   prizes:     { label: 'Prizes & Giveaways',      icon: '🎁', desc: 'ของรางวัลสำหรับแฟนคลับ',                   sourcePath: 'components/sections/PrizeSection.tsx', adminPath: '/admin/prizes' },
@@ -91,6 +91,15 @@ const VISUAL_CONFIGS: Record<string, VisualConfigDef> = {
     },
     limit: { label: 'จำนวนงานที่โชว์', options: [4, 6, 8] },
   },
+  fashion: {
+    limit: { label: 'จำนวน Highlight ที่โชว์', options: [4, 6, 8] },
+  },
+  awards: {
+    limit: { label: 'จำนวนรางวัลที่โชว์', options: [3, 6, 9] },
+  },
+  timeline: {
+    limit: { label: 'จำนวนปีที่โชว์', options: [3, 5, 10] },
+  },
 };
 
 // ── Defaults ─────────────────────────────────────────────────────────────────
@@ -102,9 +111,9 @@ const DEFAULT_SECTIONS: Record<string, SectionConfig> = {
   profile:    { enabled: true, order: 3 },
   schedule:   { enabled: true, order: 4, layout: 'cards', theme: 'light', limit: 4 },
   content:    { enabled: true, order: 5 },
-  fashion:    { enabled: true, order: 6 },
-  awards:     { enabled: true, order: 7 },
-  timeline:   { enabled: true, order: 8 },
+  fashion:    { enabled: true, order: 6, limit: 6 },
+  awards:     { enabled: true, order: 7, limit: 6 },
+  timeline:   { enabled: true, order: 8, limit: 5 },
   mediaTags:  { enabled: true, order: 9 },
   challenges: { enabled: true, order: 10 },
   prizes:     { enabled: true, order: 11 },
