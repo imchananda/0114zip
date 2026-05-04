@@ -170,6 +170,7 @@ export function ContentSectionClient({ initialContent, config }: ContentSectionC
                                 icon={cat.icon}
                                 works={cat.works}
                                 index={index}
+                                hasMore={cat.hasMore}
                             />
                         ))}
 

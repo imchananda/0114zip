@@ -15,9 +15,10 @@ interface ContentRowProps {
   icon: string;
   works: DisplayItem[];
   index: number;
+  hasMore?: boolean;
 }
 
-export function ContentRow({ title, titleThai, icon, works, index }: ContentRowProps) {
+export function ContentRow({ title, titleThai, icon, works, index, hasMore }: ContentRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { reducedMotion } = useViewState();
   const t = useTranslations();
@@ -115,6 +116,24 @@ export function ContentRow({ title, titleThai, icon, works, index }: ContentRowP
             <ContentCard work={work} />
           </motion.div>
         ))}
+
+        {hasMore && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="snap-start flex-shrink-0 flex items-center justify-center w-[280px] md:w-[320px] rounded-[2rem] border border-theme/40 bg-surface/50 hover:bg-surface hover:border-accent transition-all duration-300 group/more"
+          >
+            <div className="text-center p-8">
+              <div className="w-16 h-16 rounded-full bg-panel border border-theme/40 flex items-center justify-center text-accent mx-auto mb-4 group-hover/more:scale-110 group-hover/more:shadow-lg transition-all duration-500">
+                <ChevronRight className="w-8 h-8" />
+              </div>
+              <p className="text-sm font-bold uppercase tracking-widest text-primary group-hover/more:text-accent transition-colors">
+                {t('content.viewAllWorks')}
+              </p>
+            </div>
+          </motion.div>
+        )}
       </div>
     </motion.section>
   );
