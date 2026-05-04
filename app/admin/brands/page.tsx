@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { Plus, Edit2, Trash2, Save, X, RefreshCw, Briefcase, Image, Upload } from 'lucide-react';
+import NextImage from 'next/image';
+import { Plus, Edit2, Trash2, Save, X, RefreshCw, Briefcase, ImageIcon, Upload } from 'lucide-react';
 
 const PROXY_HOSTS = ['upload.wikimedia.org', 'commons.wikimedia.org', 'encrypted-tbn0.gstatic.com'];
 function logoSrc(url: string): string {
@@ -160,7 +161,10 @@ export default function BrandCollabsPage() {
     finally { setLoading(false); }
   }, [filterArtist]);
 
-  useEffect(() => { fetchCollabs(); }, [fetchCollabs]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchCollabs(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [fetchCollabs]);
 
   // Load & save section-specific portrait images
   useEffect(() => {
@@ -310,7 +314,7 @@ export default function BrandCollabsPage() {
       {/* Section Portrait Images */}
       <div className="mb-8 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Image className="w-4 h-4 text-[#6cbfd0]" />
+          <ImageIcon className="w-4 h-4 text-[#6cbfd0]" />
           <h3 className="text-sm font-normal text-[var(--color-text-primary)]">รูปภาพดาราประจำ Section</h3>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#6cbfd0]/15 text-[#6cbfd0] ml-1">แยกจาก Profile</span>
         </div>
@@ -345,12 +349,9 @@ export default function BrandCollabsPage() {
                   />
                 </div>
               </div>
-              {sectionImgs.both
-                ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={sectionImgs.both} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[var(--color-border)]"
-                    onError={e => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('div'), { className: 'w-10 h-10 rounded-lg flex-shrink-0 border border-red-500/40 bg-red-500/10 flex items-center justify-center text-[10px] text-red-400', textContent: '✕' })); }} />
-                ) : null}
+              {sectionImgs.both ? (
+                <NextImage src={sectionImgs.both} alt="" width={40} height={40} className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[var(--color-border)]" />
+              ) : null}
             </div>
           </div>
           {/* Namtan */}
@@ -380,12 +381,9 @@ export default function BrandCollabsPage() {
                   />
                 </div>
               </div>
-              {sectionImgs.namtan
-                ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={sectionImgs.namtan} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[var(--color-border)]"
-                    onError={e => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('div'), { className: 'w-10 h-10 rounded-lg flex-shrink-0 border border-red-500/40 bg-red-500/10 flex items-center justify-center text-[10px] text-red-400', textContent: '✕' })); }} />
-                ) : null}
+              {sectionImgs.namtan ? (
+                <NextImage src={sectionImgs.namtan} alt="" width={40} height={40} className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[var(--color-border)]" />
+              ) : null}
             </div>
           </div>
           {/* Film */}
@@ -415,12 +413,9 @@ export default function BrandCollabsPage() {
                   />
                 </div>
               </div>
-              {sectionImgs.film
-                ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={sectionImgs.film} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[var(--color-border)]"
-                    onError={e => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('div'), { className: 'w-10 h-10 rounded-lg flex-shrink-0 border border-red-500/40 bg-red-500/10 flex items-center justify-center text-[10px] text-red-400', textContent: '✕' })); }} />
-                ) : null}
+              {sectionImgs.film ? (
+                <NextImage src={sectionImgs.film} alt="" width={40} height={40} className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-[var(--color-border)]" />
+              ) : null}
             </div>
           </div>
         </div>
@@ -462,7 +457,7 @@ export default function BrandCollabsPage() {
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div className="flex items-center gap-2">
                   {c.brand_logo
-                    ? <img src={logoSrc(c.brand_logo)} alt={c.brand_name} className="w-8 h-8 rounded-lg object-contain bg-white" onError={e => { const el = e.currentTarget; el.style.display='none'; const fb = el.nextElementSibling as HTMLElement|null; if(fb) fb.style.display='flex'; }} />
+                    ? <NextImage src={logoSrc(c.brand_logo)} alt={c.brand_name} width={32} height={32} className="w-8 h-8 rounded-lg object-contain bg-white" onError={e => { const el = e.currentTarget as HTMLImageElement; el.style.display='none'; const fb = el.nextElementSibling as HTMLElement | null; if (fb) fb.style.display='flex'; }} />
                     : null
                   }
                   <div className="w-8 h-8 rounded-lg bg-[var(--color-panel)] flex items-center justify-center text-sm" style={{ display: c.brand_logo ? 'none' : 'flex' }}>🏷️</div>
@@ -543,8 +538,7 @@ export default function BrandCollabsPage() {
                 <label className="block text-xs text-[var(--color-text-muted)] mb-1">โลโก้แบรนด์ (ไม่บังคับ)</label>
                 <div className="flex gap-2 items-center">
                   {form.brand_logo && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={logoSrc(form.brand_logo)} alt="" className="w-10 h-10 rounded-lg object-contain bg-white border border-[var(--color-border)] shrink-0" />
+                    <NextImage src={logoSrc(form.brand_logo)} alt="" width={40} height={40} className="w-10 h-10 rounded-lg object-contain bg-white border border-[var(--color-border)] shrink-0" />
                   )}
                   <input type="url" value={form.brand_logo} onChange={e => setForm(f => ({ ...f, brand_logo: e.target.value.replace(/^http:\/\//, 'https://') }))}
                     placeholder="https://... หรืออัพโหลดไฟล์"

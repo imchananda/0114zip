@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAdminClient, supabase } from '@/lib/supabase';
-import { verifyAdmin } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 
 export const revalidate = 600; // Cache timeline for 10 minutes
 

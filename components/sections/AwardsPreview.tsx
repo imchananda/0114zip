@@ -1,91 +1,119 @@
-﻿'use client';
+'use client';
 
 import { Link } from '@/i18n/routing';
 import { motion } from 'framer-motion';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useViewState } from '@/context/ViewStateContext';
 
-const HIGHLIGHTS = [
-  { title: 'คู่จิ้นแห่งปี', show: 'Kazz Awards 2026', artist: 'both' as const, result: 'won' as const },
-  { title: 'นักแสดงนำหญิงยอดเยี่ยม', show: 'Maya Awards 2026', artist: 'namtan' as const, result: 'won' as const },
-  { title: 'Outstanding Drama Performance', show: 'Bangkok Inter Drama Awards', artist: 'both' as const, result: 'won' as const },
-  { title: 'Best On-Screen Chemistry', show: 'TV Pool Awards 2024', artist: 'both' as const, result: 'won' as const },
-  { title: 'ดาราสาวมาแรง', show: 'Komchadluek Awards 2024', artist: 'namtan' as const, result: 'won' as const },
-  { title: 'Most Stylish Actor', show: 'Vogue Thailand 2024', artist: 'film' as const, result: 'won' as const },
-];
-
-const ARTIST_COLORS = {
-  namtan: '#6cbfd0',
-  film: '#fbdf74',
-  both: '#6cbfd0',
+type AwardItem = {
+  id: string;
+  year?: number;
+  title?: string;
+  award_name?: string;
+  ceremony?: string;
+  description?: string;
+  actors: string[];
 };
 
-export function AwardsPreview() {
+export function AwardsPreview({ initialAwards }: { initialAwards?: AwardItem[] }) {
   const t = useTranslations();
   const { state } = useViewState();
 
-  const filteredAwards = HIGHLIGHTS.filter((award) => {
-    if (state === 'both') return award.artist === 'both' || award.artist === 'namtan' || award.artist === 'film';
-    if (state === 'lunar') return true;
-    return award.artist === state || award.artist === 'both';
+  const items = initialAwards || [];
+
+  const filteredAwards = items.filter((award) => {
+    if (state === 'both' || state === 'lunar') return true;
+    return award.actors.includes(state) || award.actors.includes('both');
   });
 
-  return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-6 md:px-12">
-        <motion.div
-          className="flex items-center justify-between mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <div>
-            <h2 className="text-2xl md:text-3xl font-medium text-[var(--color-text)]">🏆 {t('preview.awards.title')}</h2>
-            <p className="text-[var(--color-muted)] text-sm mt-1">
-              {t('preview.awards.sub')}
-            </p>
-          </div>
-          <Link href="/awards" className="text-sm text-[#6cbfd0] hover:underline hidden sm:block">
-            {t('preview.all')} →
-          </Link>
-        </motion.div>
+  const getActorLabel = (actors: string[]) => {
+    if (actors.length > 1 || actors.includes('both')) return t('state.namtanfilm');
+    if (actors[0] === 'namtan') return t('state.namtan');
+    if (actors[0] === 'film') return t('state.film');
+    return actors[0] ?? '';
+  };
 
-        {/* Trophy showcase */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {filteredAwards.map((award, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+  return (
+    <section className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative">
+      <div className="container mx-auto px-6 md:px-12 max-w-6xl">
+        <div className="flex flex-col md:flex-row items-baseline justify-between mb-12 md:mb-16 pb-6 border-b border-theme/40">
+          <div>
+            <motion.p 
+              initial={{ opacity: 0, y: 5 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
+              className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]"
             >
-              <Link href="/awards" className="block group">
-                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 group-hover:border-[#fbdf74]/40 transition-all group-hover:translate-y-[-1px] h-full">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">🏆</span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-green-500/15 text-green-400">Won</span>
-                  </div>
-                  <h3 className="text-sm font-medium text-[var(--color-text)] line-clamp-1">{award.title}</h3>
-                  <p className="text-[10px] text-[var(--color-muted)] mt-1">{award.show}</p>
-                  <div className="mt-2">
-                    <span
-                      className="text-[9px] px-1.5 py-0.5 rounded-full"
-                      style={{ background: `${ARTIST_COLORS[award.artist]}15`, color: ARTIST_COLORS[award.artist] }}
-                    >
-                      {award.artist === 'both' ? '💙💛 คู่จิ้น' : award.artist === 'namtan' ? '💙 น้ำตาล' : '💛 ฟิล์ม'}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+              {t('awardsPreview.sub')}
+            </motion.p>
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="font-display text-4xl md:text-section text-primary leading-tight font-light"
+            >
+              {t('awardsPreview.titleLine1')} <br className="md:hidden" />{t('awardsPreview.titleLine2')}
+            </motion.h2>
+          </div>
+          <Link href="/awards" className="text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-accent transition-colors flex items-center gap-2 group mt-6 md:mt-0">
+            {t('awardsPreview.viewAll')} <span className="group-hover:translate-x-1 transition-transform">→</span>
+          </Link>
         </div>
 
-        <div className="text-center mt-6 sm:hidden">
-          <Link href="/awards" className="text-sm text-[#6cbfd0] hover:underline">
-            {t('preview.all')} →
-          </Link>
+        {/* Trophy showcase */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {filteredAwards.length === 0 ? (
+            <div className="col-span-full py-20 text-center bg-surface border border-theme/60 rounded-[2rem] opacity-60">
+               <p className="text-sm font-bold uppercase tracking-widest">{t('awardsPreview.empty')}</p>
+               <Link href="/awards" className="inline-flex mt-5 text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-accent transition-colors">
+                 {t('awardsPreview.emptyAction')}
+               </Link>
+            </div>
+          ) : (
+            filteredAwards.map((award, i) => (
+              <motion.div
+                key={award.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05, duration: 0.5 }}
+              >
+                <Link href="/awards" className="block group h-full">
+                  <div className="bg-surface border border-theme/60 rounded-3xl p-8 group-hover:border-accent/40 transition-all duration-500 group-hover:shadow-xl flex flex-col h-full relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full opacity-20 group-hover:opacity-100 transition-opacity" 
+                      style={{ background: award.actors.length > 1 ? 'var(--nf-gradient)' : (award.actors[0] === 'namtan' ? 'var(--namtan-teal)' : 'var(--film-gold)') }} />
+                    
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="text-3xl grayscale-[0.4] group-hover:grayscale-0 transition-all duration-500">🏆</span>
+                      <span className="text-[10px] px-3 py-1 rounded-full bg-green-500/10 text-green-600 font-bold uppercase tracking-widest border border-green-500/20">
+                        {award.year}
+                      </span>
+                    </div>
+
+                    <h3 className="text-xl font-display text-primary mb-3 leading-snug group-hover:text-accent transition-colors duration-300">
+                      {award.award_name || award.title}
+                    </h3>
+                    <p className="text-xs text-muted font-thai font-medium tracking-wide mb-8 opacity-70">
+                      {award.ceremony || award.description}
+                    </p>
+
+                    <div className="mt-auto pt-6 border-t border-theme/30">
+                      <span
+                        className="text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-[0.2em] border border-theme/60 shadow-sm"
+                        style={{ 
+                          background: award.actors.length > 1 ? 'var(--nf-gradient)' : 'transparent',
+                          color: award.actors.length > 1 ? 'var(--deep-dark)' : 'var(--muted)'
+                        }}
+                      >
+                        {getActorLabel(award.actors)}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))
+          )}
         </div>
       </div>
     </section>

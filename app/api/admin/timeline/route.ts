@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminClient, supabase } from '@/lib/supabase';
+import { getAdminClient } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
 
 // GET /api/admin/timeline

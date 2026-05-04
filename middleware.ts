@@ -8,7 +8,6 @@ const intlMiddleware = createIntlMiddleware(routing);
 
 // Routes to apply rate limiting depending on strictness
 const API_ROUTES_PREFIX = '/api/';
-const AUTH_ROUTES = ['/login', '/register', '/api/auth'];
 
 // In-memory cache for maintenance flag (refresh every 5 min)
 // Querying Supabase REST directly avoids an internal HTTP round-trip through Next.js routing
@@ -60,7 +59,7 @@ export async function middleware(request: NextRequest) {
   
   // Only apply rate limiting to specific sensitive routes
   const isApiRoute = path.startsWith(API_ROUTES_PREFIX);
-  const isAuthRoute = AUTH_ROUTES.some((route) => path.startsWith(route));
+  const isAuthRoute = path.includes('/auth/login') || path.includes('/auth/register') || path.startsWith('/api/auth');
   const isAdminRoute = path.startsWith('/admin');
 
   // Determine IP

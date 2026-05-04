@@ -14,9 +14,11 @@ import { LiveDashboard } from '@/components/dashboard/LiveDashboard';
 import { Header } from '@/components/navigation/Header';
 import { Footer } from '@/components/ui/Footer';
 import { FloatingArtistSelector } from '@/components/navigation/FloatingArtistSelector';
+import { useFloatingArtistSelectorConfig } from '@/components/navigation/FloatingArtistSelectorProvider';
+import { mainSpacerClassForDock } from '@/lib/floating-artist-config';
 import { HeroBanner } from '@/components/hero/HeroBanner';
 import { ViewState, ContentItem } from '@/types';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 
 interface ArtistTabsProps {
   slug: ViewState;
@@ -73,9 +75,11 @@ const ARTIST_CONFIG: Record<ViewState, {
 };
 
 export function ArtistTabs({ slug, allContent }: ArtistTabsProps) {
-  const t = useTranslations();
   const locale = useLocale();
   const config = ARTIST_CONFIG[slug];
+  const floatingCfg = useFloatingArtistSelectorConfig();
+  const showFloatingArtist = floatingCfg.visibility.artistPages;
+  const artistMainPadding = showFloatingArtist ? mainSpacerClassForDock(floatingCfg.dock) : 'pb-20';
   
   const TABS = [
     { id: 'profile',    label: 'Profile',    icon: '📋', component: ProfileSection },
@@ -180,7 +184,7 @@ export function ArtistTabs({ slug, allContent }: ArtistTabsProps) {
         </div>
 
         {/* ── Tab Content ── */}
-        <main className="flex-1 pb-20">
+        <main className={cn('flex-1', artistMainPadding)}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -196,8 +200,7 @@ export function ArtistTabs({ slug, allContent }: ArtistTabsProps) {
 
         <Footer />
 
-        {/* Floating Artist Selector */}
-        <FloatingArtistSelector />
+        {showFloatingArtist ? <FloatingArtistSelector /> : null}
       </div>
     </ViewStateProvider>
   );

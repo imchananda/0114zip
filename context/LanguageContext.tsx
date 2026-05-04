@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 // ---- Supported languages ----
-export type Language = 'th' | 'en' | 'zh';
+export type Language = 'th' | 'en';
 
 interface LanguageContextType {
   language: Language;
@@ -185,90 +185,6 @@ const translations: Record<Language, Record<string, string>> = {
     'lunar.fanclub': 'แฟนคลับอย่างเป็นทางการ',
   },
 
-  zh: {
-    // Navigation
-    'nav.works':      '作品',
-    'nav.timeline':   '时间轴',
-    'nav.profile':    '个人资料',
-    'nav.about':      '关于',
-    'nav.community':  '社区',
-    'nav.challenges': '挑战',
-    'nav.engage':     '互动中心',
-    'nav.schedule':   '行程表',
-    'nav.awards':     '奖项',
-    'nav.stats':      '数据统计',
-
-    // Hero
-    'hero.scroll':    '向下滚动',
-    'hero.viewWorks': '查看作品',
-
-    // Actor labels
-    'actor.realName':  '真实姓名：',
-    'actor.birthDate': '生日：',
-    'actor.birthPlace':'出生地：',
-    'actor.education': '学历：',
-
-    // State Indicator
-    'state.namtanfilm': 'NamtanFilm',
-    'state.namtan':     'Namtan',
-    'state.film':       'Film',
-    'state.lunar':      '月光粉丝团',
-
-    // Content Section
-    'content.together':      '合作',
-    'content.togetherSub':   '携手故事',
-    'content.togetherTitle': '合作作品',
-    'content.namtanJourney': 'Namtan 的旅程',
-    'content.filmJourney':   'Film 的旅程',
-    'content.lunarSpace':    '月光空间',
-    'content.filmography':   '完整作品集',
-    'content.memories':      '我们的回忆',
-    'content.noWorks':       '未找到作品',
-    'content.tryOther':      '请尝试其他筛选',
-    'content.backToTogether':'返回合作作品',
-
-    // Categories
-    'category.acting': '表演',
-    'category.award':  '奖项',
-    'category.event':  '活动',
-
-    // Timeline
-    'timeline.title': '时间轴',
-    'timeline.sub':   '他们的旅程',
-
-    // Profile
-    'profile.title': '个人资料',
-    'profile.sub':   '认识明星',
-
-    // About
-    'about.title':       '关于我们',
-    'about.sub':         '关于这个粉丝网站',
-    'about.couple':      '最爱的情侣',
-    'about.worksCount':  '合作作品',
-    'about.awards':      '共同奖项',
-    'about.fans':        '粉丝',
-    'about.description': '本网站由粉丝创建，收集了 Namtan Tipnaree 和 Film Rachanun 的作品与精彩故事。',
-    'about.disclaimer':  '🎬 本网站为粉丝自制，与经纪公司无官方关联。',
-    'about.imageRights': '图片版权归各自所有者所有',
-
-    // Previews (Home)
-    'preview.engage.title': '粉丝互动任务',
-    'preview.engage.sub':   '加入热点',
-    'preview.engage.live':  '进行中',
-    'preview.schedule.title': '近期行程',
-    'preview.schedule.sub': '敬请期待',
-    'preview.awards.title': '最近奖项',
-    'preview.awards.sub':   '荣誉殿堂',
-    'preview.all':          '查看全部',
-
-    // Footer
-    'footer.fanmade': '粉丝自制网站',
-    'footer.rights':  '与任何经纪公司无关',
-
-    // Lunar
-    'lunar.name':    '月光',
-    'lunar.fanclub': '官方粉丝团',
-  },
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {

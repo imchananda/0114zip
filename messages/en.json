@@ -13,7 +13,14 @@
   },
   "hero": {
     "scroll": "SCROLL",
-    "viewWorks": "View Works"
+    "viewWorks": "View Works",
+    "scrollExplore": "Scroll to Explore",
+    "exploreWorks": "Explore Works",
+    "latestHighlight": "Latest Highlight"
+  },
+  "splash": {
+    "skip": "Skip",
+    "established": "Established 2024"
   },
   "actor": {
     "realName": "Real Name:",
@@ -38,7 +45,25 @@
     "memories": "Our Memories",
     "noWorks": "No works found",
     "tryOther": "Try selecting another filter",
-    "backToTogether": "Back to Works Together"
+    "backToTogether": "Back to Works Together",
+    "viewFullArchive": "View Full Archive",
+    "viewAllWorks": "View All Works",
+    "portfolioItems": "Portfolio Items",
+    "link": "Link",
+    "categories": {
+      "series": "Series & Drama",
+      "variety": "Variety Shows",
+      "event": "Events",
+      "magazine": "Magazine",
+      "award": "Awards"
+    },
+    "categoriesThai": {
+      "series": "Series / Drama",
+      "variety": "Variety",
+      "event": "Events",
+      "magazine": "Magazine",
+      "award": "Awards"
+    }
   },
   "category": {
     "acting": "Acting",
@@ -47,11 +72,144 @@
   },
   "timeline": {
     "title": "Timeline",
-    "sub": "Their Journey"
+    "sub": "Their Journey",
+    "empty": "No timeline events found",
+    "categories": {
+      "debut": "Debut",
+      "work": "Work",
+      "award": "Award",
+      "event": "Event",
+      "milestone": "Milestone"
+    }
+  },
+  "challenges": {
+    "sub": "Fan Activities",
+    "titleLine1": "Interactive",
+    "titleLine2": "Challenges",
+    "viewAll": "View All Games",
+    "joined": "joined",
+    "daysLeft": "days left"
+  },
+  "schedule": {
+    "noEvents": "No upcoming events scheduled"
+  },
+  "schedulePreview": {
+    "sub": "Timeline",
+    "titleLine1": "Upcoming",
+    "titleLine2": "Events",
+    "viewAll": "View All",
+    "emptyAction": "Open Full Schedule",
+    "types": {
+      "event": "Event",
+      "show": "Show",
+      "concert": "Concert",
+      "fanmeet": "Fan Meet",
+      "live": "Live",
+      "release": "Release"
+    }
+  },
+  "stats": {
+    "sub": "Live Statistics",
+    "titleLine1": "Data",
+    "titleLine2": "Cheat Sheet",
+    "fullReport": "Full Report",
+    "featuredSeries": "Featured Series",
+    "latestMusic": "Latest Music"
+  },
+  "fashion": {
+    "sub": "Style & Elegance",
+    "titleLine1": "Fashion",
+    "titleLine2": "Highlights",
+    "exploreMore": "Explore More",
+    "empty": "No fashion highlights found",
+    "emptyAction": "Open Fashion Archive",
+    "magazine": "Magazine",
+    "issue": "Issue",
+    "viewDetail": "View Detail",
+    "highlightTitle": "Fashion highlight",
+    "timelineTitle": "Fashion event timeline",
+    "allYears": "All years",
+    "allEvents": "All events",
+    "yearToPresent": "{year} – Present",
+    "eventDate": "Date",
+    "tabAll": "ALL",
+    "tabNamtan": "NAMTAN",
+    "tabFilm": "FILM",
+    "tabTogether": "TOGETHER",
+    "viewCalendar": "View calendar",
+    "byCategory": "Fashion by category",
+    "topBrands": "Top fashion brands",
+    "viewAll": "View all",
+    "looks": "Looks",
+    "tagTogether": "TOGETHER",
+    "tagNamtan": "NAMTAN",
+    "tagFilm": "FILM",
+    "detailTitle": "Event details",
+    "hashtag": "Hashtag",
+    "engagement": "Engagement",
+    "emv": "EMV",
+    "miv": "MIV",
+    "close": "Close",
+    "brands": "Brands",
+    "category": "Category",
+    "location": "Location",
+    "dateTbd": "Date TBC",
+    "openDetail": "Details",
+    "categories": {
+      "evening_look": "Evening look",
+      "street_style": "Street style",
+      "runway": "Runway",
+      "red_carpet": "Red carpet",
+      "casual": "Casual",
+      "accessories": "Accessories"
+    }
+  },
+  "awardsPreview": {
+    "sub": "Achievements",
+    "titleLine1": "Awards &",
+    "titleLine2": "Recognition",
+    "viewAll": "View All",
+    "empty": "No awards found for this selection",
+    "emptyAction": "Open Awards Archive"
+  },
+  "prizes": {
+    "sub": "Exclusives",
+    "titleLine1": "Prizes &",
+    "titleLine2": "Giveaways",
+    "winNow": "Win Now",
+    "empty": "No active giveaways found",
+    "emptyAction": "Open Prize Hub",
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "announced": "Announced"
+    }
   },
   "profile": {
-    "title": "Profile",
-    "sub": "Meet The Stars"
+    "title": "Profile Split",
+    "sub": "Meet The Stars",
+    "subThai": "ทำความรู้จักกับน้ำตาลและฟิล์ม",
+    "viewProfile": "View Full Profile",
+    "viewWorks": "View Works",
+    "viewStats": "View Stats",
+    "viewAll": "View All",
+    "followers": "Followers",
+    "works": "Works",
+    "artist": "Artist",
+    "orbit": "Orbit",
+    "igFollowers": "Instagram Followers",
+    "xFollowers": "X Followers",
+    "totalWorks": "Total Works",
+    "latestWorks": "Latest Works",
+    "together": "Together",
+    "togetherSub": "We shine brighter together",
+    "totalFollowers": "Total Followers",
+    "dataRange": "Data from 2024 - Present",
+    "sectionKicker": "Section 2",
+    "dragCompare": "Drag to compare",
+    "lunaMascot": "LUNA",
+    "emv": "EMV (Earned Media Value)",
+    "miv": "MIV (Media Impact Value)"
   },
   "about": {
     "title": "About Us",
@@ -80,12 +238,69 @@
     },
     "all": "View All"
   },
+  "mediaTags": {
+    "sub": "Curation",
+    "titleLine1": "Media &",
+    "titleLine2": "Tags",
+    "exploreGallery": "Explore Gallery",
+    "allEvents": "All Events",
+    "empty": "No media posts found",
+    "emptyAction": "Open Media Hub",
+    "focus": "Focus",
+    "activeHashtags": "Active Hashtags",
+    "noHashtags": "No hashtags recorded for this event",
+    "copyTag": "Click to copy",
+    "communityNote": "Community Note",
+    "communityNoteBody": "Help trend these hashtags on X and Instagram to support Namtan & Film's latest activities!"
+  },
   "footer": {
+    "titleLeft": "Namtan",
+    "titleRight": "Film",
+    "tagline": "Made with love by fans",
+    "copyright": "© 2024 Fan Project · Not affiliated with any agency",
     "fanmade": "Fan-Made Website",
     "rights": "Not affiliated with any agency"
   },
   "lunar": {
     "name": "Lunar",
     "fanclub": "Official Fanclub"
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "register": "Register",
+    "profile": "Profile",
+    "memberAccess": "Member Access",
+    "welcomeBack": "Welcome back",
+    "welcomeBackHighlight": "Reader",
+    "orIdentity": "Or Identity",
+    "emailLabel": "Electronic Mail",
+    "passwordLabel": "Secure Key",
+    "emailPlaceholder": "reader@namtanfilm.com",
+    "authenticate": "Authenticate",
+    "noAccount": "New to the salon?",
+    "joinMembership": "Join Membership",
+    "backToPortal": "Back to Portal",
+    "accessWithGoogle": "Access with Google",
+    "oauthFailed": "Google login failed. Please try again.",
+    "membership": "Membership",
+    "createIdentity": "Create your",
+    "createIdentityHighlight": "Identity",
+    "orRegister": "Or Register",
+    "displayNameLabel": "Display Name",
+    "displayNamePlaceholder": "Your nickname",
+    "confirmPasswordLabel": "Confirm Key",
+    "confirmPasswordPlaceholder": "Re-enter password",
+    "passwordHint": "Minimum 6 characters",
+    "passwordMinError": "Password must be at least 6 characters",
+    "passwordMismatch": "Passwords do not match. Please try again.",
+    "establishMembership": "Establish Membership",
+    "alreadyMember": "Already a member?",
+    "accessAccount": "Access Account",
+    "joinWithGoogle": "Join with Google",
+    "welcomeHome": "Welcome",
+    "welcomeHomeHighlight": "Home",
+    "membershipEstablished": "Your membership has been established. You are now part of the NamtanFilm family.",
+    "redirecting": "Directing to Portal..."
   }
 }

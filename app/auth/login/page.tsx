@@ -1,9 +1,9 @@
-﻿import { headers } from 'next/headers';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
-const LOCALES = ['th', 'en', 'zh'];
+const LOCALES = ['th', 'en'];
 const DEFAULT_LOCALE = 'th';
 
 function getLocale(acceptLanguage: string | null): string {

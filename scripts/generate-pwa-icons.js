@@ -1,10 +1,13 @@
-﻿/**
+/**
  * PWA Icon Generator — creates NamtanFilm branded icons as SVG→PNG
  * Run: node scripts/generate-pwa-icons.js
  */
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const iconsDir = path.join(__dirname, '..', 'public', 'icons');
 
 // Ensure directory exists
@@ -15,8 +18,6 @@ if (!fs.existsSync(iconsDir)) {
 const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
 
 function generateSVG(size) {
-  const padding = Math.round(size * 0.15);
-  const innerSize = size - padding * 2;
   const centerX = size / 2;
   const centerY = size / 2;
   const fontSize = Math.round(size * 0.35);

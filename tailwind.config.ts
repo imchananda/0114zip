@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import plugin from 'tailwindcss/plugin';
 
 const config: Config = {
   content: [
@@ -10,10 +11,10 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['var(--font-display)', 'Georgia', 'serif'],
+        display: ['var(--font-display)', 'Fraunces', 'Georgia', 'serif'],
         georgia: ['Georgia', 'serif'],
         thai: ['var(--font-thai)', 'Noto Sans Thai', 'sans-serif'],
-        body: ['var(--font-body)', 'Inter', 'Noto Sans Thai', 'sans-serif'],
+        body: ['var(--font-body)', 'Plus Jakarta Sans', 'Noto Sans Thai', 'sans-serif'],
       },
       fontSize: {
         // DESIGN-ntf.md typography scale
@@ -157,7 +158,12 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // next-themes: html.light & … / html.dark & …
+    plugin(({ addVariant }) => {
+      addVariant('light', 'html.light &');
+    }),
+  ],
 };
 
 export default config;

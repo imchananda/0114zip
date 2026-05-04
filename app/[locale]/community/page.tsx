@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { createSupabaseBrowser } from '@/lib/supabase';
 import { Mascot } from '@/components/mascot/Mascot';
@@ -21,7 +22,7 @@ interface Post {
 }
 
 export default function CommunityPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState('');
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,18 @@ export default function CommunityPage() {
     setLoading(false);
   }, [user, supabase]);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      void fetchPosts();
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [fetchPosts]);
+
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   const handlePost = async () => {
     if (!newPost.trim() || !user) return;
@@ -66,10 +78,10 @@ export default function CommunityPage() {
     if (!user) return;
     if (liked) {
       await supabase.from('community_likes').delete().eq('user_id', user.id).eq('post_id', postId);
-      await supabase.from('community_posts').update({ likes: Math.max(0, (posts.find(p => p.id === postId)?.likes || 1) - 1) }).eq('id', postId);
+      await supabase.from('community_posts').update({ likes: Math.max(0, (posts.find((p: any) => p.id === postId)?.likes || 1) - 1) }).eq('id', postId);
     } else {
       await supabase.from('community_likes').insert({ user_id: user.id, post_id: postId });
-      await supabase.from('community_posts').update({ likes: (posts.find(p => p.id === postId)?.likes || 0) + 1 }).eq('id', postId);
+      await supabase.from('community_posts').update({ likes: (posts.find((p: any) => p.id === postId)?.likes || 0) + 1 }).eq('id', postId);
     }
     fetchPosts();
   };
@@ -81,7 +93,7 @@ export default function CommunityPage() {
   };
 
   const timeAgo = (date: string) => {
-    const diff = Date.now() - new Date(date).getTime();
+    const diff = nowMs - new Date(date).getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'เมื่อสักครู่';
     if (mins < 60) return `${mins} นาทีที่แล้ว`;
@@ -147,9 +159,9 @@ export default function CommunityPage() {
               <div key={post.id} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4">
                 {/* Author */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6cbfd0] to-[#fbdf74] flex items-center justify-center text-[#141413] text-xs font-medium overflow-hidden">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#6cbfd0] to-[#fbdf74] flex items-center justify-center text-[#141413] text-xs font-medium overflow-hidden relative">
                     {post.users?.avatar_url ? (
-                      <img src={post.users.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <Image src={post.users.avatar_url} alt="" fill className="object-cover" />
                     ) : (
                       (post.users?.display_name || '?')[0].toUpperCase()
                     )}

@@ -3,8 +3,10 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, useSpring, AnimatePresence, useMotionValue } from 'framer-motion';
 import { HomeHeroSlide, HomeArtistProfile, HeroBannerConfig } from '@/lib/homepage-data';
+import { useTranslations } from 'next-intl';
+import { useSafeReducedMotion } from '@/lib/useSafeReducedMotion';
 
 interface CinematicHeroProps {
   slides: HomeHeroSlide[];
@@ -13,18 +15,21 @@ interface CinematicHeroProps {
 }
 
 function ScrollHint() {
+  const t = useTranslations();
+  const reducedMotion = useSafeReducedMotion();
+
   return (
     <motion.div 
-      initial={{ opacity: 0 }}
+      initial={reducedMotion ? { opacity: 1 } : { opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 2, duration: 1 }}
+      transition={{ delay: reducedMotion ? 0 : 2, duration: reducedMotion ? 0 : 1 }}
       className="absolute bottom-12 z-40 flex flex-col items-center gap-4 left-1/2 -translate-x-1/2 pointer-events-none"
     >
-      <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-white/40">Scroll to Explore</span>
+      <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-white/40">{t('hero.scrollExplore')}</span>
       <div className="w-px h-16 bg-gradient-to-b from-white/60 to-transparent relative overflow-hidden">
          <motion.div 
-           animate={{ y: [0, 64] }}
-           transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+           animate={reducedMotion ? { y: 0 } : { y: [0, 64] }}
+           transition={reducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity, ease: "linear" }}
            className="absolute top-0 left-0 w-full h-1/2 bg-white"
          />
       </div>
@@ -34,23 +39,29 @@ function ScrollHint() {
 
 export function CinematicHero({ slides = [], profiles = {}, config }: CinematicHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const reducedMotion = useSafeReducedMotion();
 
   const type = config?.type || 'cinematic';
+  const t = useTranslations();
 
   useEffect(() => {
+    if (type !== 'cinematic' || reducedMotion) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       const { clientX, clientY } = e;
       const { innerWidth, innerHeight } = window;
       const x = (clientX / innerWidth - 0.5) * 20;
       const y = (clientY / innerHeight - 0.5) * 20;
-      setMousePos({ x, y });
+      mouseX.set(x);
+      mouseY.set(y);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [mouseX, mouseY, reducedMotion, type]);
 
   useEffect(() => {
     if (type !== 'slide' || slides.length <= 1) return;
@@ -69,8 +80,8 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
   const opacityText = useTransform(scrollY, [0, 300], [1, 0]);
 
   // Mouse spring values
-  const springX = useSpring(mousePos.x, { stiffness: 50, damping: 30 });
-  const springY = useSpring(mousePos.y, { stiffness: 50, damping: 30 });
+  const springX = useSpring(mouseX, { stiffness: 50, damping: 30 });
+  const springY = useSpring(mouseY, { stiffness: 50, damping: 30 });
 
   // Combined values for specific layers
   const bgX = useTransform(springX, (v) => v * -0.5);
@@ -93,10 +104,11 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
   const mainSlide = useMemo(() => slides.find(s => s.view_state === 'both') || slides[0], [slides]);
   const ntPhoto   = profiles.namtan?.photo_url || '/images/banners/nt.png';
   const flPhoto   = profiles.film?.photo_url   || '/images/banners/f.png';
+  const primaryCtaHref = mainSlide?.link || '/works';
 
   if (type === 'slide') {
     return (
-      <section className="relative h-[100vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
+      <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
         <AnimatePresence initial={false}>
           {slides.map((slide, idx) => {
             if (idx !== currentSlideIndex) return null;
@@ -114,6 +126,8 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
                   alt={slide.title || 'Slide'}
                   fill
                   priority={idx === 0}
+                  quality={95}
+                  sizes="100vw"
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-black/30" />
@@ -163,7 +177,7 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
 
   if (type === 'video') {
     return (
-      <section className="relative h-[100vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
+      <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
         {config?.videoUrl ? (
           <video 
             src={config.videoUrl} 
@@ -184,12 +198,14 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
   if (type === 'image') {
     const imageUrl = config?.imageUrl || mainSlide?.image || '/images/banners/banner.png';
     return (
-      <section className="relative h-[100vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
+      <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
         <Image 
           src={imageUrl}
           alt="Hero Banner"
           fill
           priority
+          quality={95}
+          sizes="100vw"
           className="object-cover"
         />
         {config?.clickUrl && (
@@ -203,7 +219,7 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
   return (
     <section 
       ref={containerRef}
-      className="relative h-[110vh] w-full overflow-hidden bg-deep-dark flex items-center justify-center"
+      className="relative h-[96vh] md:h-[110vh] w-full overflow-hidden bg-deep-dark flex items-center justify-center"
     >
       {/* Layer 1: Background Atmospheric Image */}
       <motion.div 
@@ -219,6 +235,8 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
           alt="NamtanFilm Atmosphere"
           fill
           priority
+          quality={90}
+          sizes="100vw"
           className="object-cover brightness-[0.45] contrast-125 scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-deep-dark/40 via-transparent to-deep-dark" />
@@ -263,6 +281,9 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
                 src={ntPhoto} 
                 alt="Namtan" 
                 width={800} height={1200}
+                priority
+                quality={100}
+                sizes="(max-width: 768px) 60vw, 45vw"
                 className="object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
               />
            </div>
@@ -276,6 +297,9 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
                 src={flPhoto} 
                 alt="Film" 
                 width={800} height={1200}
+                priority
+                quality={100}
+                sizes="(max-width: 768px) 60vw, 45vw"
                 className="object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
               />
            </motion.div>
@@ -290,6 +314,24 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
       </div>
 
       {/* Scroll Call-to-Action */}
+      <div className="absolute bottom-28 md:bottom-32 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3">
+        <Link
+          href="/works"
+          aria-label={t('hero.exploreWorks')}
+          className="rounded-full border border-white/25 bg-white/10 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white backdrop-blur transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+        >
+          {t('hero.exploreWorks')}
+        </Link>
+        <Link
+          href={primaryCtaHref}
+          target={primaryCtaHref.startsWith('http') ? '_blank' : undefined}
+          aria-label={t('hero.latestHighlight')}
+          className="rounded-full border border-white/40 bg-white px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-deep-dark transition hover:bg-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+        >
+          {t('hero.latestHighlight')}
+        </Link>
+      </div>
+
       {config?.showScrollHint !== false && <ScrollHint />}
     </section>
   );

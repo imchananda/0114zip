@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -10,11 +10,20 @@ import { actors } from '@/data/actors';
 
 export function HeroBanner() {
   const [hoveredActor, setHoveredActor] = useState<'namtan' | 'film' | null>(null);
+  // Gate theme-aware rendering behind mount to avoid SSR/CSR hydration drift.
+  // SSR and the initial client render both treat the theme as not-yet-resolved,
+  // so they produce identical HTML; the real theme is applied after mount.
+  const [mounted, setMounted] = useState(false);
   const t = useTranslations();
   const language = useLocale();
   const router = useRouter();
   const { resolvedTheme } = useTheme();
-  const isLight = resolvedTheme === 'light';
+  const isLight = mounted && resolvedTheme === 'light';
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration gate for theme
+    setMounted(true);
+  }, []);
 
   // Custom slow scroll function
   // ── Theme-aware values ──────────────────────────────────────

@@ -73,7 +73,10 @@ export default function IgPostsAdminPage() {
     finally { setLoading(false); }
   }, [filterArtist]);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchPosts(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [fetchPosts]);
 
   const openCreate = () => {
     setEditingId(null);

@@ -1,8 +1,9 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Edit2, Save, X, RefreshCw, TrendingUp, Eye, EyeOff, RotateCcw } from 'lucide-react';
+import { LoadingFallback } from '@/components/ui/LoadingFallback';
 
 /* --- Field definitions --------------------------------------------------- */
 
@@ -73,7 +74,14 @@ const DEFAULTS: Stats = {
 export default function SocialStatsAdmin() {
   const [loading, setLoading]       = useState(true);
   const [stats, setStats]           = useState<Stats>({ ...DEFAULTS });
-  const [hidden, setHidden]         = useState<HiddenMap>({});
+  const [hidden, setHidden]         = useState<HiddenMap>(() => {
+    try {
+      const saved = localStorage.getItem(HIDDEN_LS_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
   const [editingKey, setEditingKey] = useState<StatsKey | null>(null);
   const [editValue, setEditValue]   = useState('');
   const [saving, setSaving]         = useState(false);
@@ -102,11 +110,8 @@ export default function SocialStatsAdmin() {
   };
 
   useEffect(() => {
-    fetchStats();
-    try {
-      const saved = localStorage.getItem(HIDDEN_LS_KEY);
-      if (saved) setHidden(JSON.parse(saved));
-    } catch { /* ignore */ }
+    const id = window.setTimeout(() => { void fetchStats(); }, 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   /* helpers */
@@ -263,9 +268,8 @@ export default function SocialStatsAdmin() {
 
       {/* List */}
       {loading ? (
-        <div className="flex items-center justify-center py-24">
-          <RefreshCw className="w-5 h-5 animate-spin text-[var(--color-text-muted)]" />
-          <span className="ml-3 text-[var(--color-text-muted)] text-sm">กำลังโหลด...</span>
+        <div className="py-24">
+          <LoadingFallback message="กำลังโหลด..." />
         </div>
       ) : (
         <div className="space-y-8">

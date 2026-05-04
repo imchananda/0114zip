@@ -9,7 +9,7 @@ interface ScheduleEvent {
   title: string;
   title_thai?: string;
   date: string; // YYYY-MM-DD HH:mm
-  event_type: 'event' | 'show' | 'concert' | 'fanmeet' | 'live' | 'release';
+  event_type: 'event' | 'fashion' | 'show' | 'concert' | 'fanmeet' | 'live' | 'release';
   venue?: string;
   link?: string;
   actors: string[];
@@ -35,6 +35,7 @@ interface ScheduleFormState {
 
 const TYPE_CONFIG: Record<string, string> = {
   event: '📅 Event',
+  fashion: '👗 Fashion',
   show: '🎬 Show',
   concert: '🎤 Concert',
   fanmeet: '💙 Fan Meet',

@@ -68,7 +68,10 @@ export default function FollowerSnapshotsPage() {
     finally { setLoading(false); }
   }, [filterArtist, filterPlatform]);
 
-  useEffect(() => { fetchSnapshots(); }, [fetchSnapshots]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchSnapshots(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [fetchSnapshots]);
 
   const handleSave = async () => {
     if (!form.followers || isNaN(Number(form.followers))) {

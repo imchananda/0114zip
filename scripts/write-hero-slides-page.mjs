@@ -1,8 +1,7 @@
-// Run: node scripts/write-hero-slides-page.cjs
-const fs = require('fs');
-const path = require('path');
+// Run: node scripts/write-hero-slides-page.mjs
+import fs from 'node:fs';
 
-const dest = path.join(__dirname, '..', 'app', 'admin', 'hero-slides', 'page.tsx');
+const dest = new URL('../app/admin/hero-slides/page.tsx', import.meta.url);
 
 const content = `'use client';
 

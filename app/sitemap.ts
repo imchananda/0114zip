@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 const BASE_URL = 'https://namtanfilm.com';
-const LOCALES = ['th', 'en', 'zh'] as const;
+const LOCALES = ['th', 'en'] as const;
 const DEFAULT_LOCALE = 'th';
 
 function localizedUrl(path: string, locale: string): string {

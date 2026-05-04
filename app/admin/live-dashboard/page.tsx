@@ -5,7 +5,8 @@ import {
   WIDGET_OPTIONS, SLOT_DEFS, type WidgetType,
   STATS_TILE_OPTIONS, STATS_STRIP_DEFS, DEFAULT_STATS_STRIP, type StatsTileType,
   type BentoSlotLink, isDualWidget,
-} from '@/components/dashboard/EditorialCheatSheet';
+} from '@/components/dashboard/LiveDashboardTypes';
+import { LoadingFallback } from '@/components/ui/LoadingFallback';
 
 // ── Widget visual metadata (for miniature preview) ────────────────────────────
 const WIDGET_META: Record<WidgetType, { icon: string; short: string; accent?: string }> = {
@@ -173,7 +174,8 @@ export default function LiveDashboardSettingsPage() {
       const updated = { ...prev, [field]: value || undefined };
       // Clean empty entries
       if (!updated.namtan && !updated.film && !updated.single) {
-        const { [slotId]: _, ...rest } = c.bentoLinks ?? {};
+        const rest = { ...(c.bentoLinks ?? {}) };
+        delete rest[slotId];
         return { ...c, bentoLinks: rest };
       }
       return { ...c, bentoLinks: { ...(c.bentoLinks ?? {}), [slotId]: updated } };
@@ -186,8 +188,8 @@ export default function LiveDashboardSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-pulse text-[var(--color-text-secondary)]">กำลังโหลด...</div>
+      <div className="py-24">
+        <LoadingFallback message="กำลังโหลดข้อมูล..." />
       </div>
     );
   }

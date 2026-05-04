@@ -30,6 +30,8 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
   const [loading, setLoading] = useState(!initialSlides);
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
+  // next-themes resolves the theme on the client only; render theme-aware UI
+  // only after mount so SSR and initial client render produce identical HTML.
   const [mounted, setMounted] = useState(false);
   const touchStartX = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -41,17 +43,20 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
 
   const isLight = mounted && resolvedTheme === 'light';
 
-  // Only show slides matching the current theme AND view state
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration gate for theme / slides
+    setMounted(true);
+  }, []);
+
+  // Only show slides matching the current theme AND view state. Until mounted
+  // we use 'both' / theme-agnostic filtering so SSR and CSR agree.
   const filteredSlides = useMemo(() => {
-    if (!mounted) return slides;
     return slides.filter(s => {
-      const themeOk = s.theme === 'both' || s.theme === resolvedTheme;
+      const themeOk = !mounted ? s.theme === 'both' : s.theme === 'both' || s.theme === resolvedTheme;
       const viewOk = !s.view_state || s.view_state === 'both' || s.view_state === viewState;
       return themeOk && viewOk;
     });
-  }, [slides, mounted, resolvedTheme, viewState]);
-
-  useEffect(() => { setMounted(true); }, []);
+  }, [slides, resolvedTheme, viewState, mounted]);
 
   useEffect(() => {
     if (initialSlides !== undefined) return; // server provided data, skip fetch
@@ -75,9 +80,6 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
     setCurrent(c => (c - 1 + filteredSlides.length) % filteredSlides.length);
   }, [filteredSlides.length]);
 
-  // Reset to first slide when filtered set changes (e.g. theme switch)
-  useEffect(() => { setCurrent(0); }, [filteredSlides.length]);
-
   // Auto-advance timer
   useEffect(() => {
     if (filteredSlides.length <= 1 || paused) return;
@@ -96,7 +98,8 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
     return <HeroBanner />;
   }
 
-  const slide = filteredSlides[current] ?? filteredSlides[0];
+  const safeCurrent = current >= filteredSlides.length ? 0 : current;
+  const slide = filteredSlides[safeCurrent] ?? filteredSlides[0];
   const cornerCls = isLight ? 'border-neutral-900/20' : 'border-white/10';
 
   const handleSlideClick = () => {
@@ -118,7 +121,10 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
       onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
       onTouchEnd={e => {
         const dx = e.changedTouches[0].clientX - touchStartX.current;
-        if (Math.abs(dx) > 50) dx > 0 ? prev() : next();
+        if (Math.abs(dx) > 50) {
+          if (dx > 0) prev();
+          else next();
+        }
       }}
     >
       {/* ── Slide images ── */}
@@ -177,22 +183,22 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
       )}
 
       {/* ── Text content ── */}
-      <div className="absolute inset-0 flex items-end justify-center pb-16 md:pb-24 z-10 px-4 pointer-events-none">
+      <div className="absolute inset-0 flex items-end justify-center pb-20 md:pb-28 z-10 px-6 pointer-events-none">
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.id + '-text'}
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="text-center"
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+            className="text-center max-w-4xl"
           >
             {(slide.title || slide.title_thai) && (
               <h1
                 className={`
-                  text-3xl sm:text-5xl md:text-7xl font-light tracking-[0.1em] sm:tracking-[0.2em]
-                  font-display drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] mb-3
-                  ${isLight ? 'text-[#141413]' : 'text-white'}
+                  text-4xl sm:text-6xl md:text-display font-display font-light leading-[1.1] tracking-tight
+                  mb-4 drop-shadow-sm
+                  ${isLight ? 'text-primary' : 'text-white'}
                 `}
               >
                 {locale === 'th' ? (slide.title_thai || slide.title) : slide.title}
@@ -201,9 +207,8 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
             {(slide.subtitle || slide.subtitle_thai) && (
               <p
                 className={`
-                  text-xs sm:text-sm tracking-[0.3em] uppercase
-                  drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]
-                  ${isLight ? 'text-[#5e5d59]' : 'text-white/70'}
+                  text-xs sm:text-sm md:text-base tracking-[0.25em] uppercase font-medium
+                  ${isLight ? 'text-olive-gray' : 'text-white/80'}
                 `}
               >
                 {locale === 'th' ? (slide.subtitle_thai || slide.subtitle) : slide.subtitle}
@@ -215,49 +220,49 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
 
       {/* ── Prev / Next arrows ── */}
       {filteredSlides.length > 1 && (
-        <>
+        <div className="hidden md:block">
           <button
             onClick={e => { e.stopPropagation(); prev(); }}
             className={`
-              absolute left-4 top-1/2 -translate-y-1/2 z-20
-              w-10 h-10 rounded-full flex items-center justify-center
-              backdrop-blur-sm border transition-all duration-200
+              absolute left-8 top-1/2 -translate-y-1/2 z-20
+              w-12 h-12 rounded-full flex items-center justify-center
+              backdrop-blur-md border transition-all duration-300 group
               ${isLight
-                ? 'bg-white/70 hover:bg-white text-[#4d4c48] border-[#f0eee6]'
-                : 'bg-black/30 hover:bg-black/60 text-white border-white/20'}
+                ? 'bg-white/40 hover:bg-white text-charcoal-warm border-border-cream/50'
+                : 'bg-black/20 hover:bg-black/40 text-white border-white/10'}
             `}
             aria-label="Previous slide"
           >
-            ←
+            <span className="transition-transform group-hover:-translate-x-0.5">←</span>
           </button>
           <button
             onClick={e => { e.stopPropagation(); next(); }}
             className={`
-              absolute right-4 top-1/2 -translate-y-1/2 z-20
-              w-10 h-10 rounded-full flex items-center justify-center
-              backdrop-blur-sm border transition-all duration-200
+              absolute right-8 top-1/2 -translate-y-1/2 z-20
+              w-12 h-12 rounded-full flex items-center justify-center
+              backdrop-blur-md border transition-all duration-300 group
               ${isLight
-                ? 'bg-white/70 hover:bg-white text-[#4d4c48] border-[#f0eee6]'
-                : 'bg-black/30 hover:bg-black/60 text-white border-white/20'}
+                ? 'bg-white/40 hover:bg-white text-charcoal-warm border-border-cream/50'
+                : 'bg-black/20 hover:bg-black/40 text-white border-white/10'}
             `}
             aria-label="Next slide"
           >
-            →
+            <span className="transition-transform group-hover:translate-x-0.5">→</span>
           </button>
-        </>
+        </div>
       )}
 
       {/* ── Dot indicators ── */}
       {filteredSlides.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2 items-center">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-3 items-center">
           {filteredSlides.map((_, i) => (
             <button
               key={i}
               onClick={e => { e.stopPropagation(); goTo(i); }}
-              className={`rounded-full transition-all duration-300 ${
+              className={`h-1.5 transition-all duration-500 rounded-full ${
                 i === current
-                  ? 'w-6 h-2 bg-white shadow-[0_0_6px_rgba(255,255,255,0.6)]'
-                  : 'w-2 h-2 bg-white/40 hover:bg-white/70'
+                  ? `w-8 ${isLight ? 'bg-namtan-primary' : 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.4)]'}`
+                  : `w-1.5 ${isLight ? 'bg-black/10 hover:bg-black/20' : 'bg-white/30 hover:bg-white/50'}`
               }`}
               aria-label={`ไปที่ slide ${i + 1}`}
             />

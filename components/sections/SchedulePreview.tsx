@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@/i18n/routing';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 
 interface ScheduleEvent {
   id: string;
@@ -17,10 +17,10 @@ interface ScheduleEvent {
 }
 
 const TYPE_STYLES: Record<string, { icon: string; color: string; label: string }> = {
-  event:    { icon: '📅', color: '#6cbfd0', label: 'Event' },
+  event:    { icon: '📅', color: 'var(--namtan-teal)', label: 'Event' },
   show:     { icon: '🎬', color: '#AB47BC', label: 'Show' },
   concert:  { icon: '🎤', color: '#EF5350', label: 'Concert' },
-  fanmeet:  { icon: '💙', color: '#fbdf74', label: 'Fan Meet' },
+  fanmeet:  { icon: '💛', color: 'var(--film-gold)', label: 'Fan Meet' },
   live:     { icon: '📱', color: '#66BB6A', label: 'Live' },
   release:  { icon: '🎬', color: '#FF7043', label: 'Release' },
 };
@@ -29,9 +29,9 @@ function formatDate(dateStr: string) {
   if (!dateStr) return { day: '-', month: '-', time: '' };
   try {
     const d = new Date(dateStr.replace(' ', 'T'));
-    const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
     const time = dateStr.includes(' ') ? dateStr.split(' ')[1] : '';
-    return { day: d.getDate(), month: months[d.getMonth()], time };
+    return { day: d.getDate().toString().padStart(2, '0'), month: months[d.getMonth()], time };
   } catch {
     return { day: '-', month: '-', time: '' };
   }
@@ -46,58 +46,68 @@ export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEve
   const [loading, setLoading] = useState(!initialEvents);
 
   useEffect(() => {
-    if (initialEvents !== undefined) return; // server provided data, skip fetch
+    if (initialEvents !== undefined) return;
     fetch('/api/schedule?type=upcoming&limit=10')
       .then(res => res.json())
       .then(data => { if (Array.isArray(data)) setAllEvents(data); })
       .finally(() => setLoading(false));
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialEvents]);
 
-  // Filter client-side whenever state or allEvents changes (no re-fetch needed)
   const upcoming = allEvents.filter(item => {
-    if (state === 'both') return item.actors.includes('both') || item.actors.length >= 2;
-    if (state === 'lunar') return true;
-    return item.actors.includes(state);
+    if (state === 'both' || state === 'lunar') return true;
+    return item.actors.includes(state) || item.actors.includes('both');
   }).slice(0, 4);
 
   return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-6 md:px-12">
-        <motion.div
-          className="flex items-center justify-between mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
+    <section id="schedule" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative">
+      <div className="container mx-auto px-6 md:px-12 max-w-6xl">
+        <div className="flex flex-col md:flex-row items-baseline justify-between mb-12 md:mb-16 pb-6 border-b border-theme/40">
           <div>
-            <h2 className="text-2xl md:text-3xl font-medium text-[var(--color-text)] flex items-center gap-2">
-              <span className="text-3xl">📅</span> {t('preview.schedule.title')}
-            </h2>
-            <p className="text-[var(--color-muted)] text-sm mt-1">{t('preview.schedule.sub')} — {upcoming.length} รายการเร็วๆ นี้</p>
+            <motion.p 
+              initial={{ opacity: 0, y: 5 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]"
+            >
+              {t('schedulePreview.sub')}
+            </motion.p>
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="font-display text-4xl md:text-section text-primary leading-tight font-light"
+            >
+              {t('schedulePreview.titleLine1')} <br className="md:hidden" />{t('schedulePreview.titleLine2')}
+            </motion.h2>
           </div>
           <Link
             href="/schedule"
-            className="text-sm font-medium text-[#6cbfd0] hover:underline hidden sm:block bg-[#6cbfd0]/10 px-4 py-2 rounded-full"
+            className="text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-accent transition-colors flex items-center gap-2 group mt-6 md:mt-0"
           >
-            {t('preview.all')} →
+            {t('schedulePreview.viewAll')} <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Link>
-        </motion.div>
+        </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[1,2,3,4].map(i => (
-              <div key={i} className="animate-pulse bg-[var(--color-surface)] h-24 rounded-xl border border-[var(--color-border)]"></div>
+              <div key={i} className="animate-pulse bg-surface h-32 rounded-3xl border border-theme/40"></div>
             ))}
           </div>
         ) : upcoming.length === 0 ? (
-          <div className="text-center py-8 text-[var(--color-muted)] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl">
-            ยังไม่มีงานในเร็วๆ นี้
+          <div className="text-center py-20 bg-surface border border-theme/60 rounded-[2rem] opacity-60">
+            <span className="text-4xl block mb-4">🗓️</span>
+            <p className="text-sm tracking-wide uppercase font-bold">{t('schedule.noEvents')}</p>
+            <Link href="/schedule" className="inline-flex mt-5 text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-accent transition-colors">
+              {t('schedulePreview.emptyAction')}
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <AnimatePresence>
               {upcoming.map((event, i) => {
-                const style = TYPE_STYLES[event.event_type] || { icon: '🗓', color: '#6cbfd0', label: event.event_type };
+                const style = TYPE_STYLES[event.event_type] || { icon: '🗓', color: 'var(--namtan-teal)', label: event.event_type };
                 const d = formatDate(event.date);
                 
                 return (
@@ -106,39 +116,42 @@ export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEve
                     initial={{ opacity: 0, y: 15 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: i * 0.08 }}
+                    transition={{ delay: i * 0.05 }}
                   >
                     <Link href="/schedule" className="block group">
-                      <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4 flex gap-3 group-hover:border-[#6cbfd0]/40 transition-all group-hover:translate-y-[-2px] hover:shadow-lg hover:shadow-[#6cbfd0]/5">
-                        {/* Date pill */}
-                        <div className="w-14 h-14 rounded-xl flex flex-col items-center justify-center flex-shrink-0"
-                          style={{ background: `${style.color}12` }}>
-                          <span className="text-[1.1rem] font-medium" style={{ color: style.color }}>{d.day}</span>
-                          <span className="text-[9px] text-[var(--color-text)] opacity-60 font-medium tracking-wider">{d.month}</span>
+                      <div className="bg-surface border border-theme/60 rounded-3xl p-6 flex gap-6 group-hover:border-accent/40 transition-all duration-500 group-hover:shadow-xl relative overflow-hidden">
+                        
+                        {/* Date column */}
+                        <div className="flex flex-col items-center justify-center flex-shrink-0 w-20 border-r border-theme/40 pr-6">
+                           <span className="text-3xl font-display font-light text-primary tabular-nums">{d.day}</span>
+                           <span className="text-[10px] font-bold tracking-[0.2em] text-muted uppercase mt-1">{d.month}</span>
                         </div>
 
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                            <span className="text-[9px] font-medium tracking-wider uppercase px-1.5 py-0.5 rounded-full" style={{ background: `${style.color}20`, color: style.color }}>
-                              {style.icon} {style.label}
+                        <div className="min-w-0 flex-1 py-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <span 
+                              className="text-[10px] font-bold uppercase tracking-[0.15em] px-2.5 py-0.5 rounded-full border"
+                              style={{ background: `${style.color}10`, color: style.color, borderColor: `${style.color}30` }}
+                            >
+                              {t(`schedulePreview.types.${event.event_type}` as 'schedulePreview.types.event')}
                             </span>
-                            {event.actors.includes('both') ? (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#6cbfd0]/15 to-[#fbdf74]/15 text-[var(--color-text)] font-medium">
-                                น้ำตาล × ฟิล์ม
-                              </span>
-                            ) : (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/70">
-                                {event.actors.join(', ')}
-                              </span>
-                            )}
+                            <span className="text-xs font-bold uppercase tracking-[0.15em] text-muted/40">
+                              {event.actors.includes('both') ? t('state.namtanfilm') : event.actors.join(' / ')}
+                            </span>
                           </div>
-                          <h3 className="text-sm font-medium text-[var(--color-text)] truncate">{event.title}</h3>
-                          <div className="flex items-center gap-2 mt-1 -ml-0.5">
-                            {d.time && <p className="text-[10px] text-[var(--color-muted)]">🕐 {d.time}</p>}
-                            {event.venue && (
-                              <p className="text-[10px] text-[var(--color-muted)] truncate max-w-[120px]">📍 {event.venue}</p>
-                            )}
+
+                          <h3 className="text-base md:text-lg font-display text-primary truncate group-hover:text-accent transition-colors">
+                            {event.title}
+                          </h3>
+                          
+                          <div className="flex items-center gap-4 mt-4 text-xs font-bold uppercase tracking-[0.15em] text-muted/60">
+                            {d.time && <span className="flex items-center gap-1.5"><span className="text-base grayscale opacity-50">🕐</span> {d.time}</span>}
+                            {event.venue && <span className="flex items-center gap-1.5 truncate"><span className="text-base grayscale opacity-50">📍</span> {event.venue}</span>}
                           </div>
+                        </div>
+
+                        <div className="absolute top-0 right-0 w-12 h-12 bg-accent/5 rounded-bl-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                           <span className="text-accent">→</span>
                         </div>
                       </div>
                     </Link>
@@ -148,12 +161,6 @@ export function SchedulePreview({ initialEvents }: { initialEvents?: ScheduleEve
             </AnimatePresence>
           </div>
         )}
-
-        <div className="text-center mt-8 sm:hidden">
-          <Link href="/schedule" className="text-sm font-medium text-[#6cbfd0] hover:underline bg-[#6cbfd0]/10 px-6 py-2.5 rounded-full">
-            {t('preview.all')} →
-          </Link>
-        </div>
       </div>
     </section>
   );

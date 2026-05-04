@@ -2,150 +2,141 @@
 
 import { motion } from 'framer-motion';
 import { useViewState } from '@/context/ViewStateContext';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { actors } from '@/data/actors';
 
-export function AboutSection() {
+export function AboutSection({ 
+    ntWorks = 0, 
+    flWorks = 0, 
+    totalAwards = 0 
+}: { 
+    ntWorks?: number; 
+    flWorks?: number; 
+    totalAwards?: number 
+} = {}) {
     const { reducedMotion } = useViewState();
     const t = useTranslations();
-  const language = useLocale();
-
-    const socialLinks = [
-        { name: 'Twitter', url: '#', icon: '𝕏' },
-        { name: 'Instagram', url: '#', icon: '📷' },
-        { name: 'TikTok', url: '#', icon: '🎵' },
-    ];
 
     const stats = [
-        { labelKey: 'about.worksCount', value: '5+', icon: '🎬' },
-        { labelKey: 'about.awards', value: '3', icon: '🏆' },
-        { labelKey: 'about.fans', value: '∞', icon: '💕' },
+        { labelKey: 'about.worksCount', value: (ntWorks + flWorks) || '20+', icon: '🎬' },
+        { labelKey: 'about.awards', value: totalAwards || '15+', icon: '🏆' },
+        { labelKey: 'about.fans', value: '1.2M+', icon: '💕' },
     ];
 
     return (
-        <section id="about" className="py-24 transition-colors duration-300"
-             style={{ background: 'linear-gradient(to bottom, var(--color-bg), var(--color-panel))' }}>
-            <div className="container mx-auto px-6 md:px-12 lg:px-20">
+        <section id="about" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 overflow-hidden relative">
+            
+            {/* Background Decoration */}
+            <div className="absolute top-0 right-0 w-1/2 h-full opacity-[0.03] pointer-events-none select-none font-display text-[25vw] whitespace-nowrap overflow-hidden translate-x-1/4 leading-none">
+                LUNA
+            </div>
+
+            <div className="container mx-auto px-6 md:px-12 lg:px-20 relative z-10">
                 {/* Section Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: reducedMotion ? 0 : 0.6 }}
-                    className="text-center mb-16"
+                    className="text-center mb-16 md:mb-24"
                 >
-                    <p className="text-[var(--color-text-muted)] text-sm tracking-[0.3em] uppercase mb-3 font-light">
+                    <p className="text-overline text-accent font-bold mb-4 uppercase">
                         {t('about.sub')}
                     </p>
-                    <h2 className={`text-[var(--color-text-primary)] text-4xl md:text-5xl font-light tracking-wide ${language === 'th' ? 'font-thai' : ''}`}>
+                    <h2 className="text-section font-display text-primary leading-tight">
                         {t('about.title')}
                     </h2>
                 </motion.div>
 
                 {/* Main Content */}
-                <div className="max-w-4xl mx-auto">
+                <div className="max-w-5xl mx-auto">
                     {/* Couple Card */}
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: reducedMotion ? 0 : 0.6 }}
-                        className="relative overflow-hidden rounded-2xl
-              backdrop-blur-sm border border-[var(--color-border)] p-8 md:p-12 mb-12"
+                        transition={{ duration: reducedMotion ? 0 : 0.8, ease: [0.22, 1, 0.36, 1] }}
+                        className="relative overflow-hidden rounded-[2rem] border border-theme/60 p-10 md:p-16 mb-16 group hover:shadow-2xl transition-all duration-700"
                         style={{ background: 'var(--color-surface)' }}
                     >
-                        {/* Background Gradient */}
-                        <div className="absolute inset-0 opacity-30">
-                            <div
-                                className="absolute top-0 left-0 w-1/2 h-full"
-                                style={{ background: `linear-gradient(135deg, ${actors.namtan.color.primary}20, transparent)` }}
-                            />
-                            <div
-                                className="absolute top-0 right-0 w-1/2 h-full"
-                                style={{ background: `linear-gradient(225deg, ${actors.film.color.primary}20, transparent)` }}
-                            />
+                        {/* Interactive Background Gradient */}
+                        <div className="absolute inset-0 opacity-[0.08] group-hover:opacity-[0.12] transition-opacity duration-700 pointer-events-none">
+                            <div className="absolute top-0 left-0 w-full h-full bg-nf-gradient" />
                         </div>
 
                         <div className="relative z-10">
                             {/* Title */}
-                            <h3 className="text-center text-3xl md:text-4xl font-light text-[var(--color-text-primary)] mb-2 tracking-wider">
-                                Namtan <span className="text-white/50">×</span> Film
+                            <h3 className="text-center text-4xl md:text-5xl font-display text-primary mb-3 tracking-tight">
+                                Namtan <span className="nf-gradient-text opacity-70">×</span> Film
                             </h3>
-                            <p className="text-center text-[var(--color-text-muted)] text-lg font-light mb-8 font-thai">
-                                คู่จิ้นขวัญใจแฟนคลับ
+                            <p className="text-center text-muted text-sm md:text-base tracking-[0.2em] uppercase font-medium mb-12 font-thai opacity-70">
+                                {t('about.couple')}
                             </p>
 
                             {/* Stats */}
-                            <div className="grid grid-cols-3 gap-4 md:gap-8 mb-8">
+                            <div className="grid grid-cols-3 gap-6 md:gap-12 mb-12">
                                 {stats.map((stat, index) => (
                                     <motion.div
                                         key={stat.labelKey}
                                         initial={{ opacity: 0, y: 20 }}
                                         whileInView={{ opacity: 1, y: 0 }}
                                         viewport={{ once: true }}
-                                        transition={{ duration: reducedMotion ? 0 : 0.4, delay: index * 0.1 }}
-                                        className="text-center"
+                                        transition={{ duration: reducedMotion ? 0 : 0.5, delay: 0.2 + index * 0.1 }}
+                                        className="text-center group/stat"
                                     >
-                                        <div className="text-3xl mb-2">{stat.icon}</div>
-                                        <div className="text-[var(--color-text-primary)] text-2xl md:text-3xl font-light mb-1">{stat.value}</div>
-                                        <div className={`text-[var(--color-text-muted)] text-sm ${language === 'th' ? 'font-thai' : ''}`}>{t(stat.labelKey)}</div>
+                                        <div className="text-3xl md:text-4xl mb-3 grayscale-[0.5] group-hover/stat:grayscale-0 transition-all duration-300">{stat.icon}</div>
+                                        <div className="text-primary text-3xl md:text-4xl font-display font-light mb-1.5 tabular-nums">{stat.value}</div>
+                                        <div className="text-muted text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] opacity-60">{t(stat.labelKey)}</div>
                                     </motion.div>
                                 ))}
                             </div>
 
                             {/* Description */}
-                            <p className={`text-[var(--color-text-secondary)] text-center leading-relaxed font-light max-w-2xl mx-auto ${language === 'th' ? 'font-thai' : ''}`}>
-                                {t('about.description')}
-                            </p>
+                            <div className="relative">
+                                <div className="absolute -left-6 top-0 text-6xl text-accent opacity-10 font-display select-none">“</div>
+                                <p className="text-primary/80 text-center text-base md:text-lg leading-relaxed font-body italic max-w-2xl mx-auto">
+                                    {t('about.description')}
+                                </p>
+                                <div className="absolute -right-6 bottom-0 text-6xl text-accent opacity-10 font-display select-none rotate-180">“</div>
+                            </div>
                         </div>
                     </motion.div>
 
                     {/* Actor Cards */}
-                    <div className="grid md:grid-cols-2 gap-6 mb-12">
+                    <div className="grid md:grid-cols-2 gap-8 mb-16">
                         {/* Namtan */}
                         <motion.div
                             initial={{ opacity: 0, x: -30 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: reducedMotion ? 0 : 0.5 }}
-                            className="p-6 rounded-xl border border-[var(--color-border)] hover:border-namtan-primary/30
-                transition-all duration-300 group"
-                        style={{ background: 'var(--color-surface)' }}
+                            transition={{ duration: reducedMotion ? 0 : 0.7 }}
+                            className="p-10 rounded-3xl border border-theme/60 bg-surface hover:shadow-xl transition-all duration-500 group relative overflow-hidden"
                         >
-                            <div className="flex items-center gap-4 mb-4">
-                                <div
-                                    className="w-12 h-12 rounded-full flex items-center justify-center text-xl
-                    group-hover:scale-110 transition-transform duration-300"
-                                    style={{ backgroundColor: actors.namtan.color.primary + '30' }}
-                                >
-                                    💎
+                            <div className="absolute top-0 left-0 w-full h-1 bg-namtan-primary opacity-40 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex items-center gap-6 mb-8">
+                                <div className="w-14 h-14 rounded-2xl bg-namtan-primary/10 flex items-center justify-center text-2xl shadow-sm shadow-namtan-primary/5 group-hover:scale-110 transition-transform duration-500">
+                                    🦋
                                 </div>
                                 <div>
-                                    <h4 className="text-[var(--color-text-primary)] text-lg font-light">{actors.namtan.nickname}</h4>
-                                    <p className="text-namtan-primary text-sm font-thai">{actors.namtan.nameThai}</p>
+                                    <h4 className="text-primary text-2xl font-display font-light group-hover:text-namtan-primary transition-colors">{actors.namtan.nickname}</h4>
+                                    <p className="text-muted text-[10px] uppercase font-bold tracking-[0.25em] mt-1">{actors.namtan.nameThai}</p>
                                 </div>
                             </div>
-                            <p className="text-[var(--color-text-muted)] text-sm font-light font-thai">{actors.namtan.taglineThai}</p>
+                            <p className="text-primary/70 text-sm md:text-base font-body leading-relaxed border-l-2 border-namtan-primary/20 pl-4 py-1 italic">{actors.namtan.taglineThai}</p>
 
                             {/* Social Links */}
                             {actors.namtan.social && (
-                                <div className="flex gap-3 mt-4">
+                                <div className="flex flex-wrap gap-2 mt-8">
                                     {actors.namtan.social.instagram && (
                                         <a href={`https://instagram.com/${actors.namtan.social.instagram}`} target="_blank"
-                                        className="text-[var(--color-text-muted)] hover:text-namtan-primary text-xs transition-colors font-medium border border-[var(--color-border)] px-2 py-0.5 rounded">
-                                            IG
+                                        className="text-muted hover:text-namtan-primary text-[10px] font-bold uppercase tracking-widest transition-all border border-theme/60 px-4 py-2 rounded-full hover:bg-namtan-primary/5">
+                                            Instagram
                                         </a>
                                     )}
                                     {actors.namtan.social.twitter && (
                                         <a href={`https://x.com/${actors.namtan.social.twitter}`} target="_blank"
-                                            className="text-[var(--color-text-muted)] hover:text-namtan-primary text-xs transition-colors font-medium border border-[var(--color-border)] px-2 py-0.5 rounded">
-                                            X
-                                        </a>
-                                    )}
-                                    {actors.namtan.social.tiktok && (
-                                        <a href={`https://tiktok.com/@${actors.namtan.social.tiktok}`} target="_blank"
-                                            className="text-[var(--color-text-muted)] hover:text-namtan-primary text-xs transition-colors font-medium border border-[var(--color-border)] px-2 py-0.5 rounded">
-                                            TikTok
+                                            className="text-muted hover:text-namtan-primary text-[10px] font-bold uppercase tracking-widest transition-all border border-theme/60 px-4 py-2 rounded-full hover:bg-namtan-primary/5">
+                                            X (Twitter)
                                         </a>
                                     )}
                                 </div>
@@ -157,45 +148,34 @@ export function AboutSection() {
                             initial={{ opacity: 0, x: 30 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: reducedMotion ? 0 : 0.5 }}
-                            className="p-6 rounded-xl border border-[var(--color-border)] hover:border-film-primary/30
-                transition-all duration-300 group"
-                        style={{ background: 'var(--color-surface)' }}
+                            transition={{ duration: reducedMotion ? 0 : 0.7 }}
+                            className="p-10 rounded-3xl border border-theme/60 bg-surface hover:shadow-xl transition-all duration-500 group relative overflow-hidden"
                         >
-                            <div className="flex items-center gap-4 mb-4">
-                                <div
-                                    className="w-12 h-12 rounded-full flex items-center justify-center text-xl
-                    group-hover:scale-110 transition-transform duration-300"
-                                    style={{ backgroundColor: actors.film.color.primary + '30' }}
-                                >
-                                    ⭐
+                            <div className="absolute top-0 left-0 w-full h-1 bg-film-primary opacity-40 group-hover:opacity-100 transition-opacity" />
+                            <div className="flex items-center gap-6 mb-8">
+                                <div className="w-14 h-14 rounded-2xl bg-film-primary/10 flex items-center justify-center text-2xl shadow-sm shadow-film-primary/5 group-hover:scale-110 transition-transform duration-500">
+                                    ✨
                                 </div>
                                 <div>
-                                    <h4 className="text-[var(--color-text-primary)] text-lg font-light">{actors.film.nickname}</h4>
-                                    <p className="text-film-primary text-sm font-thai">{actors.film.nameThai}</p>
+                                    <h4 className="text-primary text-2xl font-display font-light group-hover:text-film-primary transition-colors">{actors.film.nickname}</h4>
+                                    <p className="text-muted text-[10px] uppercase font-bold tracking-[0.25em] mt-1">{actors.film.nameThai}</p>
                                 </div>
                             </div>
-                            <p className="text-[var(--color-text-muted)] text-sm font-light font-thai">{actors.film.taglineThai}</p>
+                            <p className="text-primary/70 text-sm md:text-base font-body leading-relaxed border-l-2 border-film-primary/20 pl-4 py-1 italic">{actors.film.taglineThai}</p>
 
                             {/* Social Links */}
                             {actors.film.social && (
-                                <div className="flex gap-3 mt-4">
+                                <div className="flex flex-wrap gap-2 mt-8">
                                     {actors.film.social.instagram && (
                                         <a href={`https://instagram.com/${actors.film.social.instagram}`} target="_blank"
-                                        className="text-[var(--color-text-muted)] hover:text-film-primary text-xs transition-colors font-medium border border-[var(--color-border)] px-2 py-0.5 rounded">
-                                            IG
+                                        className="text-muted hover:text-film-primary text-[10px] font-bold uppercase tracking-widest transition-all border border-theme/60 px-4 py-2 rounded-full hover:bg-film-primary/5">
+                                            Instagram
                                         </a>
                                     )}
                                     {actors.film.social.twitter && (
                                         <a href={`https://x.com/${actors.film.social.twitter}`} target="_blank"
-                                            className="text-[var(--color-text-muted)] hover:text-film-primary text-xs transition-colors font-medium border border-[var(--color-border)] px-2 py-0.5 rounded">
-                                            X
-                                        </a>
-                                    )}
-                                    {actors.film.social.tiktok && (
-                                        <a href={`https://tiktok.com/@${actors.film.social.tiktok}`} target="_blank"
-                                            className="text-[var(--color-text-muted)] hover:text-film-primary text-xs transition-colors font-medium border border-[var(--color-border)] px-2 py-0.5 rounded">
-                                            TikTok
+                                            className="text-muted hover:text-film-primary text-[10px] font-bold uppercase tracking-widest transition-all border border-theme/60 px-4 py-2 rounded-full hover:bg-film-primary/5">
+                                            X (Twitter)
                                         </a>
                                     )}
                                 </div>
@@ -210,13 +190,12 @@ export function AboutSection() {
                         viewport={{ once: true }}
                         className="text-center"
                     >
-                        <div className="inline-block px-6 py-4 rounded-xl border border-[var(--color-border)]"
-                             style={{ background: 'var(--color-surface)' }}>
-                            <p className="text-[var(--color-text-muted)] text-sm font-light font-thai">
-                                🎬 เว็บไซต์นี้สร้างโดยแฟนคลับ ไม่ได้เกี่ยวข้องกับต้นสังกัดอย่างเป็นทางการ
+                        <div className="inline-block px-10 py-6 rounded-2xl border border-theme/40 bg-surface/50 backdrop-blur-sm shadow-sm">
+                            <p className="text-muted text-xs md:text-sm font-medium tracking-wide font-thai opacity-60">
+                                {t('about.disclaimer')}
                             </p>
-                            <p className="text-[var(--color-text-muted)] text-xs mt-2 font-thai">
-                                All images belong to their respective owners
+                            <p className="text-muted text-[10px] mt-2 font-bold uppercase tracking-widest opacity-40">
+                                {t('about.imageRights')}
                             </p>
                         </div>
                     </motion.div>

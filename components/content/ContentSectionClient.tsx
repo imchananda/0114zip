@@ -1,9 +1,10 @@
-﻿'use client';
+'use client';
 
 import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useViewState } from '@/context/ViewStateContext';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { ContentRow } from './ContentRow';
 import { ViewState, ContentItem, Series, Variety, Event, Magazine, Award, DisplayItem } from '@/types';
 
@@ -17,32 +18,32 @@ const sectionInfo: Record<ViewState, SectionInfo> = {
     both: {
         titleKey: 'content.togetherTitle',
         subKey: 'content.togetherSub',
-        gradient: 'from-[#6cbfd0] to-[#fbdf74]',
+        gradient: 'from-namtan-primary to-film-primary',
     },
     namtan: {
         titleKey: 'content.namtanJourney',
         subKey: 'content.filmography',
-        gradient: 'from-[#6cbfd0] to-[#8ed0dd]',
+        gradient: 'from-namtan-primary to-namtan-primary/40',
     },
     film: {
         titleKey: 'content.filmJourney',
         subKey: 'content.filmography',
-        gradient: 'from-[#fbdf74] to-[#fce89a]',
+        gradient: 'from-film-primary to-film-primary/40',
     },
     lunar: {
         titleKey: 'content.lunarSpace',
         subKey: 'content.memories',
-        gradient: 'from-[#6cbfd0] to-[#fbdf74]',
+        gradient: 'from-namtan-primary to-film-primary',
     },
 };
 
 // Category definitions for grouping content
 const contentCategories = [
-    { id: 'series' as const, title: 'Series & Drama', titleThai: 'ละคร/ซีรีส์', icon: '▶' },
-    { id: 'variety' as const, title: 'Variety Shows', titleThai: 'รายการวาไรตี้', icon: '★' },
-    { id: 'event' as const, title: 'Events', titleThai: 'กิจกรรม', icon: '◈' },
-    { id: 'magazine' as const, title: 'Magazine', titleThai: 'นิตยสาร', icon: '◇' },
-    { id: 'award' as const, title: 'Awards', titleThai: 'รางวัล', icon: '★' },
+    { id: 'series' as const, titleKey: 'content.categories.series', titleThaiKey: 'content.categoriesThai.series', icon: '▶' },
+    { id: 'variety' as const, titleKey: 'content.categories.variety', titleThaiKey: 'content.categoriesThai.variety', icon: '★' },
+    { id: 'event' as const, titleKey: 'content.categories.event', titleThaiKey: 'content.categoriesThai.event', icon: '◈' },
+    { id: 'magazine' as const, titleKey: 'content.categories.magazine', titleThaiKey: 'content.categoriesThai.magazine', icon: '◇' },
+    { id: 'award' as const, titleKey: 'content.categories.award', titleThaiKey: 'content.categoriesThai.award', icon: '★' },
 ];
 
 interface ContentSectionClientProps {
@@ -66,7 +67,6 @@ function contentToDisplayItem(item: ContentItem): DisplayItem {
         };
     }
 
-    // For series, variety, event, magazine - they have similar base structure
     const baseItem = item as Series | Variety | Event | Magazine;
     return {
         id: baseItem.id,
@@ -86,12 +86,10 @@ function contentToDisplayItem(item: ContentItem): DisplayItem {
 export function ContentSectionClient({ initialContent }: ContentSectionClientProps) {
     const { state, transitionTo, reducedMotion } = useViewState();
     const t = useTranslations();
-  const language = useLocale();
 
     const filteredContent = useMemo(() => {
         return initialContent.filter(item => {
-            if (state === 'both') return item.actors.length === 2;
-            if (state === 'lunar') return item.contentType === 'event';
+            if (state === 'both' || state === 'lunar') return true;
             return item.actors.includes(state as 'namtan' | 'film');
         });
     }, [state, initialContent]);
@@ -112,76 +110,80 @@ export function ContentSectionClient({ initialContent }: ContentSectionClientPro
     return (
         <section
             id="works"
-            className="min-h-screen pt-12 pb-24 transition-colors duration-300"
-            style={{ background: 'linear-gradient(to bottom, var(--color-bg), var(--color-panel), var(--color-bg))' }}
+            className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative"
         >
             {/* Section Header */}
-            <div className="px-6 md:px-12 lg:px-20 mb-12">
+            <div className="container mx-auto px-6 md:px-12 lg:px-20 max-w-7xl mb-16 md:mb-24">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={state}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: reducedMotion ? 0 : 0.4 }}
+                        transition={{ duration: reducedMotion ? 0 : 0.6, ease: [0.22, 1, 0.36, 1] }}
                     >
-                        <div className="flex items-center justify-between gap-6">
-                            <div className="flex items-center gap-6">
+                        <div className="flex flex-col md:flex-row items-baseline justify-between gap-8 border-b border-theme/40 pb-8">
+                            <div className="flex items-center gap-8">
                                 <div
-                                    className={`w-1.5 h-20 rounded-full bg-gradient-to-b ${info.gradient}`}
+                                    className={`w-1.5 h-20 rounded-full bg-gradient-to-b ${info.gradient} shadow-sm shadow-accent/10`}
                                 />
                                 <div>
-                                    <p className="text-[var(--color-text-muted)] text-sm tracking-[0.3em] uppercase mb-2 font-light">
+                                    <p className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]">
                                         {t(info.subKey)}
                                     </p>
-                                    <h2 className={`text-[var(--color-text-primary)] text-4xl md:text-5xl font-light tracking-wide ${language === 'th' ? 'font-thai' : ''}`}>
+                                    <h2 className="text-section font-display text-primary leading-tight font-light">
                                         {t(info.titleKey)}
                                     </h2>
                                 </div>
                             </div>
                             
-                            <a href="/works" className="hidden md:flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-medium text-[var(--color-text-primary)] transition-all hover:scale-105 active:scale-95">
-                                {language === 'th' ? 'ดูผลงานทั้งหมด' : 'View All Works'} →
-                            </a>
+                            <Link href="/works" className="text-[10px] tracking-[0.25em] font-bold uppercase text-muted hover:text-accent transition-colors flex items-center gap-2 group">
+                                {t('content.viewFullArchive')} <span className="group-hover:translate-x-1 transition-transform">→</span>
+                            </Link>
                         </div>
                     </motion.div>
                 </AnimatePresence>
             </div>
 
             {/* Content Rows */}
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={state}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: reducedMotion ? 0 : 0.3 }}
-                >
-                    {contentByCategory.map((cat, index) => (
-                        <ContentRow
-                            key={`${state}-${cat.id}`}
-                            title={cat.title}
-                            titleThai={cat.titleThai}
-                            icon={cat.icon}
-                            works={cat.works}
-                            index={index}
-                        />
-                    ))}
+            <div className="space-y-12">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={state}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: reducedMotion ? 0 : 0.4 }}
+                    >
+                        {contentByCategory.map((cat, index) => (
+                            <ContentRow
+                                key={`${state}-${cat.id}`}
+                                title={t(cat.titleKey)}
+                                titleThai={t(cat.titleThaiKey)}
+                                icon={cat.icon}
+                                works={cat.works}
+                                index={index}
+                            />
+                        ))}
 
-                    {/* Empty State */}
-                    {contentByCategory.length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flex flex-col items-center justify-center py-20 text-center"
-                        >
-                            <div className="text-6xl mb-4">▶</div>
-                            <h3 className="text-xl font-light text-[var(--color-text-secondary)] font-thai">ไม่พบผลงาน</h3>
-                            <p className="text-[var(--color-text-muted)] mt-2 font-thai">ลองเลือกดูแบบอื่น</p>
-                        </motion.div>
-                    )}
-                </motion.div>
-            </AnimatePresence>
+                        {/* Empty State */}
+                        {contentByCategory.length === 0 && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="flex flex-col items-center justify-center py-32 text-center opacity-40"
+                            >
+                                <div className="text-6xl mb-6 grayscale">🎬</div>
+                                <h3 className="text-sm font-bold uppercase tracking-widest text-muted">{t('content.noWorks')}</h3>
+                                <p className="text-xs mt-3 opacity-60">{t('content.tryOther')}</p>
+                                <Link href="/works" className="inline-flex mt-5 text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-accent transition-colors">
+                                  {t('content.viewAllWorks')}
+                                </Link>
+                            </motion.div>
+                        )}
+                    </motion.div>
+                </AnimatePresence>
+            </div>
 
             {/* Return Button */}
             <AnimatePresence>
@@ -190,17 +192,16 @@ export function ContentSectionClient({ initialContent }: ContentSectionClientPro
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 20 }}
-                        className="flex justify-center pt-12"
+                        className="flex justify-center pt-24"
                     >
                         <button
                             onClick={() => transitionTo('both')}
-                            className="group flex items-center gap-3 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] text-sm tracking-wider
-                         transition-all duration-300 border border-[var(--color-border)] hover:border-namtan-primary/40
-                         px-8 py-4 rounded-full font-thai"
-                        style={{ background: 'transparent' }}
+                            className="group flex items-center gap-3 text-muted hover:text-primary text-[10px] font-bold uppercase tracking-[0.3em]
+                         transition-all duration-500 border border-theme/60 hover:border-accent/40
+                         px-10 py-5 rounded-full shadow-sm hover:shadow-lg"
                         >
-                            <span className="group-hover:-translate-x-1 transition-transform">←</span>
-                            <span>กลับไปหน้าผลงานคู่</span>
+                            <span className="group-hover:-translate-x-1 transition-transform duration-500">←</span>
+                            <span>{t('content.backToTogether')}</span>
                         </button>
                     </motion.div>
                 )}

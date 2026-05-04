@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminClient, supabase } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
 
+type SiteSettingRow = { key: string; value: unknown };
+
 // Cache GET for 5 minutes — settings change infrequently
 export const revalidate = 300;
 
 // GET /api/admin/settings — returns { general, features, social, maintenance }
-export async function GET(req: NextRequest) {
+export async function GET() {
   // Settings are public-readable
   const { data, error } = await supabase
     .from('site_settings')
@@ -14,8 +16,8 @@ export async function GET(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const settings: Record<string, any> = {};
-  for (const row of (data as any[]) ?? []) {
+  const settings: Record<string, unknown> = {};
+  for (const row of (data as SiteSettingRow[]) ?? []) {
     settings[row.key] = row.value;
   }
   return NextResponse.json(settings);
@@ -32,7 +34,7 @@ export async function PUT(req: NextRequest) {
   const admin = getAdminClient();
 
   // Support both single-key { key, value } and multi-key { general, features, ... }
-  let rows: { key: string; value: any; updated_at: string }[] = [];
+  let rows: { key: string; value: unknown; updated_at: string }[] = [];
 
   if ('key' in body && 'value' in body) {
     rows = [{ key: body.key, value: body.value, updated_at: new Date().toISOString() }];

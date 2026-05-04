@@ -64,7 +64,10 @@ export default function AdminChallengesPage() {
     }
   };
 
-  useEffect(() => { fetchChallenges(); }, []);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchChallenges(); }, 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const parseQuestions = (raw: string): unknown[] | null => {
     try { return JSON.parse(raw); } catch { return null; }
@@ -163,7 +166,7 @@ export default function AdminChallengesPage() {
     (filterStatus === 'all' || (filterStatus === 'active' ? ch.is_active : !ch.is_active))
   );
 
-  const ChallengeForm = ({ onSave, onCancel }: { onSave: () => void; onCancel: () => void }) => (
+  const renderChallengeForm = (onSave: () => void, onCancel: () => void) => (
     <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 mb-6">
       <h3 className="text-base font-normal text-[var(--color-text-primary)] mb-4">
         {editingId ? '✏️ แก้ไข Challenge' : '✨ สร้าง Challenge ใหม่'}
@@ -277,7 +280,7 @@ export default function AdminChallengesPage() {
       </div>
 
       {/* Create Form */}
-      {isCreating && <ChallengeForm onSave={handleCreate} onCancel={cancelForm} />}
+      {isCreating && renderChallengeForm(handleCreate, cancelForm)}
 
       {/* Stats + Filters */}
       {!loading && (
@@ -340,7 +343,7 @@ export default function AdminChallengesPage() {
         <div className="space-y-2">
           {filtered.map(ch =>
             editingId === ch.id ? (
-              <ChallengeForm key={ch.id} onSave={handleUpdate} onCancel={cancelForm} />
+              <div key={ch.id}>{renderChallengeForm(handleUpdate, cancelForm)}</div>
             ) : (
               <div
                 key={ch.id}

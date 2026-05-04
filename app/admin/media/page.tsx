@@ -175,7 +175,10 @@ export default function AdminMediaPage() {
     }
   }, []);
 
-  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchEvents(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [fetchEvents]);
 
   // Load brands for the link dropdown
   useEffect(() => {
@@ -188,7 +191,8 @@ export default function AdminMediaPage() {
   function toggleExpand(id: string) {
     setExpanded(prev => {
       const s = new Set(prev);
-      s.has(id) ? s.delete(id) : s.add(id);
+      if (s.has(id)) s.delete(id);
+      else s.add(id);
       return s;
     });
   }

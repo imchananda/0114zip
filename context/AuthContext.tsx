@@ -38,34 +38,81 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const supabase = createSupabaseBrowser();
 
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
-    if (error) {
-      console.error('Failed to fetch user profile:', error.message);
-      return;
+  const fetchProfile = async (userId: string, retries = 3, delay = 1000) => {
+    try {
+      const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+      
+      if (error) {
+        // Handle transient connection errors (e.g., Supabase instance waking up or proxy timeouts)
+        const isTransientError = 
+          error.message.includes('upstream connect error') || 
+          error.message.includes('timeout') || 
+          error.message.includes('stole it') ||
+          error.code === '503' ||
+          error.code === '502' ||
+          error.code === '504';
+
+        if (retries > 0 && isTransientError) {
+          console.warn(`[AuthContext] Transient error fetching profile. Retrying in ${delay}ms... (${retries} retries left). Error: ${error.message}`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          // Exponential backoff
+          return fetchProfile(userId, retries - 1, delay * 1.5);
+        }
+        
+        console.error('Failed to fetch user profile:', error.message);
+        return;
+      }
+      
+      if (data) setProfile(data as UserProfile);
+    } catch (err: any) {
+      if (retries > 0) {
+        console.warn(`[AuthContext] Exception fetching profile. Retrying in ${delay}ms... (${retries} retries left).`, err);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return fetchProfile(userId, retries - 1, delay * 1.5);
+      }
+      console.error('Failed to fetch user profile:', err);
     }
-    if (data) setProfile(data as UserProfile);
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      setLoading(false);
-    });
+    let isMounted = true;
+    let subscription: any = null;
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
+    const initialize = async () => {
+      try {
+        const { data: { user: verifiedUser } } = await supabase.auth.getUser();
+        if (!isMounted) return;
+        
+        setUser(verifiedUser ?? null);
+        if (verifiedUser) {
+          await fetchProfile(verifiedUser.id);
+        }
+        if (isMounted) setLoading(false);
+
+        // Subscribe only AFTER initial fetch to prevent concurrent lock stealing
+        const { data } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
+          if (!isMounted || event === 'INITIAL_SESSION') return;
+          
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            await fetchProfile(session.user.id);
+          } else {
+            setProfile(null);
+          }
+        });
+        subscription = data.subscription;
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+        if (isMounted) setLoading(false);
       }
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    initialize();
+
+    return () => {
+      isMounted = false;
+      if (subscription) subscription.unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -1,0 +1,64 @@
+---
+description: Perf-first and type-safe coding policy for clean, reviewable changes
+alwaysApply: true
+---
+
+# Perf and Type Hygiene Policy
+
+## Scope and Change Hygiene
+- Keep each commit and PR single-purpose: `perf`, `bugfix`, `type-stabilization`, or `refactor` only.
+- Do not mix broad UI rewrites with performance or type cleanup.
+- Stage only files relevant to the active scope.
+
+## Performance Rules
+- Prefer server-first data loading for critical routes and first paint.
+- Avoid duplicate client fetches when initial data is already provided.
+- Separate above-the-fold and below-the-fold loading when possible.
+- In aggregators, fetch only data required by enabled sections/features.
+
+## Type Safety Rules
+- Do not silence errors with broad `any`/`unknown` casts.
+- Use narrow interfaces, discriminated unions, and explicit type guards.
+- For `catch (err: unknown)`, always normalize with `instanceof Error`.
+- Type dynamic icons/components correctly (`LucideIcon` or `ComponentType`).
+
+## API and Middleware Rules
+- Use runtime-safe narrowing for external data and settings values.
+- Keep fallback behavior explicit and non-breaking.
+- Preserve existing runtime behavior while improving type safety.
+
+## Hydration Safety Rules (SSR ↔ CSR parity)
+- The first client render MUST produce HTML identical to the SSR output.
+  Defer any browser-only or non-deterministic value to a post-mount `useEffect`.
+- Never read `window`, `document`, `navigator`, `localStorage`, `sessionStorage`,
+  `window.matchMedia`, `Date.now()`, or `Math.random()` inside a `useState`
+  initializer or in the render body of a Client Component used during SSR.
+  Initialize state to a deterministic default, then sync inside `useEffect`.
+- Do NOT import `useReducedMotion` directly from `framer-motion`. Use
+  `@/lib/useSafeReducedMotion` instead. The raw hook reads
+  `prefers-reduced-motion` synchronously on the client and returns a value
+  that differs from SSR (`null`), which causes hydration mismatches when used
+  to branch on `motion.*` `initial`/`animate`/`transition` props or styles.
+- For `next-themes`, gate any theme-dependent rendering (icons, classNames,
+  conditional content driven by `resolvedTheme`) behind a `mounted` flag set
+  in `useEffect`. Prefer Tailwind's `dark:` variant for theme-dependent
+  styling so CSS — not React state — handles the difference.
+- When a small, unavoidable attribute mismatch is acceptable on a single
+  element (e.g. a known third-party-injected attribute), use
+  `suppressHydrationWarning` narrowly on that element only — never to mask a
+  real mismatch in a subtree.
+
+## Animation Rules (framer-motion)
+- Reach for `useSafeReducedMotion` (not the raw framer-motion hook) whenever
+  motion preferences influence rendered output.
+- Keep `motion.*` `initial` props deterministic across SSR/CSR. If the value
+  must depend on a runtime preference, it must come from a hydration-safe
+  source (see above) so the first paint matches SSR.
+- Prefer `MotionConfig` at the layout level for app-wide motion defaults
+  rather than ad-hoc per-component branching.
+
+## Definition of Done (must pass before handoff)
+- `npm run build` passes fully.
+- Smoke-check core routes and critical APIs after substantial changes.
+- No newly introduced lint/type errors in touched files.
+- Include a short impact summary: what changed, why, risk, and verification steps.

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useViewState } from '@/context/ViewStateContext';
+import { useTranslations } from 'next-intl';
 
 interface Challenge {
   id: string;
@@ -23,7 +24,8 @@ const PLACEHOLDER_CHALLENGES: Challenge[] = [
 ];
 
 export function ChallengesSection({ initialChallenges }: { initialChallenges?: Challenge[] } = {}) {
-  const { state } = useViewState();
+  useViewState();
+  const t = useTranslations();
   const [challenges, setChallenges] = useState<Challenge[]>(initialChallenges ?? PLACEHOLDER_CHALLENGES);
 
   useEffect(() => {
@@ -34,31 +36,37 @@ export function ChallengesSection({ initialChallenges }: { initialChallenges?: C
         if (Array.isArray(data) && data.length > 0) setChallenges(data);
       })
       .catch(() => {});
-  }, []);
+  }, [initialChallenges]);
 
   return (
-    <section id="challenges" className="py-16 md:py-24">
-      <div className="container mx-auto px-6 md:px-12">
-        <motion.div
-          className="flex items-center justify-between mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
+    <section id="challenges" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative">
+      <div className="container mx-auto px-6 md:px-12 max-w-6xl">
+        <div className="flex flex-col md:flex-row items-baseline justify-between mb-12 md:mb-16 pb-6 border-b border-theme/40">
           <div>
-            <h2 className="text-2xl md:text-3xl font-medium text-[var(--color-text)]">
-              🎮 Challenges
-            </h2>
-            <p className="text-[var(--color-muted)] text-sm mt-1">
-              ร่วมสนุกกับกิจกรรมแฟนคลับ
-            </p>
+            <motion.p 
+              initial={{ opacity: 0, y: 5 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]"
+            >
+              {t('challenges.sub')}
+            </motion.p>
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="font-display text-4xl md:text-section text-primary leading-tight font-light"
+            >
+              {t('challenges.titleLine1')} <br className="md:hidden" />{t('challenges.titleLine2')}
+            </motion.h2>
           </div>
-          <Link href="/challenges" className="text-sm text-[#6cbfd0] hover:underline hidden sm:block">
-            ดูทั้งหมด →
+          <Link href="/challenges" className="text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-accent transition-colors flex items-center gap-2 group mt-6 md:mt-0">
+            {t('challenges.viewAll')} <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Link>
-        </motion.div>
+        </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {challenges.map((c, i) => (
             <motion.div
               key={c.id}
@@ -66,41 +74,40 @@ export function ChallengesSection({ initialChallenges }: { initialChallenges?: C
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col gap-3 hover:border-[var(--color-border-hover)] transition-colors"
+              className="group rounded-[2rem] border border-theme/60 bg-surface p-8 md:p-10 flex flex-col gap-6 hover:border-accent/40 hover:shadow-2xl transition-all duration-500 relative overflow-hidden"
             >
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-2xl">{c.emoji}</span>
-                <span
-                  className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                  style={{ background: `${c.color}20`, color: c.color }}
-                >
-                  {c.type}
-                </span>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-theme/5 rounded-bl-[4rem] flex items-center justify-center translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:-translate-y-0 transition-transform duration-500">
+                <span className="text-4xl grayscale-[0.2] group-hover:grayscale-0 transition-all">{c.emoji}</span>
               </div>
 
               <div>
-                <p className="font-semibold text-[var(--color-text-primary)] text-sm leading-tight mb-1">
+                <span
+                  className="text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full border border-theme/60"
+                  style={{ background: `${c.color}15`, color: c.color }}
+                >
+                  {c.type}
+                </span>
+                <h3 className="text-xl md:text-2xl font-display text-primary mt-6 mb-3 leading-tight group-hover:text-accent transition-colors">
                   {c.title}
-                </p>
-                <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                </h3>
+                <p className="text-sm text-muted leading-relaxed font-body line-clamp-2 opacity-80">
                   {c.description}
                 </p>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] mt-auto pt-3 border-t border-[var(--color-border)]">
-                <span>👥 {(c.participants ?? 0).toLocaleString()} คน</span>
-                <span style={{ color: (c.daysLeft ?? 0) <= 3 ? '#ef4444' : 'inherit' }}>
-                  ⏱ เหลือ {c.daysLeft ?? '?'} วัน
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.15em] text-muted mt-auto pt-6 border-t border-theme/40">
+                <span className="flex items-center gap-2">
+                  <span className="text-base">👥</span> {(c.participants || 0).toLocaleString()} {t('challenges.joined')}
+                </span>
+                <span 
+                  className="flex items-center gap-2"
+                  style={{ color: (c.daysLeft || 0) <= 3 ? '#ef4444' : 'inherit' }}
+                >
+                  <span className="text-base">⏱️</span> {c.daysLeft || 0} {t('challenges.daysLeft')}
                 </span>
               </div>
             </motion.div>
           ))}
-        </div>
-
-        <div className="mt-6 sm:hidden text-center">
-          <Link href="/challenges" className="text-sm text-[#6cbfd0] hover:underline">
-            ดูทั้งหมด →
-          </Link>
         </div>
       </div>
     </section>

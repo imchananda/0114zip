@@ -1,0 +1,111 @@
+﻿app/[locale]/challenges/page.tsx(52,59): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/[locale]/community/page.tsx(46,48): error TS7006: Parameter 'l' implicitly has an 'any' type.
+app/[locale]/community/page.tsx(47,28): error TS7006: Parameter 'p' implicitly has an 'any' type.
+app/api/admin/analytics/route.ts(31,17): error TS18047: 'v.created_at' is possibly 'null'.
+app/api/admin/brand-collabs/route.ts(111,83): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+app/api/admin/follower-snapshots/route.ts(81,15): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+app/api/admin/footer/route.ts(55,6): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: { key: string; updated_at?: string | null | undefined; value: Json; }, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Argument of type '{ key: string; value: FooterSettings; updated_at: string; }[]' is not assignable to parameter of type '{ key: string; updated_at?: string | null | undefined; value: Json; }'.
+      Type '{ key: string; value: FooterSettings; updated_at: string; }[]' is missing the following properties from type '{ key: string; updated_at?: string | null | undefined; value: Json; }': key, value
+  Overload 2 of 2, '(values: { key: string; updated_at?: string | null | undefined; value: Json; }[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Type 'FooterSettings' is not assignable to type 'Json'.
+      Type 'FooterSettings' is not assignable to type '{ [key: string]: Json | undefined; }'.
+        Index signature for type 'string' is missing in type 'FooterSettings'.
+app/api/admin/hashtags/route.ts(40,63): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: { artists?: string[] | null | undefined; copy_count?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; id?: string | undefined; ... 4 more ...; updated_at?: string | ... 1 more ... | undefined; }, options?: { ...; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Argument of type 'Record<string, unknown>[]' is not assignable to parameter of type '{ artists?: string[] | null | undefined; copy_count?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; id?: string | undefined; ... 4 more ...; updated_at?: string | ... 1 more ... | undefined; }'.
+      Type 'Record<string, unknown>[]' is missing the following properties from type '{ artists?: string[] | null | undefined; copy_count?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; id?: string | undefined; ... 4 more ...; updated_at?: string | ... 1 more ... | undefined; }': name, platform
+  Overload 2 of 2, '(values: { artists?: string[] | null | undefined; copy_count?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; id?: string | undefined; ... 4 more ...; updated_at?: string | ... 1 more ... | undefined; }[], options?: { ...; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Type 'Record<string, unknown>' is missing the following properties from type '{ artists?: string[] | null | undefined; copy_count?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; id?: string | undefined; ... 4 more ...; updated_at?: string | ... 1 more ... | undefined; }': name, platform
+app/api/admin/ig-posts/route.ts(113,71): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+app/api/admin/media-events/route.ts(47,63): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: { actors?: string[] | null | undefined; brand_collab_id?: number | null | undefined; content_item_id?: string | null | undefined; created_at?: string | null | undefined; description?: string | ... 1 more ... | undefined; ... 9 more ...; venue?: string | ... 1 more ... | undefined; }, options?: { ...; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Argument of type 'Record<string, unknown>[]' is not assignable to parameter of type '{ actors?: string[] | null | undefined; brand_collab_id?: number | null | undefined; content_item_id?: string | null | undefined; created_at?: string | null | undefined; description?: string | ... 1 more ... | undefined; ... 9 more ...; venue?: string | ... 1 more ... | undefined; }'.
+      Property 'title' is missing in type 'Record<string, unknown>[]' but required in type '{ actors?: string[] | null | undefined; brand_collab_id?: number | null | undefined; content_item_id?: string | null | undefined; created_at?: string | null | undefined; description?: string | ... 1 more ... | undefined; ... 9 more ...; venue?: string | ... 1 more ... | undefined; }'.
+  Overload 2 of 2, '(values: { actors?: string[] | null | undefined; brand_collab_id?: number | null | undefined; content_item_id?: string | null | undefined; created_at?: string | null | undefined; description?: string | ... 1 more ... | undefined; ... 9 more ...; venue?: string | ... 1 more ... | undefined; }[], options?: { ...; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Property 'title' is missing in type 'Record<string, unknown>' but required in type '{ actors?: string[] | null | undefined; brand_collab_id?: number | null | undefined; content_item_id?: string | null | undefined; created_at?: string | null | undefined; description?: string | ... 1 more ... | undefined; ... 9 more ...; venue?: string | ... 1 more ... | undefined; }'.
+app/api/admin/media/route.ts(41,62): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: { artist: string; brand_collab_id?: number | null | undefined; caption?: string | null | undefined; comments?: number | null | undefined; created_at?: string | null | undefined; event_id?: string | ... 1 more ... | undefined; ... 19 more ...; work_title?: string | ... 1 more ... | undefined; }, options?: { ...; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Argument of type 'Record<string, unknown>[]' is not assignable to parameter of type '{ artist: string; brand_collab_id?: number | null | undefined; caption?: string | null | undefined; comments?: number | null | undefined; created_at?: string | null | undefined; event_id?: string | ... 1 more ... | undefined; ... 19 more ...; work_title?: string | ... 1 more ... | undefined; }'.
+      Type 'Record<string, unknown>[]' is missing the following properties from type '{ artist: string; brand_collab_id?: number | null | undefined; caption?: string | null | undefined; comments?: number | null | undefined; created_at?: string | null | undefined; event_id?: string | ... 1 more ... | undefined; ... 19 more ...; work_title?: string | ... 1 more ... | undefined; }': artist, platform, post_url
+  Overload 2 of 2, '(values: { artist: string; brand_collab_id?: number | null | undefined; caption?: string | null | undefined; comments?: number | null | undefined; created_at?: string | null | undefined; event_id?: string | ... 1 more ... | undefined; ... 19 more ...; work_title?: string | ... 1 more ... | undefined; }[], options?: { ...; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Type 'Record<string, unknown>' is missing the following properties from type '{ artist: string; brand_collab_id?: number | null | undefined; caption?: string | null | undefined; comments?: number | null | undefined; created_at?: string | null | undefined; event_id?: string | ... 1 more ... | undefined; ... 19 more ...; work_title?: string | ... 1 more ... | undefined; }': artist, platform, post_url
+app/api/admin/notifications/route.ts(29,13): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(relation: "challenges" | "users" | "community_posts" | "brand_collaborations" | "prize_draws" | "content_items" | "media_events" | "artist_follower_snapshots" | "artist_profiles" | ... 17 more ... | "timeline_items"): PostgrestQueryBuilder<...>', gave the following error.
+    Argument of type '"user_notifications"' is not assignable to parameter of type '"challenges" | "users" | "community_posts" | "brand_collaborations" | "prize_draws" | "content_items" | "media_events" | "artist_follower_snapshots" | "artist_profiles" | ... 17 more ... | "timeline_items"'.
+  Overload 2 of 2, '(relation: never): PostgrestQueryBuilder<{ PostgrestVersion: "14.4"; }, { Tables: { artist_follower_snapshots: { Row: { artist: string; created_at: string | null; followers: number; id: number; note: string | null; platform: string; recorded_date: string; }; Insert: { ...; }; Update: { ...; }; Relationships: []; }; ... 25 more ...; users: { ...; }; }; Views: {}; Functions: {}; Enums: {}; CompositeTypes: {}; }, never, never, never>', gave the following error.
+    Argument of type '"user_notifications"' is not assignable to parameter of type 'never'.
+app/api/admin/notifications/route.ts(39,24): error TS2339: Property 'title' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'."> | SelectQueryError<"column 'type' does not exist on 'users'."> | ... 24 more ... | SelectQueryError<...>'.
+  Property 'title' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'.">'.
+app/api/admin/notifications/route.ts(39,37): error TS2339: Property 'created_at' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'."> | SelectQueryError<"column 'type' does not exist on 'users'."> | ... 24 more ... | SelectQueryError<...>'.
+  Property 'created_at' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'.">'.
+app/api/admin/notifications/route.ts(43,43): error TS2339: Property 'type' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'."> | SelectQueryError<"column 'type' does not exist on 'users'."> | ... 24 more ... | SelectQueryError<...>'.
+  Property 'type' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'.">'.
+app/api/admin/notifications/route.ts(43,58): error TS2339: Property 'title' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'."> | SelectQueryError<"column 'type' does not exist on 'users'."> | ... 24 more ... | SelectQueryError<...>'.
+  Property 'title' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'.">'.
+app/api/admin/notifications/route.ts(43,73): error TS2339: Property 'body' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'."> | SelectQueryError<"column 'type' does not exist on 'users'."> | ... 24 more ... | SelectQueryError<...>'.
+  Property 'body' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'.">'.
+app/api/admin/notifications/route.ts(43,85): error TS2322: Type '(url: string) => string' is not assignable to type 'string'.
+app/api/admin/notifications/route.ts(43,107): error TS2339: Property 'created_at' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'."> | SelectQueryError<"column 'type' does not exist on 'users'."> | ... 24 more ... | SelectQueryError<...>'.
+  Property 'created_at' does not exist on type 'SelectQueryError<"column 'type' does not exist on 'challenges'.">'.
+app/api/admin/notifications/route.ts(97,57): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(relation: "challenges" | "users" | "community_posts" | "brand_collaborations" | "prize_draws" | "content_items" | "media_events" | "artist_follower_snapshots" | "artist_profiles" | ... 17 more ... | "timeline_items"): PostgrestQueryBuilder<...>', gave the following error.
+    Argument of type '"user_notifications"' is not assignable to parameter of type '"challenges" | "users" | "community_posts" | "brand_collaborations" | "prize_draws" | "content_items" | "media_events" | "artist_follower_snapshots" | "artist_profiles" | ... 17 more ... | "timeline_items"'.
+  Overload 2 of 2, '(relation: never): PostgrestQueryBuilder<{ PostgrestVersion: "14.4"; }, { Tables: { artist_follower_snapshots: { Row: { artist: string; created_at: string | null; followers: number; id: number; note: string | null; platform: string; recorded_date: string; }; Insert: { ...; }; Update: { ...; }; Relationships: []; }; ... 25 more ...; users: { ...; }; }; Views: {}; Functions: {}; Enums: {}; CompositeTypes: {}; }, never, never, never>', gave the following error.
+    Argument of type '"user_notifications"' is not assignable to parameter of type 'never'.
+app/api/admin/prizes/route.ts(35,62): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: { claimed?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; end_at?: string | null | undefined; id?: string | undefined; ... 7 more ...; updated_at?: string | ... 1 more ... | undefined; }, options?: { ...; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Argument of type 'Record<string, unknown>[]' is not assignable to parameter of type '{ claimed?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; end_at?: string | null | undefined; id?: string | undefined; image_url?: string | ... 1 more ... | undefined; ... 6 more ...; updated_at?: string | ... 1 more ... | undefined; }'.
+      Property 'title_th' is missing in type 'Record<string, unknown>[]' but required in type '{ claimed?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; end_at?: string | null | undefined; id?: string | undefined; image_url?: string | ... 1 more ... | undefined; ... 6 more ...; updated_at?: string | ... 1 more ... | undefined; }'.
+  Overload 2 of 2, '(values: { claimed?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; end_at?: string | null | undefined; id?: string | undefined; ... 7 more ...; updated_at?: string | ... 1 more ... | undefined; }[], options?: { ...; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Property 'title_th' is missing in type 'Record<string, unknown>' but required in type '{ claimed?: number | null | undefined; created_at?: string | null | undefined; description?: string | null | undefined; end_at?: string | null | undefined; id?: string | undefined; image_url?: string | ... 1 more ... | undefined; ... 6 more ...; updated_at?: string | ... 1 more ... | undefined; }'.
+app/api/admin/settings/route.ts(51,13): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: { key: string; updated_at?: string | null | undefined; value: Json; }, options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Argument of type '{ key: string; value: unknown; updated_at: string; }[]' is not assignable to parameter of type '{ key: string; updated_at?: string | null | undefined; value: Json; }'.
+      Type '{ key: string; value: unknown; updated_at: string; }[]' is missing the following properties from type '{ key: string; updated_at?: string | null | undefined; value: Json; }': key, value
+  Overload 2 of 2, '(values: { key: string; updated_at?: string | null | undefined; value: Json; }[], options?: { onConflict?: string | undefined; ignoreDuplicates?: boolean | undefined; count?: "exact" | "planned" | "estimated" | undefined; defaultToNull?: boolean | undefined; } | undefined): PostgrestFilterBuilder<...>', gave the following error.
+    Argument of type '{ key: string; value: unknown; updated_at: string; }[]' is not assignable to parameter of type '{ key: string; updated_at?: string | null | undefined; value: Json; }[]'.
+      Type '{ key: string; value: unknown; updated_at: string; }' is not assignable to type '{ key: string; updated_at?: string | null | undefined; value: Json; }'.
+        Types of property 'value' are incompatible.
+          Type 'unknown' is not assignable to type 'Json'.
+app/api/admin/users/route.ts(50,21): error TS2345: Argument of type '(u: { role: string; }) => void' is not assignable to parameter of type '(value: { role: string | null; }, index: number, array: { role: string | null; }[]) => void'.
+  Types of parameters 'u' and 'value' are incompatible.
+    Type '{ role: string | null; }' is not assignable to type '{ role: string; }'.
+      Types of property 'role' are incompatible.
+        Type 'string | null' is not assignable to type 'string'.
+          Type 'null' is not assignable to type 'string'.
+components/notifications/NotificationBell.tsx(64,11): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+context/AuthContext.tsx(93,65): error TS7006: Parameter 'event' implicitly has an 'any' type.
+context/AuthContext.tsx(93,72): error TS7006: Parameter 'session' implicitly has an 'any' type.
+lib/homepage-data.ts(332,26): error TS2322: Type '{ artist: string; emv: number; post_date: string; }[]' is not assignable to type 'HomeIgPost[]'.
+  Type '{ artist: string; emv: number; post_date: string; }' is not assignable to type 'HomeIgPost'.
+    Types of property 'artist' are incompatible.
+      Type 'string' is not assignable to type '"film" | "namtan" | "luna"'.
+lib/homepage-data.ts(332,58): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(predicate: (value: { artist: string; emv: number; post_date: string; }, index: number, array: { artist: string; emv: number; post_date: string; }[]) => value is { artist: string; emv: number; post_date: string; }, thisArg?: any): { ...; }[]', gave the following error.
+    Argument of type '(p: HomeIgPost) => boolean' is not assignable to parameter of type '(value: { artist: string; emv: number; post_date: string; }, index: number, array: { artist: string; emv: number; post_date: string; }[]) => value is { artist: string; emv: number; post_date: string; }'.
+      Types of parameters 'p' and 'value' are incompatible.
+        Type '{ artist: string; emv: number; post_date: string; }' is not assignable to type 'HomeIgPost'.
+          Types of property 'artist' are incompatible.
+            Type 'string' is not assignable to type '"film" | "namtan" | "luna"'.
+  Overload 2 of 2, '(predicate: (value: { artist: string; emv: number; post_date: string; }, index: number, array: { artist: string; emv: number; post_date: string; }[]) => unknown, thisArg?: any): { artist: string; emv: number; post_date: string; }[]', gave the following error.
+    Argument of type '(p: HomeIgPost) => boolean' is not assignable to parameter of type '(value: { artist: string; emv: number; post_date: string; }, index: number, array: { artist: string; emv: number; post_date: string; }[]) => unknown'.
+      Types of parameters 'p' and 'value' are incompatible.
+        Type '{ artist: string; emv: number; post_date: string; }' is not assignable to type 'HomeIgPost'.
+          Types of property 'artist' are incompatible.
+            Type 'string' is not assignable to type '"film" | "namtan" | "luna"'.
+lib/homepage-data.ts(349,75): error TS2352: Conversion of type '{ actors: string[] | null; award_name: string | null; award_name_thai: string | null; brand_collab_id: number | null; ceremony: string | null; content_type: string; created_at: string | null; ... 19 more ...; year: number | null; } | undefined' to type 'HomeContentItem' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ actors: string[] | null; award_name: string | null; award_name_thai: string | null; brand_collab_id: number | null; ceremony: string | null; content_type: string; created_at: string | null; ... 19 more ...; year: number | null; }' is not comparable to type 'HomeContentItem'.
+    Types of property 'links' are incompatible.
+      Type 'Json' is not comparable to type '{ platform: string; url: string; }[] | undefined'.
+        Type 'Json[]' is not comparable to type '{ platform: string; url: string; }[]'.
+          Type 'Json' is not comparable to type '{ platform: string; url: string; }'.
+            Type 'Json[]' is missing the following properties from type '{ platform: string; url: string; }': platform, url
+lib/homepage-data.ts(350,73): error TS2352: Conversion of type '{ actors: string[] | null; award_name: string | null; award_name_thai: string | null; brand_collab_id: number | null; ceremony: string | null; content_type: string; created_at: string | null; ... 19 more ...; year: number | null; } | undefined' to type 'HomeContentItem' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ actors: string[] | null; award_name: string | null; award_name_thai: string | null; brand_collab_id: number | null; ceremony: string | null; content_type: string; created_at: string | null; ... 19 more ...; year: number | null; }' is not comparable to type 'HomeContentItem'.
+    Types of property 'links' are incompatible.
+      Type 'Json' is not comparable to type '{ platform: string; url: string; }[] | undefined'.
+        Type 'Json[]' is not comparable to type '{ platform: string; url: string; }[]'.
+          Type 'Json' is not comparable to type '{ platform: string; url: string; }'.
+            Type 'Json[]' is missing the following properties from type '{ platform: string; url: string; }': platform, url

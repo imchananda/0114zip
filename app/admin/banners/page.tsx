@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface BannerConfig {
   slug: string;
@@ -99,10 +100,11 @@ export default function BannerManagementPage() {
           <div key={config.slug} className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
             {/* Banner Preview */}
             <div className="relative h-40 overflow-hidden">
-              <img
+              <Image
                 src={config.banner_image}
                 alt={config.title}
-                className="w-full h-full object-cover object-top"
+                fill
+                className="object-cover object-top"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-3 left-4 right-4">
@@ -219,7 +221,7 @@ function EditBannerModal({ config, onClose, onSave, saving }: {
             />
           </Field>
           {form.banner_image && (
-            <img src={form.banner_image} alt="" className="w-full h-32 object-cover rounded-lg" />
+            <Image src={form.banner_image} alt="" width={800} height={256} className="w-full h-32 object-cover rounded-lg" />
           )}
         </div>
 

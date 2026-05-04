@@ -1,9 +1,10 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { clearGlobalCacheAction } from '@/app/admin/actions';
 
 type NavItem = { href: string; icon: string; label: string; superOnly?: boolean };
 type NavGroup = { label: string; items: NavItem[] };
@@ -42,10 +43,11 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'ระบบ',
     items: [
-      { href: '/admin/hero-slides',     icon: '🖼️', label: 'Hero Slides'      },
+      { href: '/admin/hero-slides',     icon: '🖼️', label: 'Hero Banner'      },
       { href: '/admin/live-dashboard',  icon: '📊', label: 'Live Dashboard'    },
       { href: '/admin/banners',         icon: '🎨', label: 'Banners'           },
       { href: '/admin/footer',    icon: '🦶', label: 'Footer' },
+      { href: '/admin/floating-artist-selector', icon: '🎭', label: 'Floating Artist' },
       { href: '/admin/users',     icon: '👥', label: 'Users', superOnly: true },
       { href: '/admin/settings',  icon: '⚙️', label: 'Settings' },
     ],
@@ -56,6 +58,18 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const { isSuperAdmin } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleClearCache = () => {
+    startTransition(async () => {
+      const result = await clearGlobalCacheAction();
+      if (result.success) {
+        alert('✅ ล้างแคชสำเร็จ! หน้าเว็บจะแสดงข้อมูลล่าสุดทันที');
+      } else {
+        alert('❌ ไม่สามารถล้างแคชได้: ' + result.error);
+      }
+    });
+  };
 
   const filteredGroups = NAV_GROUPS.map(group => ({
     ...group,
@@ -68,23 +82,21 @@ export default function AdminSidebar() {
     <>
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col shrink-0 h-screen sticky top-0 bg-[var(--color-surface)] border-r border-[var(--color-border)] transition-all duration-300 ${
-          collapsed ? 'w-[68px]' : 'w-[220px]'
+        className={`hidden md:flex flex-col shrink-0 h-screen sticky top-0 bg-surface border-r border-theme/60 transition-all duration-500 ${
+          collapsed ? 'w-[72px]' : 'w-[240px]'
         }`}
       >
         {/* Brand header */}
-        <div className="flex items-center justify-between px-4 py-5 border-b border-[var(--color-border)]">
+        <div className="flex items-center justify-between px-6 py-8 border-b border-theme/30">
           {!collapsed && (
-            <Link href="/admin/dashboard" className="font-display text-base font-medium truncate">
-              <span className="bg-gradient-to-r from-[#6cbfd0] to-[#fbdf74] bg-clip-text text-transparent">
-                NTF
-              </span>
-              <span className="text-[var(--color-text-secondary)] ml-1 text-sm">Admin</span>
+            <Link href="/admin/dashboard" className="font-display text-xl font-light tracking-tight truncate group">
+              <span className="nf-gradient-text font-bold">NTF</span>
+              <span className="text-muted/60 ml-2 text-xs font-bold uppercase tracking-widest">Admin</span>
             </Link>
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 rounded-lg hover:bg-[var(--color-panel)] text-[var(--color-text-muted)] transition-colors shrink-0"
+            className="p-2 rounded-xl bg-panel/40 hover:bg-panel text-muted hover:text-primary transition-all duration-300 shadow-sm shrink-0 border border-theme/40"
             title={collapsed ? 'Expand' : 'Collapse'}
           >
             {collapsed ? '→' : '←'}
@@ -92,15 +104,15 @@ export default function AdminSidebar() {
         </div>
 
         {/* Navigation links */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+        <nav className="flex-1 overflow-y-auto py-8 px-3 space-y-8 scrollbar-hide">
           {filteredGroups.map((group) => (
-            <div key={group.label}>
+            <div key={group.label} className="space-y-3">
               {!collapsed && (
-                <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)] opacity-60">
+                <p className="px-4 text-[9px] font-bold uppercase tracking-[0.3em] text-muted opacity-40">
                   {group.label}
                 </p>
               )}
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {group.items.map((item) => {
                   const isActive = pathname === item.href;
                   return (
@@ -108,13 +120,13 @@ export default function AdminSidebar() {
                       key={item.href}
                       href={item.href}
                       title={item.label}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                      className={`flex items-center gap-4 px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all duration-300 border ${
                         isActive
-                          ? 'bg-[var(--namtan-teal)]/15 text-[var(--namtan-teal)] font-medium border border-[var(--namtan-teal)]/30'
-                          : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-panel)] hover:text-[var(--color-text-primary)]'
+                          ? 'bg-deep-dark text-white border-deep-dark shadow-lg'
+                          : 'text-muted border-transparent hover:bg-panel/60 hover:text-primary'
                       }`}
                     >
-                      <span className="text-lg shrink-0 w-6 text-center">{item.icon}</span>
+                      <span className="text-lg shrink-0 w-6 text-center grayscale-[0.5] group-hover:grayscale-0">{item.icon}</span>
                       {!collapsed && <span className="truncate">{item.label}</span>}
                     </Link>
                   );
@@ -125,39 +137,49 @@ export default function AdminSidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="px-2 py-3 border-t border-[var(--color-border)]">
+        <div className="px-3 py-6 border-t border-theme/40 bg-panel/10 space-y-2">
+          <button
+            onClick={handleClearCache}
+            disabled={isPending}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] text-muted hover:bg-[var(--namtan-teal)] hover:text-white transition-all duration-300 border border-transparent disabled:opacity-50"
+          >
+            <span className={`text-lg shrink-0 w-6 text-center ${isPending ? 'animate-spin' : ''}`}>⚡</span>
+            {!collapsed && <span>{isPending ? 'Clearing...' : 'Clear Cache'}</span>}
+          </button>
+
           <Link
             href="/"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[var(--color-text-muted)] hover:bg-[var(--color-panel)] hover:text-[var(--color-text-primary)] transition-all"
+            className="flex items-center gap-4 px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-[0.2em] text-muted hover:bg-accent hover:text-deep-dark transition-all duration-300 border border-transparent hover:border-accent"
           >
-            <span className="text-lg shrink-0 w-6 text-center">🌐</span>
-            {!collapsed && <span>กลับเว็บหลัก</span>}
+            <span className="text-lg shrink-0 w-6 text-center grayscale opacity-60">🌐</span>
+            {!collapsed && <span>Web Portal</span>}
           </Link>
         </div>
       </aside>
 
       {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-surface)]/95 backdrop-blur-md border-t border-[var(--color-border)] safe-area-bottom">
-        <div className="flex overflow-x-auto no-scrollbar">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-2xl border-t border-theme safe-area-bottom shadow-2xl">
+        <div className="flex overflow-x-auto no-scrollbar py-1">
           {allItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center gap-0.5 min-w-[64px] px-2 py-2.5 text-center transition-colors shrink-0 ${
+                className={`flex flex-col items-center gap-1 min-w-[70px] px-2 py-3 text-center transition-all shrink-0 ${
                   isActive
-                    ? 'text-[var(--namtan-teal)]'
-                    : 'text-[var(--color-text-muted)]'
+                    ? 'text-accent scale-110'
+                    : 'text-muted opacity-60'
                 }`}
               >
-                <span className="text-lg">{item.icon}</span>
-                <span className="text-[9px] leading-tight truncate w-full">{item.label}</span>
+                <span className="text-xl">{item.icon}</span>
+                <span className="text-[8px] font-bold uppercase tracking-widest truncate w-full">{item.label}</span>
               </Link>
             );
           })}
         </div>
       </nav>
+
     </>
   );
 }

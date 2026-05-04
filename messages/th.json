@@ -13,7 +13,14 @@
   },
   "hero": {
     "scroll": "เลื่อนลง",
-    "viewWorks": "ดูผลงาน"
+    "viewWorks": "ดูผลงาน",
+    "scrollExplore": "เลื่อนเพื่อสำรวจ",
+    "exploreWorks": "ดูผลงาน",
+    "latestHighlight": "ไฮไลต์ล่าสุด"
+  },
+  "splash": {
+    "skip": "ข้าม",
+    "established": "ก่อตั้งปี 2024"
   },
   "actor": {
     "realName": "ชื่อจริง:",
@@ -38,7 +45,25 @@
     "memories": "ความทรงจำของเรา",
     "noWorks": "ไม่พบผลงาน",
     "tryOther": "ลองเลือกดูแบบอื่น",
-    "backToTogether": "กลับไปหน้าผลงานคู่"
+    "backToTogether": "กลับไปหน้าผลงานคู่",
+    "viewFullArchive": "ดูคลังผลงานทั้งหมด",
+    "viewAllWorks": "ดูผลงานทั้งหมด",
+    "portfolioItems": "รายการผลงาน",
+    "link": "ลิงก์",
+    "categories": {
+      "series": "ละคร/ซีรีส์",
+      "variety": "รายการวาไรตี้",
+      "event": "กิจกรรม",
+      "magazine": "นิตยสาร",
+      "award": "รางวัล"
+    },
+    "categoriesThai": {
+      "series": "ละคร/ซีรีส์",
+      "variety": "รายการวาไรตี้",
+      "event": "กิจกรรม",
+      "magazine": "นิตยสาร",
+      "award": "รางวัล"
+    }
   },
   "category": {
     "acting": "การแสดง",
@@ -47,11 +72,144 @@
   },
   "timeline": {
     "title": "ไทม์ไลน์",
-    "sub": "เส้นทางของพวกเขา"
+    "sub": "เส้นทางของพวกเขา",
+    "empty": "ยังไม่มีข้อมูลไทม์ไลน์",
+    "categories": {
+      "debut": "เดบิวต์",
+      "work": "ผลงาน",
+      "award": "รางวัล",
+      "event": "อีเวนต์",
+      "milestone": "ก้าวสำคัญ"
+    }
+  },
+  "challenges": {
+    "sub": "กิจกรรมแฟนคลับ",
+    "titleLine1": "ชาเลนจ์",
+    "titleLine2": "ร่วมสนุก",
+    "viewAll": "ดูเกมทั้งหมด",
+    "joined": "เข้าร่วม",
+    "daysLeft": "วันคงเหลือ"
+  },
+  "schedule": {
+    "noEvents": "ยังไม่มีตารางงานในขณะนี้"
+  },
+  "schedulePreview": {
+    "sub": "ตารางงาน",
+    "titleLine1": "กิจกรรม",
+    "titleLine2": "ที่กำลังจะมาถึง",
+    "viewAll": "ดูทั้งหมด",
+    "emptyAction": "ดูตารางงานทั้งหมด",
+    "types": {
+      "event": "อีเวนต์",
+      "show": "รายการ",
+      "concert": "คอนเสิร์ต",
+      "fanmeet": "แฟนมีต",
+      "live": "ไลฟ์",
+      "release": "ปล่อยผลงาน"
+    }
+  },
+  "stats": {
+    "sub": "สถิติสด",
+    "titleLine1": "สรุป",
+    "titleLine2": "ข้อมูล",
+    "fullReport": "ดูรายงานเต็ม",
+    "featuredSeries": "ซีรีส์แนะนำ",
+    "latestMusic": "เพลงล่าสุด"
+  },
+  "fashion": {
+    "sub": "สไตล์และความสง่างาม",
+    "titleLine1": "แฟชั่น",
+    "titleLine2": "ไฮไลต์",
+    "exploreMore": "ดูเพิ่มเติม",
+    "empty": "ยังไม่มีไฮไลต์แฟชั่น",
+    "emptyAction": "เปิดคลังแฟชั่น",
+    "magazine": "นิตยสาร",
+    "issue": "ฉบับ",
+    "viewDetail": "ดูรายละเอียด",
+    "highlightTitle": "แฟชั่น ไฮไลต์",
+    "timelineTitle": "ไทม์ไลน์ แฟชั่น",
+    "allYears": "ทุกปี",
+    "allEvents": "ทุกอีเว้นต์",
+    "yearToPresent": "{year} – ปัจจุบัน",
+    "eventDate": "วันที่",
+    "tabAll": "ทั้งหมด",
+    "tabNamtan": "NAMTAN",
+    "tabFilm": "FILM",
+    "tabTogether": "TOGETHER",
+    "viewCalendar": "ดูปฏิทิน",
+    "byCategory": "แฟชั่นตามหมวด",
+    "topBrands": "แบรนด์ยอดนิยม",
+    "viewAll": "ดูทั้งหมด",
+    "looks": "ลุค",
+    "tagTogether": "TOGETHER",
+    "tagNamtan": "NAMTAN",
+    "tagFilm": "FILM",
+    "detailTitle": "รายละเอียดอีเว้นต์",
+    "hashtag": "แฮชแท็ก",
+    "engagement": "เอนเกจเมนต์",
+    "emv": "EMV",
+    "miv": "MIV",
+    "close": "ปิด",
+    "brands": "แบรนด์",
+    "category": "หมวดหมู่",
+    "location": "สถานที่",
+    "dateTbd": "ยังไม่ระบุวันที่",
+    "openDetail": "รายละเอียด",
+    "categories": {
+      "evening_look": "อีฟนิงลุค",
+      "street_style": "สตรีท",
+      "runway": "รันเวย์",
+      "red_carpet": "พรมแดง",
+      "casual": "แคชชวล",
+      "accessories": "เครื่องประดับ"
+    }
+  },
+  "awardsPreview": {
+    "sub": "ความสำเร็จ",
+    "titleLine1": "รางวัลและ",
+    "titleLine2": "การยอมรับ",
+    "viewAll": "ดูทั้งหมด",
+    "empty": "ไม่พบรางวัลสำหรับตัวเลือกนี้",
+    "emptyAction": "เปิดคลังรางวัล"
+  },
+  "prizes": {
+    "sub": "กิจกรรมพิเศษ",
+    "titleLine1": "ของรางวัลและ",
+    "titleLine2": "กิจกรรมแจก",
+    "winNow": "ร่วมลุ้นเลย",
+    "empty": "ยังไม่มีกิจกรรมแจกของรางวัล",
+    "emptyAction": "เปิด Prize Hub",
+    "status": {
+      "open": "เปิดรับ",
+      "closed": "ปิดแล้ว",
+      "announced": "ประกาศผลแล้ว"
+    }
   },
   "profile": {
-    "title": "ประวัติส่วนตัว",
-    "sub": "รู้จักดาราของเรา"
+    "title": "Profile Split",
+    "sub": "รู้จักดาราของเรา",
+    "subThai": "ทำความรู้จักกับน้ำตาลและฟิล์ม",
+    "viewProfile": "ดูโปรไฟล์ทั้งหมด",
+    "viewWorks": "ดูผลงาน",
+    "viewStats": "ดูสถิติ",
+    "viewAll": "ดูทั้งหมด",
+    "followers": "ผู้ติดตาม",
+    "works": "ผลงาน",
+    "artist": "ศิลปิน",
+    "orbit": "Orbit",
+    "igFollowers": "ผู้ติดตาม Instagram",
+    "xFollowers": "ผู้ติดตาม X",
+    "totalWorks": "ผลงานทั้งหมด",
+    "latestWorks": "ผลงานล่าสุด",
+    "together": "Together",
+    "togetherSub": "เราเปล่งประกายเมื่ออยู่ด้วยกัน",
+    "totalFollowers": "ผู้ติดตามทั้งหมด",
+    "dataRange": "ข้อมูลตั้งแต่ 2024 - ปัจจุบัน",
+    "sectionKicker": "Section 2",
+    "dragCompare": "ลากเพื่อเทียบ",
+    "lunaMascot": "LUNA",
+    "emv": "EMV (มูลค่าสื่อ)",
+    "miv": "MIV (มูลค่าผลกระทบสื่อ)"
   },
   "about": {
     "title": "เกี่ยวกับเรา",
@@ -80,12 +238,69 @@
     },
     "all": "ดูทั้งหมด"
   },
+  "mediaTags": {
+    "sub": "คัดสรร",
+    "titleLine1": "สื่อและ",
+    "titleLine2": "แฮชแท็ก",
+    "exploreGallery": "สำรวจแกลเลอรี",
+    "allEvents": "ทุกอีเวนต์",
+    "empty": "ไม่พบโพสต์สื่อ",
+    "emptyAction": "เปิด Media Hub",
+    "focus": "ไฮไลต์",
+    "activeHashtags": "แฮชแท็กที่ใช้งาน",
+    "noHashtags": "ยังไม่มีแฮชแท็กสำหรับอีเวนต์นี้",
+    "copyTag": "คลิกเพื่อคัดลอก",
+    "communityNote": "บันทึกชุมชน",
+    "communityNoteBody": "ช่วยติดแฮชแท็กเหล่านี้บน X และ Instagram เพื่อสนับสนุนกิจกรรมล่าสุดของน้ำตาลและฟิล์ม!"
+  },
   "footer": {
+    "titleLeft": "Namtan",
+    "titleRight": "Film",
+    "tagline": "สร้างด้วยความรักจากแฟนคลับ",
+    "copyright": "© 2024 Fan Project · ไม่ได้เกี่ยวข้องกับต้นสังกัด",
     "fanmade": "เว็บไซต์แฟนเมด",
     "rights": "ไม่ได้เกี่ยวข้องกับต้นสังกัด"
   },
   "lunar": {
     "name": "ลูน่า",
     "fanclub": "แฟนคลับอย่างเป็นทางการ"
+  },
+  "auth": {
+    "login": "เข้าสู่ระบบ",
+    "logout": "ออกจากระบบ",
+    "register": "สมัครสมาชิก",
+    "profile": "โปรไฟล์",
+    "memberAccess": "เข้าสู่บัญชี",
+    "welcomeBack": "ยินดีต้อนรับกลับ",
+    "welcomeBackHighlight": "คุณ",
+    "orIdentity": "หรือ อีเมล",
+    "emailLabel": "อีเมล",
+    "passwordLabel": "รหัสผ่าน",
+    "emailPlaceholder": "reader@namtanfilm.com",
+    "authenticate": "เข้าสู่ระบบ",
+    "noAccount": "ยังไม่มีบัญชี?",
+    "joinMembership": "สมัครสมาชิก",
+    "backToPortal": "กลับสู่หน้าหลัก",
+    "accessWithGoogle": "เข้าสู่ระบบด้วย Google",
+    "oauthFailed": "การเข้าสู่ระบบผ่าน Google ล้มเหลว กรุณาลองใหม่อีกครั้ง",
+    "membership": "สมัครสมาชิก",
+    "createIdentity": "สร้างบัญชี",
+    "createIdentityHighlight": "ของคุณ",
+    "orRegister": "หรือ สมัครอีเมล",
+    "displayNameLabel": "ชื่อที่แสดง",
+    "displayNamePlaceholder": "ชื่อเล่นของคุณ",
+    "confirmPasswordLabel": "ยืนยันรหัสผ่าน",
+    "confirmPasswordPlaceholder": "กรอกรหัสผ่านอีกครั้ง",
+    "passwordHint": "อย่างน้อย 6 ตัวอักษร",
+    "passwordMinError": "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร",
+    "passwordMismatch": "รหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง",
+    "establishMembership": "สมัครสมาชิก",
+    "alreadyMember": "เป็นสมาชิกอยู่แล้ว?",
+    "accessAccount": "เข้าสู่ระบบ",
+    "joinWithGoogle": "สมัครด้วย Google",
+    "welcomeHome": "ยินดีต้อนรับ",
+    "welcomeHomeHighlight": "กลับบ้าน",
+    "membershipEstablished": "สมัครสมาชิกสำเร็จแล้ว คุณเป็นส่วนหนึ่งของครอบครัว NamtanFilm แล้ว",
+    "redirecting": "กำลังเข้าสู่หน้าหลัก..."
   }
 }

@@ -41,17 +41,14 @@ export function ViewStateProvider({
   const [state, setStateInternal] = useState<ViewState>(initialState);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hoveredActor, setHoveredActor] = useState<'namtan' | 'film' | null>(null);
+  // Always start false on SSR/initial client render, then sync after mount to
+  // avoid hydration mismatches with prefers-reduced-motion.
   const [reducedMotion, setReducedMotion] = useState(false);
 
-  // Sync state if initialState changes via URL navigation
   useEffect(() => {
-    setStateInternal(initialState);
-  }, [initialState]);
-
-  useEffect(() => {
+    if (typeof window === 'undefined') return;
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setReducedMotion(mediaQuery.matches);
-
     const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);

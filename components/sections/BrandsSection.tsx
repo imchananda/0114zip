@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
@@ -33,11 +33,11 @@ interface Brand {
 type ArtistFilter = 'both' | 'namtan' | 'film';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const NT = '#6cbfd0';
-const FL = '#fbdf74';
+const NT = 'var(--namtan-teal)';
+const FL = 'var(--film-gold)';
 
 const ARTIST_TABS: { value: ArtistFilter; label: string }[] = [
-  { value: 'both',   label: 'NamtanFilm' },
+  { value: 'both',   label: 'Both' },
   { value: 'namtan', label: 'Namtan'     },
   { value: 'film',   label: 'Film'       },
 ];
@@ -62,37 +62,36 @@ function fmtDate(d: string) {
 }
 
 // ─── BrandLogoItem ────────────────────────────────────────────────────────────
-function BrandLogoItem({ brand, accent, index, onClick }: {
-  brand: Brand; accent: string; index: number; onClick: () => void;
+function BrandLogoItem({ brand, index, onClick }: {
+  brand: Brand; index: number; onClick: () => void;
 }) {
-  const textAccent = accent === FL ? '#9c7a00' : accent;
   const [logoErr, setLogoErr] = useState(false);
   return (
     <motion.button
       layout
       initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ delay: index * 0.04, duration: 0.25 }}
-      whileHover={{ y: -4, scale: 1.03 }}
+      transition={{ delay: index * 0.02, duration: 0.3 }}
+      whileHover={{ y: -4, scale: 1.05 }}
       onClick={onClick}
-      className="group relative flex flex-col items-center gap-2 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer"
+      className="group relative flex flex-col items-center justify-center p-3 rounded-xl bg-surface border border-theme/40 hover:border-accent/40 shadow-sm transition-all duration-300 w-20 h-16 md:w-24 md:h-20"
     >
       {/* Logo */}
-      <div className="w-16 h-12 flex items-center justify-center overflow-hidden">
+      <div className="w-full h-full flex items-center justify-center overflow-hidden p-2">
         {brand.brand_logo && !logoErr
           ? <Image
               src={logoSrc(brand.brand_logo)}
               alt={brand.brand_name}
               width={64} height={48}
-              className="object-contain w-full h-full"
+              className="object-contain w-full h-full opacity-80 group-hover:opacity-100 transition-opacity"
               onError={() => setLogoErr(true)}
               unoptimized
             />
-          : <span className="text-3xl">🏷️</span>
+          : <span className="text-2xl opacity-40">🏷️</span>
         }
       </div>
-
     </motion.button>
   );
 }
@@ -103,60 +102,50 @@ function BrandModal({ brand, accent, onClose }: {
 }) {
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-6"
+      className="fixed inset-0 z-[60] flex items-end md:items-center justify-center md:p-6"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-md" />
+      <div className="absolute inset-0 bg-deep-dark/60 backdrop-blur-md" />
 
       <motion.div
-        className="relative w-full md:max-w-lg rounded-t-3xl md:rounded-3xl overflow-hidden"
-        style={{
-          background: '#1c1c1a',
-          border: '1px solid rgba(255,255,255,0.1)',
-          maxHeight: '90vh',
-        }}
-        initial={{ y: 60, opacity: 0 }}
+        className="relative w-full md:max-w-xl bg-surface border border-theme rounded-t-3xl md:rounded-2xl overflow-hidden shadow-2xl"
+        style={{ maxHeight: '90vh' }}
+        initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0,  opacity: 1 }}
-        exit={{   y: 60, opacity: 0 }}
+        exit={{   y: 100, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         onClick={e => e.stopPropagation()}
       >
         {/* Accent top bar */}
-        <div className="h-[3px]" style={{ background: `linear-gradient(90deg, ${accent}, transparent 65%)` }} />
+        <div className="h-1" style={{ background: accent }} />
 
         {/* Header */}
-        <div className="flex items-start justify-between p-5 pb-4">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
-              style={{ background: 'rgba(255,255,255,0.09)' }}
-            >
+        <div className="flex items-start justify-between p-6 md:p-8 pb-4">
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 rounded-xl bg-panel/50 border border-theme p-3 flex items-center justify-center flex-shrink-0">
               {brand.brand_logo
                 ? <Image
                     src={logoSrc(brand.brand_logo)}
                     alt={brand.brand_name}
                     width={48} height={48}
-                    className="object-contain p-1"
+                    className="object-contain"
                     unoptimized
                   />
-                : <span className="text-xl">🏷️</span>
+                : <span className="text-2xl">🏷️</span>
               }
             </div>
-            <div>
-              <h3 className="text-base font-display text-white leading-tight">{brand.brand_name}</h3>
-              <div className="flex flex-wrap gap-1.5 mt-1">
+            <div className="min-w-0">
+              <h3 className="text-xl md:text-2xl font-display text-primary leading-tight truncate">{brand.brand_name}</h3>
+              <div className="flex flex-wrap gap-2 mt-2">
                 {brand.category && (
-                  <span
-                    className="text-[9px] px-2 py-0.5 rounded-full border"
-                    style={{ borderColor: accent + '60', color: accent }}
-                  >
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full border border-theme text-muted uppercase tracking-wider">
                     {brand.category}
                   </span>
                 )}
                 {brand.collab_type && (
-                  <span className="text-[9px] px-2 py-0.5 rounded-full bg-white/10 text-white/45">
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-panel text-muted uppercase tracking-wider">
                     {COLLAB_LABELS[brand.collab_type] ?? brand.collab_type}
                   </span>
                 )}
@@ -165,70 +154,63 @@ function BrandModal({ brand, accent, onClose }: {
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/45 hover:text-white transition-all flex-shrink-0 ml-2"
+            className="p-2 rounded-full hover:bg-panel text-muted hover:text-primary transition-all ml-2"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Scrollable body */}
-        <div className="overflow-y-auto px-5 pb-6 space-y-4" style={{ maxHeight: 'calc(90vh - 108px)' }}>
-
-          {/* Date range */}
-          {(brand.start_date || brand.end_date) && (
-            <div className="flex items-center gap-2 text-white/35 text-xs">
-              <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>
-                {brand.start_date ? fmtDate(brand.start_date) : '?'}
-                {brand.end_date
-                  ? ` — ${fmtDate(brand.end_date)}`
-                  : brand.start_date ? ' — ปัจจุบัน' : ''}
-              </span>
-            </div>
-          )}
+        <div className="overflow-y-auto px-6 md:px-8 pb-8 space-y-6 scrollbar-hide" style={{ maxHeight: 'calc(90vh - 120px)' }}>
 
           {/* Artists */}
           <div className="flex flex-wrap gap-2">
             {brand.artists.map(a => (
               <span
                 key={a}
-                className="text-[9px] px-2.5 py-1 rounded-full font-medium"
-                style={{
-                  background: (a === 'namtan' ? NT : FL) + '22',
-                  color: a === 'namtan' ? NT : FL,
-                }}
+                className={`text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-widest border border-theme/50 shadow-sm
+                  ${a === 'namtan' ? 'bg-namtan-primary/10 text-namtan-primary' : 'bg-film-primary/10 text-film-primary'}`}
               >
-                {a === 'namtan' ? '💙 น้ำตาล' : a === 'film' ? '💛 ฟิล์ม' : a}
+                {a === 'namtan' ? 'Namtan' : a === 'film' ? 'Film' : a}
               </span>
             ))}
           </div>
 
+          {/* Date range */}
+          {(brand.start_date || brand.end_date) && (
+            <div className="flex items-center gap-3 text-muted text-xs font-medium tracking-wide">
+              <Calendar className="w-4 h-4 opacity-40" />
+              <span>
+                {brand.start_date ? fmtDate(brand.start_date) : '?'}
+                {brand.end_date
+                  ? ` — ${fmtDate(brand.end_date)}`
+                  : brand.start_date ? ' — Present' : ''}
+              </span>
+            </div>
+          )}
+
           {/* Description */}
           {brand.description && (
-            <p className="text-sm text-white/55 leading-relaxed">{brand.description}</p>
+            <p className="text-sm md:text-base text-primary/80 leading-relaxed font-body">{brand.description}</p>
           )}
 
           {/* Media items */}
           {brand.media_items && brand.media_items.length > 0 && (
-            <div>
-              <p className="text-[9px] tracking-[0.2em] uppercase text-white/30 mb-2.5 flex items-center gap-1.5">
-                <Tag className="w-3 h-3" /> งานที่ร่วมกัน
+            <div className="pt-2">
+              <p className="text-[10px] tracking-[0.25em] uppercase text-muted mb-4 font-bold flex items-center gap-2">
+                <Tag className="w-3.5 h-3.5 opacity-40" /> งานที่ร่วมกัน
               </p>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-3">
                 {brand.media_items.map((item, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between rounded-xl px-3 py-2.5 gap-3"
-                    style={{
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.07)',
-                    }}
+                    className="flex items-center justify-between rounded-xl px-4 py-3 bg-panel/30 border border-theme/40 hover:border-theme transition-colors group"
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="text-base flex-shrink-0">{MEDIA_ICONS[item.type] ?? '🔗'}</span>
+                    <div className="flex items-center gap-4 min-w-0">
+                      <span className="text-xl flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">{MEDIA_ICONS[item.type] ?? '🔗'}</span>
                       <div className="min-w-0">
-                        <p className="text-xs text-white/80 font-medium leading-tight truncate">{item.title}</p>
-                        <p className="text-[9px] text-white/30 mt-0.5">{item.type}</p>
+                        <p className="text-sm text-primary font-medium leading-tight truncate">{item.title}</p>
+                        <p className="text-[10px] text-muted uppercase tracking-wider mt-1">{item.type}</p>
                       </div>
                     </div>
                     {item.url && (
@@ -236,20 +218,16 @@ function BrandModal({ brand, accent, onClose }: {
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex-shrink-0 p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                        className="flex-shrink-0 p-2 rounded-full hover:bg-panel transition-colors"
                         onClick={e => e.stopPropagation()}
                       >
-                        <ExternalLink className="w-3.5 h-3.5 text-white/30 hover:text-white/70 transition-colors" />
+                        <ExternalLink className="w-4 h-4 text-muted hover:text-primary transition-colors" />
                       </a>
                     )}
                   </div>
                 ))}
               </div>
             </div>
-          )}
-
-          {!brand.description && (!brand.media_items || brand.media_items.length === 0) && (
-            <p className="text-xs text-white/20 text-center py-8">ยังไม่มีรายละเอียดเพิ่มเติม</p>
           )}
         </div>
       </motion.div>
@@ -313,7 +291,6 @@ export function BrandsSection({
   // Load brands
   useEffect(() => {
     if (initialBrands !== undefined) return;
-    setLoading(true);
     fetch('/api/brands')
       .then(r => r.json())
       .then(d => {
@@ -325,7 +302,7 @@ export function BrandsSection({
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [initialBrands]);
 
   const filtered = allBrands.filter(b => {
     const artistOk = artistFilter === 'both' || b.artists.includes(artistFilter);
@@ -334,7 +311,7 @@ export function BrandsSection({
     return artistOk && yearOk;
   });
 
-  const accent = artistFilter === 'film' ? FL : NT;
+  const accent = artistFilter === 'film' ? FL : artistFilter === 'namtan' ? NT : 'var(--nf-gradient)';
   const portraitKey = artistFilter === 'film' ? 'film' : artistFilter === 'both' ? 'both' : 'namtan';
   const portraitUrl = portraitKey === 'both'
     ? (sectionImages.both ?? sectionImages.namtan ?? profileImages.namtan)
@@ -342,151 +319,170 @@ export function BrandsSection({
 
   return (
     <section
-      className="relative w-full"
-      style={{ backgroundColor: 'var(--color-brands-bg)', borderTop: '1px solid var(--color-border)' }}
+      className="relative w-full overflow-hidden bg-[var(--color-brands-bg)] border-t border-theme"
     >
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row">
+      <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row min-h-[600px]">
 
         {/* ── Left: Artist photo ─────────────────────────────────────────── */}
         <AnimatePresence mode="wait">
           <motion.div
             key={portraitKey}
-            className="relative w-full md:w-[42%] flex-shrink-0 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
+            className="relative w-full md:w-[45%] lg:w-[40%] flex-shrink-0 flex items-center justify-center bg-panel/30"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
             {portraitUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={portraitUrl}
                 alt={portraitKey === 'film' ? 'ฟิล์ม' : 'น้ำตาล'}
-                className="w-full h-auto block"
+                className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700"
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
-              <div className="w-full flex items-center justify-center" style={{ minHeight: '480px', background: 'var(--color-surface)' }}>
-                <span className="text-7xl opacity-10">👤</span>
+              <div className="w-full h-full flex items-center justify-center bg-panel">
+                <span className="text-8xl opacity-10">👤</span>
               </div>
             )}
             {/* Right-edge fade */}
             <div
-              className="absolute inset-y-0 right-0 w-28 hidden md:block pointer-events-none"
+              className="absolute inset-y-0 right-0 w-32 hidden md:block pointer-events-none"
               style={{ background: 'linear-gradient(to right, transparent, var(--color-brands-bg))' }}
             />
-            {/* Bottom fade */}
+            {/* Bottom fade for mobile */}
             <div
-              className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none"
+              className="absolute bottom-0 left-0 right-0 h-32 md:hidden pointer-events-none"
               style={{ background: 'linear-gradient(to bottom, transparent, var(--color-brands-bg))' }}
             />
           </motion.div>
         </AnimatePresence>
 
         {/* ── Right: Content ─────────────────────────────────────────────── */}
-        <div className="flex-1 px-10 md:px-14 lg:px-16 py-12 md:py-16 flex flex-col justify-center">
+        <div className="flex-1 px-8 md:px-16 lg:px-24 py-20 md:py-28 flex flex-col justify-center relative">
+          
+          <div className="relative z-10">
+            {/* Overline */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-overline text-accent font-bold mb-4 uppercase"
+            >
+              Collaborations
+            </motion.p>
 
-          {/* Title */}
-          <motion.h2
-            className="text-3xl md:text-4xl lg:text-5xl font-normal font-display mb-8 leading-tight"
-            style={{ color: 'var(--color-text-primary)' }}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            Brand Collaborations
-          </motion.h2>
+            {/* Title */}
+            <motion.h2
+              className="text-display-sm md:text-section font-display text-primary mb-12 leading-[1.1]"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              Brand <br className="hidden lg:block" />Partnerships
+            </motion.h2>
 
-          {/* Filters */}
-          <div className="flex flex-col gap-3 mb-10">
-            {/* Artist tabs */}
-            <div className="flex items-center">
-              {ARTIST_TABS.map((tab, i) => (
-                <span key={tab.value} className="flex items-center">
-                  <button
-                    onClick={() => setArtistFilter(tab.value)}
-                    className="text-sm md:text-base font-semibold transition-colors duration-200 px-1"
-                    style={artistFilter === tab.value
-                      ? { color: 'var(--color-text-primary)' }
-                      : { color: 'var(--color-text-muted)' }}
-                  >
-                    {tab.label}
-                  </button>
-                  {i < ARTIST_TABS.length - 1 && (
-                    <span className="mx-3 select-none text-sm" style={{ color: 'var(--color-border)' }}>|</span>
-                  )}
-                </span>
-              ))}
-            </div>
-
-            {/* Year pills */}
-            {years.length > 0 && (
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setYearFilter(null)}
-                  className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200"
-                  style={!yearFilter
-                    ? { background: accent, color: accent === FL ? '#7a5c00' : '#0a4a52' }
-                    : { background: accent + '22', color: accent === FL ? '#9c7a00' : accent }}
-                >
-                  ทุกปี
-                </button>
-                {years.map(y => (
-                  <button
-                    key={y}
-                    onClick={() => setYearFilter(y)}
-                    className="px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200"
-                    style={yearFilter === y
-                      ? { background: accent, color: accent === FL ? '#7a5c00' : '#0a4a52' }
-                      : { background: accent + '22', color: accent === FL ? '#9c7a00' : accent }}
-                  >
-                    {y}
-                  </button>
+            {/* Filters */}
+            <div className="flex flex-col gap-6 mb-16">
+              {/* Artist tabs */}
+              <div className="flex items-center gap-2">
+                {ARTIST_TABS.map((tab, i) => (
+                  <React.Fragment key={tab.value}>
+                    <button
+                      onClick={() => setArtistFilter(tab.value)}
+                      className={`text-xs md:text-sm font-bold uppercase tracking-[0.2em] transition-all duration-300 py-1
+                        ${artistFilter === tab.value ? 'text-primary' : 'text-muted hover:text-primary'}`}
+                    >
+                      {tab.label}
+                    </button>
+                    {i < ARTIST_TABS.length - 1 && (
+                      <span className="text-theme mx-2 opacity-50">/</span>
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
+
+              {/* Year pills */}
+              {years.length > 0 && (
+                <div className="flex gap-3 flex-wrap">
+                  <button
+                    onClick={() => setYearFilter(null)}
+                    className={`px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 border
+                      ${!yearFilter 
+                        ? 'bg-primary text-deep-dark border-primary shadow-md' 
+                        : 'bg-transparent text-muted border-theme hover:border-accent hover:text-accent'}`}
+                  >
+                    All Years
+                  </button>
+                  {years.map(y => (
+                    <button
+                      key={y}
+                      onClick={() => setYearFilter(y)}
+                      className={`px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 border
+                        ${yearFilter === y 
+                          ? 'bg-primary text-deep-dark border-primary shadow-md' 
+                          : 'bg-transparent text-muted border-theme hover:border-accent hover:text-accent'}`}
+                    >
+                      {y}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Brand Logo Grid */}
+            <div className="min-h-[160px]">
+              {loading ? (
+                <div className="flex flex-wrap gap-4">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="w-20 h-16 md:w-24 md:h-20 rounded-xl skeleton" />
+                  ))}
+                </div>
+              ) : filtered.length === 0 ? (
+                <motion.div
+                  className="flex flex-col items-start justify-center h-32 gap-3 opacity-40"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                >
+                  <span className="text-4xl">🏷️</span>
+                  <p className="text-muted text-sm font-thai tracking-wide">ไม่พบข้อมูลแบรนด์ในปีนี้</p>
+                </motion.div>
+              ) : (
+                <AnimatePresence mode="popLayout">
+                  <motion.div
+                    key={`${artistFilter}-${yearFilter}`}
+                    layout
+                    className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4"
+                  >
+                    {filtered.map((brand, i) => (
+                      <BrandLogoItem
+                        key={brand.id}
+                        brand={brand}
+                        index={i}
+                        onClick={() => setSelected(brand)}
+                      />
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              )}
+            </div>
+
+            {!loading && filtered.length > 0 && (
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                className="mt-8 text-[10px] uppercase tracking-[0.2em] text-muted font-bold"
+              >
+                {filtered.length} Partnerships {yearFilter ? `· ${yearFilter}` : ''}
+              </motion.p>
             )}
           </div>
 
-          {/* Brand Logo Row */}
-          {loading ? (
-            <div className="flex flex-wrap gap-6">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-20 h-16 rounded-xl animate-pulse" style={{ background: 'var(--color-surface)' }} />
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <motion.div
-              className="flex flex-col items-center justify-center h-32 gap-2"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            >
-              <span className="text-3xl">🏷️</span>
-              <p className="text-[#87867f] text-sm">ไม่มีข้อมูล Brand{yearFilter ? ` ปี ${yearFilter}` : ''}</p>
-            </motion.div>
-          ) : (
-            <AnimatePresence mode="popLayout">
-              <motion.div
-                key={`${artistFilter}-${yearFilter}`}
-                layout
-                className="flex flex-wrap gap-x-2 gap-y-1"
-              >
-                {filtered.map((brand, i) => (
-                  <BrandLogoItem
-                    key={brand.id}
-                    brand={brand}
-                    accent={accent}
-                    index={i}
-                    onClick={() => setSelected(brand)}
-                  />
-                ))}
-              </motion.div>
-            </AnimatePresence>
-          )}
-
-          {!loading && filtered.length > 0 && (
-            <p className="mt-5 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-              {filtered.length} แบรนด์{yearFilter ? ` · ${yearFilter}` : ''}
-            </p>
-          )}
+          {/* Background decoration */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] opacity-[0.03] pointer-events-none select-none font-display text-[20vw] whitespace-nowrap overflow-hidden">
+             NAMTAN FILM LUNA COLLAB
+          </div>
         </div>
       </div>
 

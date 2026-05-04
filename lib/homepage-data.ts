@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
+import { Database } from './database.types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-const db = createClient(supabaseUrl, supabaseKey);
+const db = createClient<Database>(supabaseUrl, supabaseKey);
 
 const ARTISTS = ['namtan', 'film', 'luna'] as const;
 type Artist = (typeof ARTISTS)[number];
@@ -57,8 +58,13 @@ export interface HomeArtistProfile {
   birth_place_th?: string;
   education?: string;
   education_th?: string;
+  tagline?: string;
+  tagline_th?: string;
+  description?: string;
+  description_th?: string;
   instagram?: string;
   twitter?: string;
+  tiktok?: string;
   photo_url?: string | null;
 }
 
@@ -78,6 +84,27 @@ export interface HomeContentItem {
   ceremony?: string;
   magazine_name?: string;
   issue?: string;
+}
+
+/** Fashion event row — matches `fashion_events` (admin: /admin/fashion) */
+export interface HomeFashionEvent {
+  id: string;
+  event_name: string;
+  title_thai: string | null;
+  brands: string[];
+  location: string | null;
+  category: string;
+  actors: string[];
+  hashtag: string | null;
+  engagement: number | null;
+  emv: number | null;
+  miv: number | null;
+  event_date: string | null;
+  image_url: string | null;
+  look_count: number;
+  in_highlight: boolean;
+  sort_order: number;
+  visible: boolean;
 }
 
 export interface HomeScheduleEvent {
@@ -171,7 +198,7 @@ export interface HomePageData {
   challenges:         unknown[];
   prizes:             unknown[];
   timelineItems:      HomeTimelineItem[];
-  fashionItems:       HomeContentItem[];
+  fashionEvents:      HomeFashionEvent[];
   awardsItems:        HomeContentItem[];
   allContent:         HomeContentItem[];
   homepageConfig:     Record<string, SectionConfig>;
@@ -195,16 +222,16 @@ export async function fetchHomeData(): Promise<HomePageData> {
   function normaliseConfig(raw: Record<string, unknown>): Record<string, SectionConfig> {
     const defaults: Record<string, SectionConfig> = {
       about:      { enabled: true, order: 1 },
-      stats:      { enabled: true, order: 2 },
-      brands:     { enabled: true, order: 3 },
-      profile:    { enabled: true, order: 4 },
-      schedule:   { enabled: true, order: 5 },
-      content:    { enabled: true, order: 6 },
-      fashion:    { enabled: true, order: 7 },
-      awards:     { enabled: true, order: 8 },
+      content:    { enabled: true, order: 2 },
+      schedule:   { enabled: true, order: 3 },
+      challenges: { enabled: true, order: 4 },
+      stats:      { enabled: true, order: 5 },
+      brands:     { enabled: true, order: 6 },
+      profile:    { enabled: true, order: 7 },
+      fashion:    { enabled: true, order: 8 },
       timeline:   { enabled: true, order: 9 },
       mediaTags:  { enabled: true, order: 10 },
-      challenges: { enabled: true, order: 11 },
+      awards:     { enabled: true, order: 11 },
       prizes:     { enabled: true, order: 12 },
     };
     if (!raw || Object.keys(raw).length === 0) return defaults;
@@ -236,7 +263,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
   const needPrizes = isEnabled('prizes');
 
   const needProfiles = needStats || needBrands || needProfile;
-  const needAllContent = needContent || needFashion || needAwards;
+  const needAllContent = needContent || needAwards;
 
   const [
     heroSlidesRes,
@@ -255,6 +282,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
     prizesResMaybe,
     timelineResMaybe,
     allContentResMaybe,
+    fashionEventsResMaybe,
   ] = await Promise.allSettled([
     db.from('hero_slides').select('*').eq('enabled', true).order('sort_order'),
     needStats ? db.from('artist_follower_snapshots').select('*').order('recorded_date', { ascending: true }) : Promise.resolve({ data: [] }),
@@ -272,6 +300,14 @@ export async function fetchHomeData(): Promise<HomePageData> {
     needPrizes ? db.from('prize_draws').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: [] }),
     needTimeline ? db.from('timeline_items').select('*').eq('visible', true).order('year', { ascending: false }).order('sort_order', { ascending: true }) : Promise.resolve({ data: [] }),
     needAllContent ? db.from('content_items').select('*').eq('visible', true).order('year', { ascending: false }).order('sort_order', { ascending: true }) : Promise.resolve({ data: [] }),
+    needFashion
+      ? db
+          .from('fashion_events')
+          .select('*')
+          .eq('visible', true)
+          .order('sort_order', { ascending: true })
+          .order('event_date', { ascending: false, nullsFirst: false })
+      : Promise.resolve({ data: [] }),
   ]);
 
   const heroSlides = heroSlidesRes.status === 'fulfilled' ? (heroSlidesRes.value.data as HomeHeroSlide[] ?? []) : [];
@@ -293,7 +329,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
   const snapshotHistory = Object.values(historyByDate).sort((a, b) => (a.date as string).localeCompare(b.date as string));
   const allPosts = igPostsResMaybe.status === 'fulfilled' ? (igPostsResMaybe.value.data ?? []) : [];
   const igPostsMap: Record<string, HomeIgPost[]> = { namtan: [], film: [], luna: [] };
-  ARTISTS.forEach(a => { igPostsMap[a] = allPosts.filter((p: HomeIgPost) => p.artist === a).slice(0, 6); });
+  ARTISTS.forEach(a => { igPostsMap[a] = allPosts.filter((p: any) => p.artist === a).slice(0, 6) as HomeIgPost[]; });
 
   const engData: HomeEngData = {
     latestSnapshots: latestMap,
@@ -310,8 +346,8 @@ export async function fetchHomeData(): Promise<HomePageData> {
     ? (fanCountriesResMaybe.value.data as CountryRow[] ?? []).map(r => ({ name: r.country, value: r.percentage, color: r.color }))
     : [];
 
-  const featuredSeries = featuredSeriesResMaybe.status === 'fulfilled' ? (featuredSeriesResMaybe.value.data?.[0] as HomeContentItem ?? null) : null;
-  const featuredMusic = featuredMusicResMaybe.status === 'fulfilled' ? (featuredMusicResMaybe.value.data?.[0] as HomeContentItem ?? null) : null;
+  const featuredSeries = featuredSeriesResMaybe.status === 'fulfilled' ? (featuredSeriesResMaybe.value.data?.[0] as unknown as HomeContentItem ?? null) : null;
+  const featuredMusic = featuredMusicResMaybe.status === 'fulfilled' ? (featuredMusicResMaybe.value.data?.[0] as unknown as HomeContentItem ?? null) : null;
   const ntSeries = ntSeriesResMaybe.status === 'fulfilled' ? (ntSeriesResMaybe.value.count ?? null) : null;
   const flSeries = flSeriesResMaybe.status === 'fulfilled' ? (flSeriesResMaybe.value.count ?? null) : null;
 
@@ -333,7 +369,9 @@ export async function fetchHomeData(): Promise<HomePageData> {
     : [];
 
   const allContent = allContentResMaybe.status === 'fulfilled' ? (allContentResMaybe.value.data as HomeContentItem[] ?? []) : [];
-  const fashionItems = allContent.filter(c => c.content_type === 'magazine').slice(0, 6);
+  const fashionEvents = fashionEventsResMaybe.status === 'fulfilled'
+    ? (fashionEventsResMaybe.value.data as HomeFashionEvent[] ?? [])
+    : [];
   const awardsItems = allContent.filter(c => c.content_type === 'award').slice(0, 6);
   const defaultHeroConfig: HeroBannerConfig = { type: 'cinematic', showScrollHint: true };
   const heroBannerConfig = (settings.heroBanner as HeroBannerConfig) || defaultHeroConfig;
@@ -355,7 +393,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
     challenges: challengesResMaybe.status === 'fulfilled' ? (challengesResMaybe.value.data as unknown[] ?? []) : [],
     prizes: prizesResMaybe.status === 'fulfilled' ? (prizesResMaybe.value.data as unknown[] ?? []) : [],
     timelineItems,
-    fashionItems,
+    fashionEvents,
     awardsItems,
     allContent,
     homepageConfig,

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -31,6 +31,7 @@ export default function ChallengesPage() {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const supabase = createSupabaseBrowser();
 
   useEffect(() => {
@@ -55,9 +56,14 @@ export default function ChallengesPage() {
     fetchData();
   }, [user, supabase]);
 
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const timeLeft = (endDate: string | null) => {
     if (!endDate) return null;
-    const diff = new Date(endDate).getTime() - Date.now();
+    const diff = new Date(endDate).getTime() - nowMs;
     if (diff <= 0) return 'หมดเวลา';
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     if (days > 0) return `เหลือ ${days} วัน`;

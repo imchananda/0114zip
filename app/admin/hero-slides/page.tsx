@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { HeroSlide } from '@/components/hero/HeroSlider';
+import type { HeroBannerConfig } from '@/lib/homepage-data';
 
 const BLANK: Omit<HeroSlide, 'id'> = {
   title: '',
@@ -53,6 +54,9 @@ export default function HeroSlidesAdminPage() {
   const [uploadPct, setUploadPct]     = useState<number | null>(null);
   const [toast, setToast]             = useState<{ msg: string; ok: boolean } | null>(null);
   const [themeFilter, setThemeFilter] = useState<'all' | 'light' | 'dark'>('all');
+  const [activeTab, setActiveTab]     = useState<'banner' | 'slides'>('banner');
+  const [bannerConfig, setBannerConfig] = useState<HeroBannerConfig>({ type: 'cinematic', showScrollHint: true });
+  const [savingBanner, setSavingBanner] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const showToast = useCallback((msg: string, ok = true) => {
@@ -63,10 +67,15 @@ export default function HeroSlidesAdminPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/hero-slides', { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      setSlides(Array.isArray(data) ? data : []);
+      const [slidesRes, settingsRes] = await Promise.all([
+        fetch('/api/admin/hero-slides', { cache: 'no-store' }),
+        fetch('/api/admin/settings', { cache: 'no-store' })
+      ]);
+      if (!slidesRes.ok || !settingsRes.ok) throw new Error('HTTP Error');
+      const slidesData = await slidesRes.json();
+      const settingsData = await settingsRes.json();
+      setSlides(Array.isArray(slidesData) ? slidesData : []);
+      setBannerConfig(settingsData.heroBanner || { type: 'cinematic', showScrollHint: true });
     } catch (e) {
       showToast(`โหลดข้อมูลไม่สำเร็จ: ${e instanceof Error ? e.message : 'unknown'}`, false);
     } finally {
@@ -74,7 +83,10 @@ export default function HeroSlidesAdminPage() {
     }
   }, [showToast]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [load]);
 
   const openNew = (template: Omit<HeroSlide, 'id'> = BLANK) => {
     setIsNew(true);
@@ -143,7 +155,7 @@ export default function HeroSlidesAdminPage() {
     }
     setSaving(true);
     try {
-      const { id, ...rest } = editing;
+      const { ...rest } = editing;
       const payload = isNew ? rest : editing;
       const res = await fetch('/api/admin/hero-slides', {
         method: isNew ? 'POST' : 'PUT',
@@ -168,6 +180,23 @@ export default function HeroSlidesAdminPage() {
       showToast(`บันทึกไม่สำเร็จ: ${err instanceof Error ? err.message : 'unknown'}`, false);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveBanner = async () => {
+    setSavingBanner(true);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'heroBanner', value: bannerConfig }),
+      });
+      if (!res.ok) throw new Error();
+      showToast('บันทึกการตั้งค่าแบนเนอร์สำเร็จ ✓');
+    } catch {
+      showToast('บันทึกไม่สำเร็จ', false);
+    } finally {
+      setSavingBanner(false);
     }
   };
 
@@ -244,13 +273,15 @@ export default function HeroSlidesAdminPage() {
             className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors flex items-center gap-2 w-fit">
             ← Back to Dashboard
           </Link>
-          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">🖼️ Hero Slides</h1>
-          <p className="text-sm text-[var(--color-text-muted)]">จัดการภาพสไลด์แบนเนอร์หน้าหลัก — เพิ่ม ลบ แก้ไข เปิด/ปิด เรียงลำดับ และกำหนด Theme</p>
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">🖼️ Hero Banner & Slides</h1>
+          <p className="text-sm text-[var(--color-text-muted)]">จัดการรูปแบบแบนเนอร์และภาพสไลด์แบนเนอร์หน้าหลัก</p>
         </div>
-        <button onClick={() => openNew()}
-          className="px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity shrink-0">
-          + เพิ่ม Slide ใหม่
-        </button>
+        {activeTab === 'slides' && (
+          <button onClick={() => openNew()}
+            className="px-4 py-2 rounded-lg bg-[var(--color-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity shrink-0">
+            + เพิ่ม Slide ใหม่
+          </button>
+        )}
       </div>
 
       {/* Toast */}
@@ -263,27 +294,131 @@ export default function HeroSlidesAdminPage() {
         </div>
       )}
 
-      {/* Theme tabs */}
-      <div className="mb-5 flex items-center gap-2 flex-wrap">
-        {(['all', 'light', 'dark'] as const).map(key => {
-          const label = key === 'all' ? '🗂️ ทั้งหมด' : key === 'light' ? '☀️ Light' : '🌙 Dark';
-          const count = key === 'all' ? slides.length : slides.filter(s => s.theme === key || s.theme === 'both').length;
-          return (
-            <button key={key} onClick={() => setThemeFilter(key)}
-              className={`px-4 py-1.5 rounded-full text-sm border transition-all ${
-                themeFilter === key
-                  ? 'bg-[var(--color-accent)] text-white border-transparent'
-                  : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]'
-              }`}>
-              {label} <span className="opacity-60 text-xs">({count})</span>
-            </button>
-          );
-        })}
-        <button onClick={load}
-          className="ml-auto text-xs px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent)] transition-all">
-          🔄 รีเฟรช
+      {/* Tabs */}
+      <div className="flex gap-4 border-b border-[var(--color-border)] mb-6">
+        <button
+          onClick={() => setActiveTab('banner')}
+          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === 'banner'
+              ? 'border-[var(--color-accent)] text-[var(--color-text-primary)]'
+              : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+          }`}
+        >
+          ⚙️ รูปแบบแบนเนอร์
+        </button>
+        <button
+          onClick={() => setActiveTab('slides')}
+          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
+            activeTab === 'slides'
+              ? 'border-[var(--color-accent)] text-[var(--color-text-primary)]'
+              : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
+          }`}
+        >
+          🖼️ จัดการรูปสไลด์
         </button>
       </div>
+
+      {/* BANNER SETTINGS TAB */}
+      {activeTab === 'banner' && (
+        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 space-y-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[var(--color-text-primary)]">รูปแบบแบนเนอร์</label>
+            <select
+              value={bannerConfig.type}
+              onChange={(e) => setBannerConfig(s => ({ ...s, type: e.target.value as HeroBannerConfig['type'] }))}
+              className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)]"
+            >
+              <option value="cinematic">✨ Cinematic (Interactive 3D Effect)</option>
+              <option value="slide">🖼️ Slideshow (เลื่อนสลับภาพอัตโนมัติ)</option>
+              <option value="video">🎥 Video Background</option>
+              <option value="image">📸 Static Image</option>
+            </select>
+          </div>
+
+          {bannerConfig.type === 'video' && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[var(--color-text-primary)]">URL ของวิดีโอ (MP4)</label>
+              <input
+                value={bannerConfig.videoUrl || ''}
+                onChange={(e) => setBannerConfig(s => ({ ...s, videoUrl: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)]"
+                placeholder="https://example.com/video.mp4"
+              />
+            </div>
+          )}
+
+          {bannerConfig.type === 'image' && (
+            <>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-[var(--color-text-primary)]">URL ของรูปภาพ</label>
+                <input
+                  value={bannerConfig.imageUrl || ''}
+                  onChange={(e) => setBannerConfig(s => ({ ...s, imageUrl: e.target.value }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)]"
+                  placeholder="/images/banners/banner.png"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-[var(--color-text-primary)]">ลิงก์เมื่อคลิกรูปภาพ (ปล่อยว่างได้)</label>
+                <input
+                  value={bannerConfig.clickUrl || ''}
+                  onChange={(e) => setBannerConfig(s => ({ ...s, clickUrl: e.target.value }))}
+                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-accent)]"
+                  placeholder="https://youtube.com/..."
+                />
+              </div>
+            </>
+          )}
+
+          <div className="flex items-center justify-between p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)]">
+            <div>
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">แสดงคำแนะนำการเลื่อนจอ (Scroll to Explore)</p>
+              <p className="text-xs text-[var(--color-text-muted)] mt-0.5">ไอคอนลูกศรเลื่อนลงบริเวณด้านล่างของจอ</p>
+            </div>
+            <button
+              onClick={() => setBannerConfig(s => ({ ...s, showScrollHint: !(s.showScrollHint ?? true) }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                (bannerConfig.showScrollHint ?? true) ? 'bg-green-500' : 'bg-[#444]'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                (bannerConfig.showScrollHint ?? true) ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t border-[var(--color-border)]">
+             <button onClick={saveBanner} disabled={savingBanner} className="px-6 py-2.5 rounded-lg bg-[var(--color-accent)] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50 min-w-[130px]">
+               {savingBanner ? '⏳ กำลังบันทึก...' : '💾 บันทึกการตั้งค่า'}
+             </button>
+          </div>
+        </div>
+      )}
+
+      {/* SLIDES TAB */}
+      {activeTab === 'slides' && (
+        <>
+          {/* Theme tabs */}
+          <div className="mb-5 flex items-center gap-2 flex-wrap">
+            {(['all', 'light', 'dark'] as const).map(key => {
+              const label = key === 'all' ? '🗂️ ทั้งหมด' : key === 'light' ? '☀️ Light' : '🌙 Dark';
+              const count = key === 'all' ? slides.length : slides.filter(s => s.theme === key || s.theme === 'both').length;
+              return (
+                <button key={key} onClick={() => setThemeFilter(key)}
+                  className={`px-4 py-1.5 rounded-full text-sm border transition-all ${
+                    themeFilter === key
+                      ? 'bg-[var(--color-accent)] text-white border-transparent'
+                      : 'bg-[var(--color-panel)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]'
+                  }`}>
+                  {label} <span className="opacity-60 text-xs">({count})</span>
+                </button>
+              );
+            })}
+            <button onClick={load}
+              className="ml-auto text-xs px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-accent)] transition-all">
+              🔄 รีเฟรช
+            </button>
+          </div>
 
       {/* Slide list */}
       {loading ? (
@@ -357,6 +492,8 @@ export default function HeroSlidesAdminPage() {
             );
           })}
         </div>
+      )}
+        </>
       )}
 
       {/* Modal */}

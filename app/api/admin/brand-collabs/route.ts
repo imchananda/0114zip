@@ -4,8 +4,6 @@ import { verifyAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-const ALLOWED_CATEGORIES  = ['Beauty', 'Fashion', 'Food', 'Tech', 'Lifestyle', 'Entertainment', 'Other'];
-const ALLOWED_COLLAB_TYPES = ['ambassador', 'endorsement', 'one_time', 'event'];
 const ALLOWED_ARTISTS     = ['namtan', 'film', 'luna'];
 
 // GET /api/admin/brand-collabs?artist=namtan

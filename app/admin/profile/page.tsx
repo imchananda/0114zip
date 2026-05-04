@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { createSupabaseBrowser } from '@/lib/supabase';
 
 interface ActorProfile {
@@ -16,8 +17,13 @@ interface ActorProfile {
   birth_place_th: string;
   education: string;
   education_th: string;
+  tagline: string;
+  tagline_th: string;
+  description: string;
+  description_th: string;
   instagram: string;
   twitter: string;
+  tiktok: string;
   photo_url?: string | null;
 }
 
@@ -34,8 +40,13 @@ const DEFAULT_PROFILES: ActorProfile[] = [
     birth_place_th: 'กรุงเทพมหานคร ประเทศไทย',
     education: 'Srinakharinwirot University (Faculty of Fine Arts)',
     education_th: 'มหาวิทยาลัยศรีนครินทรวิโรฒ (คณะศิลปกรรมศาสตร์)',
+    tagline: 'A gentle soul with endless passion, bringing warmth and smiles to everyone.',
+    tagline_th: 'จิตวิญญาณอันอ่อนโยน เปี่ยมด้วยความหลงใหล นำพาความอบอุ่นและรอยยิ้มสู่ทุกคน',
+    description: 'Deeply Felt. Perfectly Portrayed.',
+    description_th: 'เข้าถึงทุกความรู้สึก ลึกซึ้งทุกตัวตน',
     instagram: 'namtan.tipnaree',
     twitter: 'NamtanTipnaree',
+    tiktok: 'namtantipnaree',
   },
   {
     id: 'film',
@@ -49,8 +60,13 @@ const DEFAULT_PROFILES: ActorProfile[] = [
     birth_place_th: 'กรุงเทพมหานคร ประเทศไทย',
     education: 'King Mongkut\'s University of Technology Thonburi',
     education_th: 'มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี',
+    tagline: 'A bright spirit full of energy, inspiring everyone with her creativity and positivity.',
+    tagline_th: 'จิตวิญญาณที่สดใส เปี่ยมด้วยพลัง สร้างแรงบันดาลใจให้ทุกคนด้วยความคิดสร้างสรรค์และพลังบวก',
+    description: 'Rising star with versatile talent.',
+    description_th: 'ดาวรุ่งพุ่งแรงแห่ง GMMTV',
     instagram: 'fr.racha',
     twitter: 'filmrachanun',
+    tiktok: 'fr.racha99',
   }
 ];
 
@@ -119,7 +135,7 @@ export default function AdminProfilePage() {
               <div className="flex items-center gap-4">
                 <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl overflow-hidden shrink-0 ${profile.id === 'namtan' ? 'bg-[var(--namtan-teal)] text-white' : 'bg-amber-400 text-amber-900'}`}>
                   {profile.photo_url ? (
-                    <img src={profile.photo_url} alt={profile.nickname} className="w-full h-full object-cover" />
+                    <Image src={profile.photo_url} alt={profile.nickname} width={56} height={56} className="w-full h-full object-cover" />
                   ) : (
                     profile.nickname_th[0]
                   )}
@@ -132,16 +148,21 @@ export default function AdminProfilePage() {
             </div>
 
             <div className="p-5 space-y-4">
+              <InfoRow label="แท็กไลน์" value={profile.tagline_th || profile.tagline} />
+              <InfoRow label="คำอธิบาย" value={profile.description_th || profile.description} />
               <InfoRow label="วันเกิด" value={`${profile.birth_date_th} (${profile.birth_date})`} />
               <InfoRow label="สถานที่เกิด" value={profile.birth_place_th} />
               <InfoRow label="การศึกษา" value={profile.education_th} />
               
-              <div className="pt-3 mt-3 border-t border-[var(--color-border)] flex gap-4 text-sm">
+              <div className="pt-3 mt-3 border-t border-[var(--color-border)] flex flex-wrap gap-4 text-sm">
                 {profile.instagram && (
                   <span className="text-[var(--color-text-secondary)]">📸 IG: @{profile.instagram}</span>
                 )}
                 {profile.twitter && (
                   <span className="text-[var(--color-text-secondary)]">🐦 X: @{profile.twitter}</span>
+                )}
+                {profile.tiktok && (
+                  <span className="text-[var(--color-text-secondary)]">🎵 TikTok: @{profile.tiktok}</span>
                 )}
               </div>
 
@@ -229,8 +250,6 @@ function EditProfileModal({ profile, onClose, onSave, saving, supabase }: {
     onSave({ ...form, photo_url: data.publicUrl });
   };
 
-  const accentColor = form.id === 'namtan' ? 'var(--namtan-teal)' : '#f59e0b';
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
       <div
@@ -248,9 +267,9 @@ function EditProfileModal({ profile, onClose, onSave, saving, supabase }: {
             {/* Preview */}
             <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 border-2 border-[var(--color-border)] bg-black/20 flex items-center justify-center">
               {previewUrl ? (
-                <img src={previewUrl} alt="preview" className="w-full h-full object-cover object-top" />
+                <Image src={previewUrl} alt="preview" width={96} height={96} className="w-full h-full object-cover object-top" />
               ) : form.photo_url ? (
-                <img src={form.photo_url} alt={form.nickname} className="w-full h-full object-cover object-top" />
+                <Image src={form.photo_url} alt={form.nickname} width={96} height={96} className="w-full h-full object-cover object-top" />
               ) : (
                 <span className="text-3xl text-[var(--color-text-muted)]">🎭</span>
               )}
@@ -305,6 +324,20 @@ function EditProfileModal({ profile, onClose, onSave, saving, supabase }: {
              <input value={form.full_name_th} onChange={(e) => setForm(f => ({ ...f, full_name_th: e.target.value }))} className="input-field" />
           </Field>
 
+          <SectionTitle>แท็กไลน์ & คำอธิบาย (แสดงบนการ์ดโปรไฟล์)</SectionTitle>
+          <Field label="แท็กไลน์ (EN)">
+             <textarea value={form.tagline} onChange={(e) => setForm(f => ({ ...f, tagline: e.target.value }))} className="input-field min-h-[60px]" placeholder="A gentle soul with endless passion..." />
+          </Field>
+          <Field label="แท็กไลน์ (TH)">
+             <textarea value={form.tagline_th} onChange={(e) => setForm(f => ({ ...f, tagline_th: e.target.value }))} className="input-field min-h-[60px]" placeholder="จิตวิญญาณอันอ่อนโยน..." />
+          </Field>
+          <Field label="คำอธิบาย (EN)">
+             <textarea value={form.description} onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))} className="input-field min-h-[60px]" placeholder="Deeply Felt. Perfectly Portrayed." />
+          </Field>
+          <Field label="คำอธิบาย (TH)">
+             <textarea value={form.description_th} onChange={(e) => setForm(f => ({ ...f, description_th: e.target.value }))} className="input-field min-h-[60px]" placeholder="เข้าถึงทุกความรู้สึก..." />
+          </Field>
+
           <SectionTitle>วันเกิด / สถานที่เกิด</SectionTitle>
           <Field label="วันเกิด (EN)">
              <input value={form.birth_date} onChange={(e) => setForm(f => ({ ...f, birth_date: e.target.value }))} className="input-field" />
@@ -338,6 +371,12 @@ function EditProfileModal({ profile, onClose, onSave, saving, supabase }: {
              <div className="flex">
                <span className="px-3 py-2 bg-black/40 border border-t-[var(--color-border)] border-b-[var(--color-border)] border-l-[var(--color-border)] rounded-l-lg text-[var(--color-text-muted)] text-sm">@</span>
                <input value={form.twitter} onChange={(e) => setForm(f => ({ ...f, twitter: e.target.value }))} className="input-field !rounded-l-none !border-l-0" />
+             </div>
+          </Field>
+          <Field label="TikTok (ID/Username)">
+             <div className="flex">
+               <span className="px-3 py-2 bg-black/40 border border-t-[var(--color-border)] border-b-[var(--color-border)] border-l-[var(--color-border)] rounded-l-lg text-[var(--color-text-muted)] text-sm">@</span>
+               <input value={form.tiktok} onChange={(e) => setForm(f => ({ ...f, tiktok: e.target.value }))} className="input-field !rounded-l-none !border-l-0" />
              </div>
           </Field>
         </div>

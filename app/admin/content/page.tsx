@@ -69,7 +69,10 @@ export default function ContentManagementPage() {
     setLoading(false);
   }, [filter]);
 
-  useEffect(() => { fetchContent(); }, [fetchContent]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchContent(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [fetchContent]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('ลบรายการนี้?')) return;

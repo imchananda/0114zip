@@ -1,0 +1,41 @@
+﻿app/[locale]/challenges/page.tsx(52,59): error TS7006: Parameter 'e' implicitly has an 'any' type.
+app/[locale]/community/page.tsx(46,48): error TS7006: Parameter 'l' implicitly has an 'any' type.
+app/[locale]/community/page.tsx(47,28): error TS7006: Parameter 'p' implicitly has an 'any' type.
+app/api/admin/analytics/route.ts(30,22): error TS7006: Parameter 'v' implicitly has an 'any' type.
+app/api/admin/analytics/route.ts(43,25): error TS7006: Parameter 'v' implicitly has an 'any' type.
+app/api/admin/analytics/route.ts(58,22): error TS7006: Parameter 'v' implicitly has an 'any' type.
+app/api/admin/notifications/route.ts(87,37): error TS7006: Parameter 'u' implicitly has an 'any' type.
+components/notifications/NotificationBell.tsx(64,11): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+context/AuthContext.tsx(93,65): error TS7006: Parameter 'event' implicitly has an 'any' type.
+context/AuthContext.tsx(93,72): error TS7006: Parameter 'session' implicitly has an 'any' type.
+lib/homepage-data.ts(332,26): error TS2322: Type '{ artist: string; emv: number; post_date: string; }[]' is not assignable to type 'HomeIgPost[]'.
+  Type '{ artist: string; emv: number; post_date: string; }' is not assignable to type 'HomeIgPost'.
+    Types of property 'artist' are incompatible.
+      Type 'string' is not assignable to type '"film" | "namtan" | "luna"'.
+lib/homepage-data.ts(332,58): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(predicate: (value: { artist: string; emv: number; post_date: string; }, index: number, array: { artist: string; emv: number; post_date: string; }[]) => value is { artist: string; emv: number; post_date: string; }, thisArg?: any): { ...; }[]', gave the following error.
+    Argument of type '(p: HomeIgPost) => boolean' is not assignable to parameter of type '(value: { artist: string; emv: number; post_date: string; }, index: number, array: { artist: string; emv: number; post_date: string; }[]) => value is { artist: string; emv: number; post_date: string; }'.
+      Types of parameters 'p' and 'value' are incompatible.
+        Type '{ artist: string; emv: number; post_date: string; }' is not assignable to type 'HomeIgPost'.
+          Types of property 'artist' are incompatible.
+            Type 'string' is not assignable to type '"film" | "namtan" | "luna"'.
+  Overload 2 of 2, '(predicate: (value: { artist: string; emv: number; post_date: string; }, index: number, array: { artist: string; emv: number; post_date: string; }[]) => unknown, thisArg?: any): { artist: string; emv: number; post_date: string; }[]', gave the following error.
+    Argument of type '(p: HomeIgPost) => boolean' is not assignable to parameter of type '(value: { artist: string; emv: number; post_date: string; }, index: number, array: { artist: string; emv: number; post_date: string; }[]) => unknown'.
+      Types of parameters 'p' and 'value' are incompatible.
+        Type '{ artist: string; emv: number; post_date: string; }' is not assignable to type 'HomeIgPost'.
+          Types of property 'artist' are incompatible.
+            Type 'string' is not assignable to type '"film" | "namtan" | "luna"'.
+lib/homepage-data.ts(349,75): error TS2352: Conversion of type '{ actors: string[] | null; award_name: string | null; award_name_thai: string | null; brand_collab_id: number | null; ceremony: string | null; content_type: string; created_at: string | null; ... 19 more ...; year: number | null; } | undefined' to type 'HomeContentItem' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ actors: string[] | null; award_name: string | null; award_name_thai: string | null; brand_collab_id: number | null; ceremony: string | null; content_type: string; created_at: string | null; ... 19 more ...; year: number | null; }' is not comparable to type 'HomeContentItem'.
+    Types of property 'links' are incompatible.
+      Type 'Json' is not comparable to type '{ platform: string; url: string; }[] | undefined'.
+        Type 'Json[]' is not comparable to type '{ platform: string; url: string; }[]'.
+          Type 'Json' is not comparable to type '{ platform: string; url: string; }'.
+            Type 'Json[]' is missing the following properties from type '{ platform: string; url: string; }': platform, url
+lib/homepage-data.ts(350,73): error TS2352: Conversion of type '{ actors: string[] | null; award_name: string | null; award_name_thai: string | null; brand_collab_id: number | null; ceremony: string | null; content_type: string; created_at: string | null; ... 19 more ...; year: number | null; } | undefined' to type 'HomeContentItem' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ actors: string[] | null; award_name: string | null; award_name_thai: string | null; brand_collab_id: number | null; ceremony: string | null; content_type: string; created_at: string | null; ... 19 more ...; year: number | null; }' is not comparable to type 'HomeContentItem'.
+    Types of property 'links' are incompatible.
+      Type 'Json' is not comparable to type '{ platform: string; url: string; }[] | undefined'.
+        Type 'Json[]' is not comparable to type '{ platform: string; url: string; }[]'.
+          Type 'Json' is not comparable to type '{ platform: string; url: string; }'.
+            Type 'Json[]' is missing the following properties from type '{ platform: string; url: string; }': platform, url

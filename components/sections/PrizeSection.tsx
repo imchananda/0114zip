@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useViewState } from '@/context/ViewStateContext';
+import { useTranslations } from 'next-intl';
 
 interface Prize {
   id: string;
@@ -17,19 +18,20 @@ interface Prize {
 }
 
 const PLACEHOLDER_PRIZES: Prize[] = [
-  { id: '1', title: 'Grand Meet & Greet', description: 'ได้พบ Namtan & Film ตัวต่อตัว', value: '2 รางวัล', deadline: '30 เม.ย. 2026', status: 'open', emoji: '🎤' },
-  { id: '2', title: 'Signed Photobook', description: 'โฟโต้บุ๊คลายเซ็นต์จริงจาก Namtan', value: '5 รางวัล', deadline: '20 เม.ย. 2026', status: 'open', emoji: '📗' },
-  { id: '3', title: 'VIP Concert Tickets', description: 'บัตรคอนเสิร์ต VIP ชั้น 1 จำนวน 2 ที่นั่ง', value: '3 รางวัล', deadline: '15 เม.ย. 2026', status: 'open', emoji: '🎫' },
+  { id: '1', title: 'Grand Meet & Greet', description: 'Exclusive 1-on-1 session with Namtan & Film', value: '2 Prizes', deadline: '30 APR 2026', status: 'open', emoji: '🎤' },
+  { id: '2', title: 'Signed Photobook', description: 'Official photobook with hand-signed message from Namtan', value: '5 Prizes', deadline: '20 APR 2026', status: 'open', emoji: '📗' },
+  { id: '3', title: 'VIP Concert Tickets', description: 'Front-row VIP seats for the upcoming anniversary concert', value: '3 Prizes', deadline: '15 APR 2026', status: 'open', emoji: '🎫' },
 ];
 
-const STATUS_STYLE: Record<string, { label: string; bg: string; text: string }> = {
-  open:       { label: 'เปิดรับ', bg: 'bg-green-500/10', text: 'text-green-500' },
-  closed:     { label: 'ปิดรับ', bg: 'bg-red-500/10', text: 'text-red-400' },
-  announced:  { label: 'ประกาศผล', bg: 'bg-[#fbdf74]/10', text: 'text-[#fbdf74]' },
+const STATUS_STYLE: Record<string, { label: string; color: string }> = {
+  open:       { label: 'OPEN',       color: '#22C55E' },
+  closed:     { label: 'CLOSED',     color: '#EF4444' },
+  announced:  { label: 'ANNOUNCED',  color: 'var(--film-gold)' },
 };
 
 export function PrizeSection({ initialPrizes }: { initialPrizes?: Prize[] } = {}) {
-  const { state } = useViewState();
+  useViewState();
+  const t = useTranslations();
   const [prizes, setPrizes] = useState<Prize[]>(initialPrizes ?? PLACEHOLDER_PRIZES);
 
   useEffect(() => {
@@ -40,32 +42,47 @@ export function PrizeSection({ initialPrizes }: { initialPrizes?: Prize[] } = {}
         if (Array.isArray(data) && data.length > 0) setPrizes(data);
       })
       .catch(() => {});
-  }, []);
+  }, [initialPrizes]);
 
   return (
-    <section id="prizes" className="py-16 md:py-24">
-      <div className="container mx-auto px-6 md:px-12">
-        <motion.div
-          className="flex items-center justify-between mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
+    <section id="prizes" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative">
+      <div className="container mx-auto px-6 md:px-12 max-w-6xl">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row items-baseline justify-between mb-12 md:mb-16 pb-6 border-b border-theme/40">
           <div>
-            <h2 className="text-2xl md:text-3xl font-medium text-[var(--color-text)]">
-              🎁 Prizes &amp; Giveaways
-            </h2>
-            <p className="text-[var(--color-muted)] text-sm mt-1">
-              ของรางวัลพิเศษสำหรับแฟนคลับ
-            </p>
+            <motion.p 
+              initial={{ opacity: 0, y: 5 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]"
+            >
+              {t('prizes.sub')}
+            </motion.p>
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="font-display text-4xl md:text-section text-primary leading-tight font-light"
+            >
+              {t('prizes.titleLine1')} <br className="md:hidden" />{t('prizes.titleLine2')}
+            </motion.h2>
           </div>
-          <Link href="/engage/prizes" className="text-sm text-[#fbdf74] hover:underline hidden sm:block">
-            ดูทั้งหมด →
+          <Link href="/engage/prizes" className="text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-accent transition-colors flex items-center gap-2 group mt-6 md:mt-0">
+             {t('prizes.winNow')} <span className="group-hover:translate-x-1 transition-transform">→</span>
           </Link>
-        </motion.div>
+        </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {prizes.map((prize, i) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {prizes.length === 0 ? (
+            <div className="col-span-full py-20 text-center bg-surface border border-theme/60 rounded-[2rem] opacity-60">
+              <p className="text-sm font-bold uppercase tracking-widest">{t('prizes.empty')}</p>
+              <Link href="/engage/prizes" className="inline-flex mt-5 text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-accent transition-colors">
+                {t('prizes.emptyAction')}
+              </Link>
+            </div>
+          ) : prizes.map((prize, i) => {
             const style = STATUS_STYLE[prize.status] ?? STATUS_STYLE.open;
             return (
               <motion.div
@@ -74,37 +91,44 @@ export function PrizeSection({ initialPrizes }: { initialPrizes?: Prize[] } = {}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 flex flex-col gap-3 hover:border-[var(--color-border-hover)] transition-colors"
+                className="group rounded-[2rem] border border-theme/60 bg-surface p-8 md:p-10 flex flex-col gap-6 hover:border-accent/40 hover:shadow-2xl transition-all duration-500 relative overflow-hidden"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-3xl">{prize.emoji}</span>
-                  <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${style.bg} ${style.text}`}>
-                    {style.label}
-                  </span>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-theme/5 rounded-bl-[4rem] flex items-center justify-center translate-x-4 -translate-y-4 group-hover:translate-x-0 group-hover:-translate-y-0 transition-transform duration-500">
+                  <span className="text-4xl grayscale-[0.2] group-hover:grayscale-0 transition-all">{prize.emoji}</span>
                 </div>
 
-                <div className="flex-1">
-                  <p className="font-semibold text-[var(--color-text-primary)] text-sm leading-tight mb-1">
+                <div>
+                  <span 
+                    className="text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1 rounded-full border border-theme/60"
+                    style={{ background: `${style.color}15`, color: style.color }}
+                  >
+                    {t(`prizes.status.${prize.status}` as 'prizes.status.open')}
+                  </span>
+                  <h3 className="text-xl md:text-2xl font-display text-primary mt-6 mb-3 leading-tight group-hover:text-accent transition-colors">
                     {prize.title}
-                  </p>
-                  <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+                  </h3>
+                  <p className="text-sm text-muted leading-relaxed font-body line-clamp-2 opacity-80">
                     {prize.description}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-[var(--color-text-muted)] pt-3 border-t border-[var(--color-border)]">
-                  <span>🎁 {prize.value}</span>
-                  <span>⏰ {prize.deadline}</span>
+                <div className="flex flex-col gap-2 mt-auto pt-6 border-t border-theme/40">
+                  <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.15em] text-muted">
+                    <span className="flex items-center gap-2">
+                      <span className="text-base opacity-60">🎁</span> {prize.value}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-bold uppercase tracking-[0.15em] text-muted">
+                    <span className="flex items-center gap-2">
+                      <span className="text-base opacity-60">⏰</span> {prize.deadline}
+                    </span>
+                  </div>
                 </div>
+
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-accent opacity-0 group-hover:opacity-100 transition-opacity" />
               </motion.div>
             );
           })}
-        </div>
-
-        <div className="mt-6 sm:hidden text-center">
-          <Link href="/engage/prizes" className="text-sm text-[#fbdf74] hover:underline">
-            ดูทั้งหมด →
-          </Link>
         </div>
       </div>
     </section>

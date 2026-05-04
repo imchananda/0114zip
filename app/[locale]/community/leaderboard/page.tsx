@@ -1,7 +1,7 @@
-﻿import { Suspense } from 'react';
-import Link from 'next/link';
+﻿import Link from 'next/link';
+import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
-import { Trophy, Medal, Star, Shield, ArrowLeft } from 'lucide-react';
+import { Trophy, Shield, ArrowLeft } from 'lucide-react';
 import { Header } from '@/components/navigation/Header';
 
 // Use service role for fetching users ranking since `public.users` might be read-only to public but we want to ensure full list
@@ -57,7 +57,6 @@ export default async function LeaderboardPage() {
                 <div className="p-12 text-center text-[var(--color-muted)]">ยับไมมีข้อมูลการจัดอันดับ</div>
               ) : (
                 users.map((user, idx) => {
-                  const isTop3 = idx < 3;
                   return (
                     <div 
                       key={user.id} 
@@ -78,7 +77,7 @@ export default async function LeaderboardPage() {
                       {/* Avatar */}
                       <div className="relative">
                         {user.avatar_url ? (
-                          <img src={user.avatar_url} alt={user.display_name} className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border-2 border-[var(--color-border)]" />
+                          <Image src={user.avatar_url} alt={user.display_name} width={64} height={64} className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border-2 border-[var(--color-border)]" />
                         ) : (
                           <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-[#6cbfd0]/20 flex items-center justify-center text-xl font-bold text-[#6cbfd0] border-2 border-[var(--color-border)]">
                             {user.display_name?.[0]?.toUpperCase() || '?'}

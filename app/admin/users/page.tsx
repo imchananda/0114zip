@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 
 interface UserItem {
@@ -68,7 +69,10 @@ export default function UserManagementPage() {
     setLoading(false);
   }, [page, search, roleFilter, isSuperAdmin]);
 
-  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+  useEffect(() => {
+    const id = window.setTimeout(() => { void fetchUsers(); }, 0);
+    return () => window.clearTimeout(id);
+  }, [fetchUsers]);
 
   // Debounced search
   const [searchInput, setSearchInput] = useState('');
@@ -220,7 +224,7 @@ export default function UserManagementPage() {
                 {/* Avatar */}
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6cbfd0] to-[#fbdf74] flex items-center justify-center text-[var(--color-text-primary)] text-sm font-medium overflow-hidden shrink-0">
                   {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                    <Image src={user.avatar_url} alt="" width={40} height={40} className="w-full h-full object-cover" />
                   ) : (
                     (user.display_name || '?')[0].toUpperCase()
                   )}
@@ -418,7 +422,7 @@ function EditUserModal({
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#6cbfd0] to-[#fbdf74] flex items-center justify-center text-[var(--color-text-primary)] text-lg font-medium overflow-hidden">
             {user.avatar_url ? (
-              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+              <Image src={user.avatar_url} alt="" width={48} height={48} className="w-full h-full object-cover" />
             ) : (
               (user.display_name || '?')[0].toUpperCase()
             )}

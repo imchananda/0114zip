@@ -589,28 +589,22 @@ export default function App() {
     <ViewStateProvider>
       <div className="min-h-screen bg-black text-white">
         <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
-          
-          * {
-            font-family: 'Inter', 'Noto Sans Thai', sans-serif;
-          }
-          
-          h1, h2, h3, h4, h5, h6 {
-            font-family: Georgia, serif;
-          }
-          
+          /* Fonts controlled in app/globals.css */
+          * { font-family: var(--font-body); }
+          h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); }
+
           @keyframes fade-in {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
           }
-          
+
           .animate-fade-in {
             animation: fade-in 0.8s ease-out forwards;
           }
-          
+
           .scrollbar-hide::-webkit-scrollbar { display: none; }
           .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-          
+
           ::selection {
             background: rgba(105, 188, 220, 0.3);
             color: white;

@@ -13,7 +13,7 @@ const redis = (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_R
  * Fallback empty rate limiter if variables are missing
  */
 const mockRateLimit = {
-  limit: async (ip: string) => ({
+  limit: async () => ({
     success: true,
     limit: 10,
     remaining: 9,

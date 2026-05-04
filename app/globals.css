@@ -7,6 +7,13 @@
 /* Header จัดการ bg เองผ่าน useTheme() ใน JSX — ไม่มี global override */
 
 
+/* Fonts
+   - Fraunces used for display headings (imported from Google Fonts)
+   - Body/Thai fonts are provided by next/font variables from app/layout.tsx
+*/
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,9 +22,9 @@
    CSS Custom Properties — theme-aware tokens
    ============================================================ */
 :root {
-  --font-display: 'Georgia', var(--font-noto-thai), Georgia, serif;
-  --font-thai:    var(--font-noto-thai), 'Noto Sans Thai', sans-serif;
-  --font-body:    var(--font-inter), var(--font-noto-thai), 'Inter', 'Noto Sans Thai', sans-serif;
+  --font-display: 'Fraunces', var(--font-noto-thai), Georgia, serif;
+  --font-thai:    var(--font-noto-thai), sans-serif;
+  --font-body:    var(--font-inter), 'Plus Jakarta Sans', var(--font-noto-thai), sans-serif;
 
   /* Brand */
   --namtan-teal:   #6cbfd0;
@@ -86,6 +93,39 @@
   --selection-bg:       rgba(108, 191, 208, 0.20);
   --color-footer-bg:    #ebe8de; /* Light Footer */
   --color-brands-bg:    #faf9f5; /* Light Brands Section */
+}
+
+/* Fashion block — premium ambient, full-width friendly (id #fashion lives on LandingSection) */
+.fashion-ambient {
+  position: relative;
+  isolation: isolate;
+}
+.fashion-ambient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 90% 45% at 50% 0%, rgba(34, 211, 238, 0.12) 0%, transparent 58%);
+}
+html.light .fashion-ambient::before {
+  background: radial-gradient(ellipse 90% 45% at 50% 0%, rgba(74, 154, 170, 0.12) 0%, transparent 58%);
+}
+.fashion-ambient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background: linear-gradient(180deg, transparent 0%, var(--color-bg) 100%);
+}
+html.light .fashion-ambient::after {
+  opacity: 0.35;
+}
+.fashion-ambient > .fashion-ambient-inner {
+  position: relative;
+  z-index: 1;
 }
 
 /* ============================================================

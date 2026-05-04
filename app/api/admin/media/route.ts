@@ -13,13 +13,6 @@ const ALLOWED_FIELDS = [
   'is_focus', 'is_visible',
 ];
 
-// Platform → media item type mapping
-const PLATFORM_TYPE: Record<string, string> = {
-  instagram: 'Social', x: 'Social', tiktok: 'Social',
-  threads: 'Social', weibo: 'Social', rednote: 'Social',
-  facebook: 'Social', youtube: 'Campaign',
-};
-
 // GET /api/admin/media
 export async function GET(req: NextRequest) {
   if (!(await verifyAdmin(req))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

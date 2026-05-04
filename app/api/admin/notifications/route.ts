@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     }
 
     // 3. Prepare bulk insert
-    const notifications = users.map(u => ({
+    const notifications = users.map((u: any) => ({
       user_id: u.id,
       type,
       title,

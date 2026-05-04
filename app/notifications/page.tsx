@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
-const supportedLocales = ['th', 'en', 'zh'];
+const supportedLocales = ['th', 'en'];
 const defaultLocale = 'th';
 
 function getPreferredLocale(acceptLanguage: string | null) {

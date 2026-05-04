@@ -6,7 +6,9 @@
     "node": "22.x"
   },
   "scripts": {
+    "clean": "node ./scripts/clean-build-cache.mjs",
     "dev": "next dev",
+    "dev:clean": "npm run clean && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -14,7 +16,6 @@
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
-    "@prisma/client": "^7.5.0",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.100.1",
     "@upstash/ratelimit": "^2.0.8",
@@ -42,7 +43,6 @@
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.4",
     "postcss": "^8.4.0",
-    "prisma": "^6.19.3",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.4.0"
   }

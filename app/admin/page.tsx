@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
+
 export default function AdminPage() {
   const { user, isAdmin, loading } = useAuth();
   const router = useRouter();

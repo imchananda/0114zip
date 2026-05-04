@@ -1,12 +1,14 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { Search, Film, Tv, Star, Megaphone, Trophy, ArrowLeft, ArrowUpDown, SlidersHorizontal } from 'lucide-react';
-import { useTranslations, useLocale } from 'next-intl';
+import type { LucideIcon } from 'lucide-react';
+import { useLocale } from 'next-intl';
 import { Mascot } from '@/components/mascot/Mascot';
+import { cn } from '@/lib/utils';
 
 interface ContentItem {
   id: string;
@@ -19,34 +21,33 @@ interface ContentItem {
   image?: string;
 }
 
-const TYPE_CONFIG: Record<string, { icon: typeof Tv | null; label: string; labelTh: string }> = {
-  all:      { icon: null,     label: 'All',       labelTh: 'ทั้งหมด' },
-  series:   { icon: Tv,       label: 'Series',    labelTh: 'ซีรีส์' },
-  variety:  { icon: Film,     label: 'Variety',   labelTh: 'วาไรตี้' },
-  event:    { icon: Megaphone, label: 'Events',   labelTh: 'อีเวนต์' },
-  magazine: { icon: Star,     label: 'Magazines', labelTh: 'นิตยสาร' },
-  award:    { icon: Trophy,   label: 'Awards',    labelTh: 'รางวัล' },
+const TYPE_CONFIG: Record<string, { icon: LucideIcon | null; label: string; labelTh: string }> = {
+  all:      { icon: null,      label: 'Full Archive', labelTh: 'ทั้งหมด' },
+  series:   { icon: Tv,        label: 'Series',       labelTh: 'ซีรีส์' },
+  variety:  { icon: Film,      label: 'Variety',      labelTh: 'วาไรตี้' },
+  event:    { icon: Megaphone, label: 'Events',       labelTh: 'อีเวนต์' },
+  magazine: { icon: Star,      label: 'Fashion',      labelTh: 'นิตยสาร' },
+  award:    { icon: Trophy,    label: 'Awards',       labelTh: 'รางวัล' },
 };
 
 const ACTOR_OPTIONS = [
-  { value: 'all',    label: 'ทุกคน (All)',          labelEn: 'All Artists' },
-  { value: 'both',   label: 'คู่ (Namtan × Film)',  labelEn: 'Together' },
-  { value: 'namtan', label: 'น้ำตาล (Namtan)',      labelEn: 'Namtan' },
-  { value: 'film',   label: 'ฟิล์ม (Film)',         labelEn: 'Film' },
+  { value: 'all',    label: 'All Artists', labelTh: 'ทุกคน' },
+  { value: 'both',   label: 'Together',    labelTh: 'ผลงานคู่' },
+  { value: 'namtan', label: 'Namtan',      labelTh: 'น้ำตาล' },
+  { value: 'film',   label: 'Film',        labelTh: 'ฟิล์ม' },
 ];
 
 type SortKey = 'year_desc' | 'year_asc' | 'name_asc' | 'name_desc';
 
-const SORT_OPTIONS: { value: SortKey; label: string; labelEn: string }[] = [
-  { value: 'year_desc', label: 'ปีล่าสุด → เก่าสุด', labelEn: 'Year: Newest' },
-  { value: 'year_asc',  label: 'ปีเก่าสุด → ล่าสุด', labelEn: 'Year: Oldest' },
-  { value: 'name_asc',  label: 'ชื่อ A → Z',        labelEn: 'Name: A → Z' },
-  { value: 'name_desc', label: 'ชื่อ Z → A',        labelEn: 'Name: Z → A' },
+const SORT_OPTIONS: { value: SortKey; label: string; labelTh: string }[] = [
+  { value: 'year_desc', label: 'Newest First', labelTh: 'ล่าสุด → เก่าสุด' },
+  { value: 'year_asc',  label: 'Oldest First', labelTh: 'เก่าสุด → ล่าสุด' },
+  { value: 'name_asc',  label: 'Name A-Z',     labelTh: 'ชื่อ A → Z' },
+  { value: 'name_desc', label: 'Name Z-A',     labelTh: 'ชื่อ Z → A' },
 ];
 
 export default function WorksPage() {
-  const t = useTranslations();
-  const language = useLocale();
+  const locale = useLocale();
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -54,7 +55,6 @@ export default function WorksPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   
-  // Filters
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [type, setType] = useState('all');
@@ -62,23 +62,13 @@ export default function WorksPage() {
   const [sort, setSort] = useState<SortKey>('year_desc');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Debounce search
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 300);
+    debounceRef.current = setTimeout(() => { setDebouncedSearch(search); }, 300);
     return () => clearTimeout(debounceRef.current);
   }, [search]);
 
-  // Reset and fetch on filter change
-  useEffect(() => {
-    setPage(1);
-    setItems([]);
-    fetchData(1, true);
-  }, [type, actor, debouncedSearch]);
-
-  const fetchData = async (pageNum: number, reset = false) => {
+  async function fetchData(pageNum: number, reset = false) {
     if (reset) setLoading(true); else setLoadingMore(true);
     try {
       const params = new URLSearchParams();
@@ -102,7 +92,16 @@ export default function WorksPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setPage(1);
+      setItems([]);
+      void fetchData(1, true);
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [type, actor, debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLoadMore = () => {
     const nextPage = page + 1;
@@ -110,293 +109,249 @@ export default function WorksPage() {
     fetchData(nextPage, false);
   };
 
-  // Client-side sort
   const sortedItems = useCallback(() => {
     const sorted = [...items];
     switch (sort) {
-      case 'year_desc':
-        sorted.sort((a, b) => b.year - a.year || a.title.localeCompare(b.title));
-        break;
-      case 'year_asc':
-        sorted.sort((a, b) => a.year - b.year || a.title.localeCompare(b.title));
-        break;
-      case 'name_asc':
-        sorted.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name_desc':
-        sorted.sort((a, b) => b.title.localeCompare(a.title));
-        break;
+      case 'year_desc': sorted.sort((a, b) => b.year - a.year || a.title.localeCompare(b.title)); break;
+      case 'year_asc':  sorted.sort((a, b) => a.year - b.year || a.title.localeCompare(b.title)); break;
+      case 'name_asc':  sorted.sort((a, b) => a.title.localeCompare(b.title)); break;
+      case 'name_desc': sorted.sort((a, b) => b.title.localeCompare(a.title)); break;
     }
     return sorted;
   }, [items, sort]);
 
   const displayItems = sortedItems();
-
-  const getActorColor = (actorsList: string[]) => {
-    if (actorsList.includes('namtan') && actorsList.includes('film')) {
-      return 'bg-amber-400 text-black';
-    }
-    if (actorsList.includes('namtan')) return 'bg-[#69BCDC] text-black';
-    if (actorsList.includes('film')) return 'bg-[#B1D182] text-black';
-    return 'bg-white/20 text-white';
-  };
-
-  const getActorLabel = (actorsList: string[]) => {
-    if (actorsList.includes('namtan') && actorsList.includes('film')) return 'น้ำตาล-ฟิล์ม';
-    if (actorsList.includes('namtan')) return 'น้ำตาล';
-    if (actorsList.includes('film')) return 'ฟิล์ม';
-    return 'None';
-  };
-
   const hasActiveFilters = type !== 'all' || actor !== 'all' || debouncedSearch !== '';
 
   return (
-    <main className="min-h-screen pt-24 pb-16 bg-gradient-to-b from-[#141413] to-[#30302e] border-t border-white/5">
+    <main className="min-h-screen pt-32 pb-24 bg-[var(--color-bg)] transition-colors duration-500">
       <div className="container mx-auto px-6 md:px-12 lg:px-20 max-w-7xl">
         
-        {/* Header */}
-        <div className="mb-12">
-          <Link href="/" className="inline-flex items-center gap-2 text-[#87867f] hover:text-white transition-colors mb-6 text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            {language === 'th' ? 'กลับหน้าหลัก' : 'Back to Home'}
+        {/* Header Section */}
+        <header className="mb-16">
+          <Link href="/" className="inline-flex items-center gap-2 text-muted hover:text-accent transition-all mb-8 text-[10px] font-bold uppercase tracking-[0.3em] group">
+            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
+            {locale === 'th' ? 'กลับหน้าหลัก' : 'Back to Home'}
           </Link>
           
-          <h1 className={`text-4xl md:text-5xl font-normal font-display text-white mb-4 ${language === 'th' ? 'font-thai' : ''}`}>
-            Explore <span className="bg-gradient-to-r from-namtan-primary to-[#fbdf74] bg-clip-text text-transparent">Works</span>
-          </h1>
-          <p className="text-[#87867f] max-w-2xl">
-            {language === 'th' 
-              ? 'ค้นพบและย้อนดูผลงานทั้งหมดของน้ำตาลและฟิล์ม ทั้งผลงานคู่และเดี่ยว ไม่ว่าจะเป็นซีรีส์ รายการวาไรตี้ หรืองานอีเวนต์' 
-              : 'Discover and look back at all works by Namtan and Film, both together and individual, including series, variety shows, and events.'}
-          </p>
-        </div>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-theme/40 pb-12">
+            <div>
+              <p className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]">Portfolio</p>
+              <h1 className="text-5xl md:text-7xl font-display text-primary leading-tight font-light">
+                Complete <span className="nf-gradient-text italic">Archive</span>
+              </h1>
+            </div>
+            <p className="text-muted max-w-sm text-sm leading-relaxed font-body opacity-80">
+              {locale === 'th' 
+                ? 'รวบรวมผลงานการแสดง ซีรีส์ วาไรตี้ และอีเวนต์ทั้งหมดของน้ำตาลและฟิล์มไว้ในที่เดียว' 
+                : 'A curated collection of all performances, series, variety shows, and events featuring Namtan and Film.'}
+            </p>
+          </div>
+        </header>
 
-        {/* Search + Filter Toggle */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#87867f]" />
-            <input 
-              type="text" 
-              placeholder={language === 'th' ? 'ค้นหาชื่อผลงาน...' : 'Search titles...'}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white placeholder-neutral-500 focus:outline-none focus:border-namtan-primary/60 transition-colors"
-            />
+        {/* Controls Bar */}
+        <div className="sticky top-20 z-30 bg-[var(--color-bg)]/80 backdrop-blur-xl py-6 mb-12 border-b border-theme/20">
+          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+            
+            {/* Search */}
+            <div className="w-full lg:max-w-md relative group">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-accent transition-colors" />
+              <input 
+                type="text" 
+                placeholder={locale === 'th' ? 'ค้นหาชื่อผลงาน...' : 'Search archive...'}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-surface border border-theme/60 rounded-full py-3.5 pl-12 pr-6 text-primary placeholder-muted/50 focus:outline-none focus:border-accent/40 focus:shadow-lg transition-all text-sm font-body"
+              />
+            </div>
+
+            {/* Desktop Filters */}
+            <div className="hidden lg:flex items-center gap-4">
+               {/* Actor Filter */}
+               <div className="flex p-1 bg-surface border border-theme/60 rounded-full shadow-sm">
+                  {ACTOR_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setActor(opt.value)}
+                      className={cn(
+                        "px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300",
+                        actor === opt.value ? "bg-primary text-deep-dark shadow-md" : "text-muted hover:text-primary"
+                      )}
+                    >
+                      {locale === 'th' ? opt.labelTh : opt.label}
+                    </button>
+                  ))}
+               </div>
+
+               {/* Sort Toggle */}
+               <div className="relative group/sort">
+                  <select
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value as SortKey)}
+                    className="appearance-none bg-surface border border-theme/60 rounded-full py-2.5 pl-10 pr-10 text-[10px] font-bold uppercase tracking-widest text-primary focus:outline-none focus:border-accent cursor-pointer shadow-sm"
+                  >
+                    {SORT_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{locale === 'th' ? opt.labelTh : opt.label}</option>
+                    ))}
+                  </select>
+                  <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 text-muted pointer-events-none" />
+               </div>
+            </div>
+
+            {/* Mobile Filter Toggle */}
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className="lg:hidden w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-full bg-surface border border-theme/60 text-xs font-bold uppercase tracking-[0.2em] text-primary"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              Filters {hasActiveFilters ? '•' : ''}
+            </button>
           </div>
 
-          {/* Filter Toggle (Mobile) */}
-          <button 
-            onClick={() => setShowFilters(!showFilters)}
-            className={`sm:hidden flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-sm font-medium border transition-all ${
-              showFilters || hasActiveFilters
-                ? 'bg-namtan-primary/10 border-namtan-primary/30 text-namtan-primary'
-                : 'bg-black/40 border-white/10 text-neutral-400'
-            }`}
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            ตัวกรอง {hasActiveFilters ? '●' : ''}
-          </button>
+          {/* Mobile Filter Expandable */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="lg:hidden overflow-hidden mt-6 space-y-4"
+              >
+                <div className="p-6 bg-surface border border-theme/60 rounded-3xl space-y-6">
+                   <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted mb-3">Artist</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {ACTOR_OPTIONS.map(opt => (
+                          <button key={opt.value} onClick={() => setActor(opt.value)} 
+                            className={cn("px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase border transition-all", actor === opt.value ? "bg-primary text-deep-dark border-primary" : "bg-panel border-theme/40 text-muted")}>
+                            {locale === 'th' ? opt.labelTh : opt.label}
+                          </button>
+                        ))}
+                      </div>
+                   </div>
+                   <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted mb-3">Sort Order</p>
+                      <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="w-full bg-panel border border-theme/40 rounded-xl p-3 text-xs font-bold uppercase text-primary">
+                         {SORT_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{locale === 'th' ? opt.labelTh : opt.label}</option>)}
+                      </select>
+                   </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Filter Row */}
-        <div className={`${showFilters ? 'flex' : 'hidden sm:flex'} flex-col sm:flex-row gap-4 mb-8`}>
-          {/* Type Filter */}
-          <select 
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            className="flex-1 bg-black/40 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-namtan-primary/60 appearance-none cursor-pointer text-sm"
-          >
-            {Object.entries(TYPE_CONFIG).map(([key, config]) => (
-              <option key={key} value={key} className="bg-[#141413]">
-                {language === 'th' ? config.labelTh : config.label}
-              </option>
-            ))}
-          </select>
-
-          {/* Actor Filter */}
-          <select 
-            value={actor}
-            onChange={(e) => setActor(e.target.value)}
-            className="flex-1 bg-black/40 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-namtan-primary/60 appearance-none cursor-pointer text-sm"
-          >
-            {ACTOR_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value} className="bg-[#141413]">
-                {language === 'th' ? opt.label : opt.labelEn}
-              </option>
-            ))}
-          </select>
-
-          {/* Sort */}
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
-            className="flex-1 bg-black/40 border border-white/10 rounded-2xl py-3 px-4 text-white focus:outline-none focus:border-namtan-primary/60 appearance-none cursor-pointer text-sm"
-          >
-            {SORT_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value} className="bg-[#141413]">
-                {language === 'th' ? opt.label : opt.labelEn}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Quick Type Toggles (Desktop only) */}
-        <div className="hidden md:flex flex-wrap gap-3 mb-6">
-          {Object.entries(TYPE_CONFIG).map(([key, config]) => {
-            const Icon = config.icon;
-            const active = type === key;
-            return (
-              <button
+        {/* Category Quick Tabs */}
+        <div className="flex overflow-x-auto scrollbar-hide gap-3 mb-12 pb-2">
+           {Object.entries(TYPE_CONFIG).map(([key, config]) => (
+             <button
                 key={key}
                 onClick={() => setType(key)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm transition-all
-                  ${active 
-                    ? 'bg-white text-[#141413] font-medium shadow-lg shadow-white/10' 
-                    : 'bg-white/5 text-[#87867f] hover:text-white hover:bg-white/10 border border-white/5'
-                  }`}
-              >
-                {Icon && <Icon className="w-4 h-4" />}
-                {language === 'th' ? config.labelTh : config.label}
-              </button>
-            );
-          })}
+                className={cn(
+                  "flex items-center gap-3 px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all whitespace-nowrap border",
+                  type === key 
+                    ? "bg-deep-dark text-white border-deep-dark shadow-xl scale-105" 
+                    : "bg-surface text-muted border-theme hover:border-accent hover:text-accent"
+                )}
+             >
+                {config.icon && <config.icon className="w-3.5 h-3.5" />}
+                {locale === 'th' ? config.labelTh : config.label}
+             </button>
+           ))}
         </div>
 
-        {/* Result Count + Sort indicator */}
-        {!loading && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center justify-between mb-6 text-sm"
-          >
-            <p className="text-[#87867f]">
-              {language === 'th' 
-                ? `พบ ${total} ผลงาน`
-                : `${total} result${total !== 1 ? 's' : ''} found`
-              }
-              {hasActiveFilters && (
-                <button 
-                  onClick={() => { setType('all'); setActor('all'); setSearch(''); }}
-                  className="ml-3 text-namtan-primary hover:underline text-xs"
-                >
-                  {language === 'th' ? 'ล้างตัวกรอง' : 'Clear filters'}
-                </button>
-              )}
-            </p>
-            <div className="hidden sm:flex items-center gap-1.5 text-[#87867f]">
-              <ArrowUpDown className="w-3.5 h-3.5" />
-              <span className="text-xs">
-                {SORT_OPTIONS.find(s => s.value === sort)?.[language === 'th' ? 'label' : 'labelEn']}
-              </span>
-            </div>
-          </motion.div>
-        )}
-
         {/* Content Grid */}
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="aspect-[3/4] bg-[#141413]/50 rounded-2xl animate-pulse" />
-            ))}
-          </div>
-        ) : displayItems.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-20 bg-white/[0.03] border border-white/10 rounded-3xl"
-          >
-            <Mascot state="sleeping" size={100} showCaption className="mx-auto mb-6" />
-            <h3 className="text-xl text-white mb-2 font-thai">
-              {language === 'th' ? 'ไม่พบผลงาน' : 'No results found'}
-            </h3>
-            <p className="text-[#87867f] text-sm max-w-sm mx-auto">
-              {language === 'th' 
-                ? 'ลองปรับตัวกรองใหม่ หรือค้นหาด้วยคำค้นอื่น' 
-                : 'Try adjusting your filters or search term.'}
-            </p>
-            <button 
-              onClick={() => { setType('all'); setActor('all'); setSearch(''); }}
-              className="mt-6 px-6 py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-full text-sm transition-colors"
-            >
-              {language === 'th' ? 'ล้างตัวกรองทั้งหมด' : 'Clear all filters'}
-            </button>
-          </motion.div>
-        ) : (
-          <motion.div 
-            layout
-            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6"
-          >
-            <AnimatePresence>
-              {displayItems.map((item) => (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Link href={`/works/${item.id}`} className="group block h-full">
-                    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[#30302e] mb-4 border border-white/5 group-hover:border-white/20 transition-colors">
-                      {item.image ? (
-                        <Image 
-                          src={item.image} 
-                          alt={item.title} 
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          className="object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-[#5e5d59] p-6 text-center">
-                          <Film className="w-12 h-12 mb-2 opacity-50" />
-                          <span className="text-sm font-medium">{item.title}</span>
-                        </div>
-                      )}
-                      
-                      {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
-                      
-                      {/* Top Badges */}
-                      <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
-                        <div className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full ${getActorColor(item.actors)}`}>
-                          {getActorLabel(item.actors)}
-                        </div>
-                      </div>
-
-                      {/* Bottom Info inside image */}
-                      <div className="absolute bottom-0 left-0 right-0 p-5 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                        <div className="flex items-center gap-2 text-xs text-namtan-primary font-medium tracking-widest uppercase mb-1">
-                          {language === 'th' 
-                            ? TYPE_CONFIG[item.content_type]?.labelTh || item.content_type
-                            : item.content_type
-                          } • {item.year}
-                        </div>
-                        <h3 className={`text-white font-medium text-lg leading-snug line-clamp-2 ${language === 'th' ? 'font-thai' : ''}`}>
-                          {language === 'th' && item.title_thai ? item.title_thai : item.title}
-                        </h3>
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
+        <div className="min-h-[400px]">
+          {loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="aspect-[3/4] bg-surface rounded-[2rem] border border-theme/40 animate-pulse" />
               ))}
-            </AnimatePresence>
-          </motion.div>
-        )}
+            </div>
+          ) : displayItems.length === 0 ? (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="text-center py-32 bg-surface/50 border border-theme/40 rounded-[3rem]"
+            >
+              <Mascot state="sleeping" size={120} showCaption className="mx-auto mb-8 opacity-40" />
+              <h3 className="text-2xl font-display text-primary font-light mb-3">No Results Found</h3>
+              <p className="text-muted text-sm font-body opacity-60">Try adjusting your search or filters.</p>
+              <button 
+                onClick={() => { setType('all'); setActor('all'); setSearch(''); }}
+                className="mt-10 px-8 py-3 bg-deep-dark text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
+              >
+                Clear All Filters
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div layout className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              <AnimatePresence>
+                {displayItems.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <Link href={`/works/${item.id}`} className="group block">
+                      <div className="relative aspect-[3/4] rounded-[2rem] overflow-hidden bg-panel border border-theme/40 group-hover:border-accent/40 group-hover:shadow-2xl transition-all duration-500 mb-5">
+                        {item.image ? (
+                          <Image 
+                            src={item.image} 
+                            alt={item.title} 
+                            fill
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                            className="object-cover transition-all duration-1000 group-hover:scale-110 grayscale-[0.2] group-hover:grayscale-0"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted opacity-20">
+                            <Film className="w-16 h-16" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-deep-dark via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                        
+                        <div className="absolute top-4 right-4">
+                           <div className="flex -space-x-1 shadow-sm">
+                              {item.actors.includes('namtan') && <div className="w-2.5 h-2.5 rounded-full bg-namtan-primary border border-black/20" />}
+                              {item.actors.includes('film') && <div className="w-2.5 h-2.5 rounded-full bg-film-primary border border-black/20" />}
+                           </div>
+                        </div>
 
-        {/* Load More */}
+                        <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                          <p className="text-[9px] font-bold text-accent uppercase tracking-[0.25em] mb-2 drop-shadow-sm">
+                             {item.year} · {locale === 'th' ? TYPE_CONFIG[item.content_type]?.labelTh : TYPE_CONFIG[item.content_type]?.label}
+                          </p>
+                          <h3 className="text-white font-display text-lg md:text-xl leading-snug font-light line-clamp-2">
+                             {locale === 'th' && item.title_thai ? item.title_thai : item.title}
+                          </h3>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Pagination / Load More */}
         {!loading && page < totalPages && (
-          <div className="flex justify-center mt-12">
+          <div className="flex flex-col items-center justify-center mt-20 border-t border-theme/40 pt-12">
+            <p className="text-[10px] font-bold text-muted uppercase tracking-[0.3em] mb-8">
+               Viewing {items.length} of {total} pieces
+            </p>
             <button
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="px-8 py-3 bg-white/10 hover:bg-white/15 disabled:opacity-50 text-white rounded-full text-sm font-medium transition-colors flex items-center gap-2"
+              className="px-12 py-4 bg-surface border border-theme hover:border-accent hover:shadow-lg disabled:opacity-50 text-primary rounded-full text-[10px] font-bold uppercase tracking-[0.3em] transition-all flex items-center gap-4 group"
             >
               {loadingMore ? (
-                <span className="animate-pulse">{language === 'th' ? 'กำลังโหลด...' : 'Loading...'}</span>
+                <span className="animate-pulse">Loading Archive...</span>
               ) : (
                 <>
-                  {language === 'th' ? `โหลดเพิ่ม (${items.length}/${total})` : `Load more (${items.length} of ${total})`}
+                  <span>Load More</span>
+                  <span className="group-hover:translate-y-1 transition-transform">↓</span>
                 </>
               )}
             </button>

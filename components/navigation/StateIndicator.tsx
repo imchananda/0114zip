@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useTranslations, useLocale } from 'next-intl';
-import { useRouter, usePathname, Link } from '@/i18n/routing';
+import { usePathname, Link } from '@/i18n/routing';
 import { ViewState } from '@/types';
 import { cn } from '@/lib/utils';
 
