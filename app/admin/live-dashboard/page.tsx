@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import {
   WIDGET_OPTIONS, SLOT_DEFS, type WidgetType,
   STATS_TILE_OPTIONS, STATS_STRIP_DEFS, DEFAULT_STATS_STRIP, type StatsTileType,
@@ -197,16 +198,30 @@ export default function LiveDashboardSettingsPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       {/* Header */}
-      <div className="mb-8 pb-4 border-b border-[var(--color-border)]">
-        <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">
-          <span className="bg-gradient-to-r from-[#6cbfd0] to-[#fbdf74] bg-clip-text text-transparent">
-            Live Dashboard
-          </span>
-          <span className="text-[var(--color-text-secondary)] ml-3 text-lg">ตั้งค่าการแสดงผล</span>
-        </h1>
-        <p className="text-sm text-[var(--color-text-muted)] mt-1">
-          กำหนดข้อมูลที่จะแสดงในส่วน Live Dashboard บนหน้าแรกของเว็บไซต์
-        </p>
+      <div className="flex flex-col md:flex-row md:items-start justify-between mb-8 pb-4 border-b border-[var(--color-border)] gap-4">
+        <div className="flex flex-col gap-1">
+          <Link
+            href="/admin/dashboard"
+            className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors flex items-center gap-1.5 w-fit"
+          >
+            ← Dashboard
+          </Link>
+          <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)]">
+            <span className="bg-gradient-to-r from-[#6cbfd0] to-[#fbdf74] bg-clip-text text-transparent">
+              Live Dashboard
+            </span>
+            <span className="text-[var(--color-text-secondary)] ml-3 text-lg">ตั้งค่าการแสดงผล</span>
+          </h1>
+          <p className="text-sm text-[var(--color-text-muted)]">
+            กำหนดข้อมูลที่จะแสดงในส่วน Live Dashboard บนหน้าแรกของเว็บไซต์
+          </p>
+        </div>
+        <Link
+          href="/admin/social-stats"
+          className="shrink-0 px-4 py-2 rounded-xl border border-[var(--color-border)] text-[var(--color-text-muted)] font-medium text-sm flex items-center gap-1.5 hover:text-[#6cbfd0] hover:border-[#6cbfd0]/30 hover:bg-[#6cbfd0]/5 transition-all"
+        >
+          📊 อัปเดตตัวเลข
+        </Link>
       </div>
 
       <div className="space-y-6">

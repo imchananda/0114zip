@@ -25,22 +25,23 @@ interface SectionMeta {
   fixed?: boolean;
   hasVisualConfig?: boolean;
   sourcePath: string;
+  adminPath?: string | string[];  // single path or [path, path] for sections with 2 admin pages
 }
 
 const SECTION_META: Record<string, SectionMeta> = {
   about:      { label: 'About',                  icon: '📝', desc: 'แนะนำ NamtanFilm ข้อมูลผลงานรวม',          sourcePath: 'components/sections/AboutSection.tsx' },
-  stats:      { label: 'Live Dashboard',          icon: '📊', desc: 'สถิติโซเชียล + ลิงก์ด่วน',                  sourcePath: 'components/dashboard/LiveDashboard.tsx' },
-  brands:     { label: 'Brands & Collaborations', icon: '💼', desc: 'แบรนด์และแคมเปญโฆษณา', hasVisualConfig: true, sourcePath: 'components/sections/BrandsSection.tsx' },
-  profile:    { label: 'Profile',                 icon: '👤', desc: 'ข้อมูลโปรไฟล์ Namtan & Film',               sourcePath: 'components/sections/ProfileSection.tsx' },
-  schedule:   { label: 'Schedule Preview',        icon: '📅', desc: 'กำหนดการและอีเวนต์ที่กำลังจะมาถึง', hasVisualConfig: true, sourcePath: 'components/sections/SchedulePreview.tsx' },
-  content:    { label: 'Content',                 icon: '🎞️', desc: 'ซีรีส์ ละคร และผลงาน',                     sourcePath: 'components/sections/ContentSection.tsx' },
-  fashion:    { label: 'Fashion & Style',         icon: '👗', desc: 'แฟชั่นและลุคเด่นล่าสุด',                   sourcePath: 'components/sections/FashionSection.tsx' },
-  awards:     { label: 'Awards',                  icon: '🏆', desc: 'รางวัลที่ได้รับ',                           sourcePath: 'components/sections/AwardsPreview.tsx' },
-  timeline:   { label: 'Timeline',                icon: '📖', desc: 'ไทม์ไลน์เหตุการณ์สำคัญ',                   sourcePath: 'components/sections/TimelineSection.tsx' },
-  mediaTags:  { label: 'Media & Tags',            icon: '📱', desc: 'มีเดียล่าสุด + แฮชแท็กยอดนิยม',             sourcePath: 'components/sections/MediaTagsSection.tsx' },
-  challenges: { label: 'Challenges',              icon: '🎮', desc: 'กิจกรรมและ challenge สำหรับแฟนคลับ',        sourcePath: 'components/sections/ChallengesSection.tsx' },
-  prizes:     { label: 'Prizes & Giveaways',      icon: '🎁', desc: 'ของรางวัลสำหรับแฟนคลับ',                   sourcePath: 'components/sections/PrizeSection.tsx' },
-  floatingArtistSelector: { label: 'Floating Artist Selector', icon: '🎭', desc: 'แถบลัดเลือกศิลปิน', fixed: true, sourcePath: 'components/navigation/FloatingArtistSelector.tsx' },
+  stats:      { label: 'Live Dashboard',          icon: '📊', desc: 'สถิติโซเชียล + ลิงก์ด่วน',                  sourcePath: 'components/dashboard/LiveDashboard.tsx', adminPath: ['/admin/social-stats', '/admin/live-dashboard'] },
+  brands:     { label: 'Brands & Collaborations', icon: '💼', desc: 'แบรนด์และแคมเปญโฆษณา', hasVisualConfig: true, sourcePath: 'components/sections/BrandsSection.tsx', adminPath: '/admin/brands' },
+  profile:    { label: 'Profile',                 icon: '👤', desc: 'ข้อมูลโปรไฟล์ Namtan & Film',               sourcePath: 'components/sections/ProfileSection.tsx', adminPath: '/admin/profile' },
+  schedule:   { label: 'Schedule Preview',        icon: '📅', desc: 'กำหนดการและอีเวนต์ที่กำลังจะมาถึง', hasVisualConfig: true, sourcePath: 'components/sections/SchedulePreview.tsx', adminPath: '/admin/schedule' },
+  content:    { label: 'Content',                 icon: '🎞️', desc: 'ซีรีส์ ละคร และผลงาน',                     sourcePath: 'components/sections/ContentSection.tsx', adminPath: '/admin/content' },
+  fashion:    { label: 'Fashion & Style',         icon: '👗', desc: 'แฟชั่นและลุคเด่นล่าสุด',                   sourcePath: 'components/sections/FashionSection.tsx', adminPath: '/admin/fashion' },
+  awards:     { label: 'Awards',                  icon: '🏆', desc: 'รางวัลที่ได้รับ',                           sourcePath: 'components/sections/AwardsPreview.tsx', adminPath: '/admin/awards' },
+  timeline:   { label: 'Timeline',                icon: '📖', desc: 'ไทม์ไลน์เหตุการณ์สำคัญ',                   sourcePath: 'components/sections/TimelineSection.tsx', adminPath: '/admin/timeline' },
+  mediaTags:  { label: 'Media & Tags',            icon: '📱', desc: 'มีเดียล่าสุด + แฮชแท็กยอดนิยม',             sourcePath: 'components/sections/MediaTagsSection.tsx', adminPath: '/admin/media' },
+  challenges: { label: 'Challenges',              icon: '🎮', desc: 'กิจกรรมและ challenge สำหรับแฟนคลับ',        sourcePath: 'components/sections/ChallengesSection.tsx', adminPath: '/admin/challenges' },
+  prizes:     { label: 'Prizes & Giveaways',      icon: '🎁', desc: 'ของรางวัลสำหรับแฟนคลับ',                   sourcePath: 'components/sections/PrizeSection.tsx', adminPath: '/admin/prizes' },
+  floatingArtistSelector: { label: 'Floating Artist Selector', icon: '🎭', desc: 'แถบลัดเลือกศิลปิน', fixed: true, sourcePath: 'components/navigation/FloatingArtistSelector.tsx', adminPath: '/admin/floating-artist-selector' },
   scrollToTop:            { label: 'Scroll To Top Button',     icon: '⬆️', desc: 'ปุ่มเลื่อนกลับขึ้นบน', fixed: true, sourcePath: 'components/ui/ScrollToTop.tsx' },
 };
 
@@ -329,6 +330,22 @@ export default function HomepageBuilderPage() {
                     </p>
                     <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">{meta?.desc}</p>
                   </div>
+
+                  {/* Admin link button */}
+                  {meta?.adminPath && (
+                    <div className="shrink-0 flex gap-1" onPointerDown={(e) => e.stopPropagation()}>
+                      {(Array.isArray(meta.adminPath) ? meta.adminPath : [meta.adminPath]).map((path) => (
+                        <Link
+                          key={path}
+                          href={path}
+                          className="text-[10px] font-medium px-2.5 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[#6cbfd0] hover:border-[#6cbfd0]/30 hover:bg-[#6cbfd0]/5 transition-all"
+                          title={`จัดการข้อมูล: ${path}`}
+                        >
+                          🔧 {path.split('/').pop()}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Visual Config button */}
                   {visualDef && (

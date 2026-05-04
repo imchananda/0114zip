@@ -221,6 +221,12 @@ export default function SocialStatsAdmin() {
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
+          <Link
+            href="/admin/live-dashboard"
+            className="px-4 py-2 rounded-xl border border-[var(--color-border)] text-[var(--color-text-muted)] font-medium text-sm flex items-center gap-1.5 hover:text-[#6cbfd0] hover:border-[#6cbfd0]/30 hover:bg-[#6cbfd0]/5 transition-all"
+          >
+            🔲 จัดการ Layout
+          </Link>
           <button
             onClick={fetchStats}
             disabled={loading}
