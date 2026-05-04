@@ -1,7 +1,8 @@
 import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../database.types';
-import { HeroBannerConfig, HomeHeroSlide } from '../homepage-data';
+import { HeroBannerConfig, HomeArtistProfile, HomeHeroSlide } from '../homepage-data';
+import { normalizeHomepageSections } from '../homepage-sections';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -20,7 +21,7 @@ const REVALIDATE_TIME = 300; // 5 minutes
 export const fetchCoreSettings = unstable_cache(
   async () => {
     const siteSettingsRes = await db.from('site_settings').select('key, value');
-    const settings: Record<string, any> = {};
+    const settings: Record<string, unknown> = {};
     if (siteSettingsRes.data) {
       siteSettingsRes.data.forEach((r) => { settings[r.key] = r.value; });
     }
@@ -28,29 +29,7 @@ export const fetchCoreSettings = unstable_cache(
     const defaultHeroConfig: HeroBannerConfig = { type: 'cinematic', showScrollHint: true };
     const heroBannerConfig = (settings.heroBanner as HeroBannerConfig) || defaultHeroConfig;
     
-    const rawConfig = (settings.homeSections as Record<string, any>) ?? {};
-    const homepageConfig = {
-        about:      { enabled: true, order: 1 },
-        content:    { enabled: true, order: 2 },
-        schedule:   { enabled: true, order: 3 },
-        challenges: { enabled: true, order: 4 },
-        stats:      { enabled: true, order: 5 },
-        brands:     { enabled: true, order: 6 },
-        profile:    { enabled: true, order: 7 },
-        fashion:    { enabled: true, order: 8 },
-        timeline:   { enabled: true, order: 9 },
-        mediaTags:  { enabled: true, order: 10 },
-        awards:     { enabled: true, order: 11 },
-        prizes:     { enabled: true, order: 12 },
-    };
-
-    for (const [key, val] of Object.entries(rawConfig)) {
-        if (typeof val === 'boolean') {
-          (homepageConfig as any)[key] = { ...((homepageConfig as any)[key] ?? { order: 50 }), enabled: val };
-        } else if (val && typeof val === 'object' && 'enabled' in val) {
-          (homepageConfig as any)[key] = { ...((homepageConfig as any)[key] ?? { order: 50 }), ...val };
-        }
-    }
+    const homepageConfig = normalizeHomepageSections(settings.homeSections);
 
     return {
       homepageConfig,
@@ -83,8 +62,8 @@ export const fetchHeroSlides = unstable_cache(
 export const fetchProfiles = unstable_cache(
   async () => {
     const { data } = await db.from('artist_profiles').select('*').order('id');
-    const profilesMap: Record<string, any> = {};
-    (data ?? []).forEach((p: any) => { profilesMap[p.id] = p; });
+    const profilesMap: Record<string, HomeArtistProfile> = {};
+    ((data ?? []) as HomeArtistProfile[]).forEach((p) => { profilesMap[p.id] = p; });
     return profilesMap;
   },
   ['home-profiles'],

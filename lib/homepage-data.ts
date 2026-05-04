@@ -1,5 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from './database.types';
+import {
+  normalizeHomepageSections,
+  type HomepageSectionsConfig,
+} from './homepage-sections';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -176,11 +180,6 @@ export interface HomeTimelineItem {
   image?: string;
 }
 
-export interface SectionConfig {
-  enabled: boolean;
-  order: number;
-}
-
 export interface HomePageData {
   heroSlides:         HomeHeroSlide[];
   engData:            HomeEngData;
@@ -201,7 +200,7 @@ export interface HomePageData {
   fashionEvents:      HomeFashionEvent[];
   awardsItems:        HomeContentItem[];
   allContent:         HomeContentItem[];
-  homepageConfig:     Record<string, SectionConfig>;
+  homepageConfig:     HomepageSectionsConfig;
   heroBannerConfig:   HeroBannerConfig;
 }
 
@@ -218,35 +217,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
     (siteSettingsRes.data as SiteSettingRow[]).forEach((r) => { settings[r.key] = r.value; });
   }
 
-  // Normalise whatever is stored (old boolean format -> new SectionConfig format)
-  function normaliseConfig(raw: Record<string, unknown>): Record<string, SectionConfig> {
-    const defaults: Record<string, SectionConfig> = {
-      about:      { enabled: true, order: 1 },
-      content:    { enabled: true, order: 2 },
-      schedule:   { enabled: true, order: 3 },
-      challenges: { enabled: true, order: 4 },
-      stats:      { enabled: true, order: 5 },
-      brands:     { enabled: true, order: 6 },
-      profile:    { enabled: true, order: 7 },
-      fashion:    { enabled: true, order: 8 },
-      timeline:   { enabled: true, order: 9 },
-      mediaTags:  { enabled: true, order: 10 },
-      awards:     { enabled: true, order: 11 },
-      prizes:     { enabled: true, order: 12 },
-    };
-    if (!raw || Object.keys(raw).length === 0) return defaults;
-    const result = { ...defaults };
-    for (const [key, val] of Object.entries(raw)) {
-      if (typeof val === 'boolean') {
-        result[key] = { ...(result[key] ?? { order: 50 }), enabled: val };
-      } else if (val && typeof val === 'object' && 'enabled' in val) {
-        result[key] = { ...(result[key] ?? { order: 50 }), ...(val as SectionConfig) };
-      }
-    }
-    return result;
-  }
-
-  const homepageConfig = normaliseConfig((settings.homeSections as Record<string, unknown>) ?? {});
+  const homepageConfig = normalizeHomepageSections(settings.homeSections);
   const isEnabled = (section: keyof typeof homepageConfig) => homepageConfig[section]?.enabled !== false;
 
   const needAbout = isEnabled('about');
@@ -327,9 +298,9 @@ export async function fetchHomeData(): Promise<HomePageData> {
   });
 
   const snapshotHistory = Object.values(historyByDate).sort((a, b) => (a.date as string).localeCompare(b.date as string));
-  const allPosts = igPostsResMaybe.status === 'fulfilled' ? (igPostsResMaybe.value.data ?? []) : [];
+  const allPosts = igPostsResMaybe.status === 'fulfilled' ? ((igPostsResMaybe.value.data ?? []) as HomeIgPost[]) : [];
   const igPostsMap: Record<string, HomeIgPost[]> = { namtan: [], film: [], luna: [] };
-  ARTISTS.forEach(a => { igPostsMap[a] = allPosts.filter((p: any) => p.artist === a).slice(0, 6) as HomeIgPost[]; });
+  ARTISTS.forEach(a => { igPostsMap[a] = allPosts.filter((p) => p.artist === a).slice(0, 6); });
 
   const engData: HomeEngData = {
     latestSnapshots: latestMap,

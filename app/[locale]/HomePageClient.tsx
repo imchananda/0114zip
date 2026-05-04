@@ -12,6 +12,8 @@ import type { SectionVariant } from '@/components/ui/LandingSection';
 import { FloatingArtistSelector } from '@/components/navigation/FloatingArtistSelector';
 import { useFloatingArtistSelectorConfig } from '@/components/navigation/FloatingArtistSelectorProvider';
 import { mainSpacerClassForDock } from '@/lib/floating-artist-config';
+import { STATIC_HOME_UI_KEYS, type HomepageSectionsConfig } from '@/lib/homepage-sections';
+import type { HeroBannerConfig, HomeArtistProfile, HomeHeroSlide } from '@/lib/homepage-data';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -97,18 +99,15 @@ function DeferredLandingSection({
   );
 }
 
-/** Homepage section IDs that are global UI, not content blocks in the scroll flow */
-const STATIC_HOME_UI_KEYS = new Set(['floatingArtistSelector', 'scrollToTop']);
-
 function getSectionVariant(index: number): SectionVariant {
   return index % 2 === 0 ? 'alternate' : 'primary';
 }
 
 interface HomePageClientProps {
-  config: any;
-  heroConfig: any;
-  heroSlides: any[];
-  profiles: any;
+  config: HomepageSectionsConfig;
+  heroConfig: HeroBannerConfig;
+  heroSlides: HomeHeroSlide[];
+  profiles: Record<string, HomeArtistProfile>;
   sections: Record<string, ReactNode>;
 }
 
@@ -130,13 +129,14 @@ export function HomePageClient({ config, heroConfig, heroSlides, profiles, secti
 
   const orderedSections = useMemo(() => {
     return Object.entries(config)
-      .filter(([id, secConfig]: [string, any]) => secConfig.enabled && !STATIC_HOME_UI_KEYS.has(id))
-      .sort(([, a]: [string, any], [, b]: [string, any]) => a.order - b.order)
+      .filter(([id, secConfig]) => secConfig.enabled && !STATIC_HOME_UI_KEYS.has(id))
+      .sort(([, a], [, b]) => a.order - b.order)
       .map(([id]) => id);
   }, [config]);
 
   const showFloatingHome =
     config.floatingArtistSelector?.enabled !== false && floatingCfg.visibility.home;
+  const showScrollToTop = config.scrollToTop?.enabled !== false;
   const mainDockPadding = showFloatingHome ? mainSpacerClassForDock(floatingCfg.dock) : '';
 
   const handleIntroComplete = () => {
@@ -188,7 +188,7 @@ export function HomePageClient({ config, heroConfig, heroSlides, profiles, secti
         </HomeSectionsWrapper>
 
         <Footer />
-        <ScrollToTop />
+        {showScrollToTop ? <ScrollToTop /> : null}
         {showFloatingHome ? <FloatingArtistSelector /> : null}
       </main>
 
