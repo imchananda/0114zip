@@ -114,6 +114,9 @@ const DEFAULT_SECTIONS: Record<string, SectionConfig> = {
 function normaliseSections(raw: Record<string, unknown>): Record<string, SectionConfig> {
   const result = structuredClone(DEFAULT_SECTIONS);
   for (const [key, val] of Object.entries(raw)) {
+    // Skip keys not defined in SECTION_META (legacy/unknown DB entries)
+    if (!SECTION_META[key]) continue;
+
     if (typeof val === 'boolean') {
       result[key] = { ...(result[key] ?? { order: 50 }), enabled: val };
     } else if (val && typeof val === 'object' && 'enabled' in val) {
