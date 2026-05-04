@@ -145,8 +145,7 @@ async function FashionServer() {
 
 async function AwardsServer() {
   const [content, settings] = await Promise.all([fetchContent(), fetchCoreSettings()]);
-  const limit = (settings.homepageConfig as any)?.awards?.limit ?? 6;
-  const awardsItems = content.filter((c: any) => c.content_type === 'award').slice(0, limit);
+  const awardsItems = content.filter((c: any) => c.content_type === 'award');
   return <AwardsPreview initialAwards={awardsItems as any} config={(settings.homepageConfig as any)?.awards} />;
 }
 

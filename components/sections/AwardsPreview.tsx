@@ -24,7 +24,7 @@ export function AwardsPreview({ initialAwards, config }: { initialAwards?: Award
   const filteredAwards = items.filter((award) => {
     if (state === 'both' || state === 'lunar') return true;
     return award.actors.includes(state) || award.actors.includes('both');
-  });
+  }).slice(0, config?.limit ?? 6);
 
   const getActorLabel = (actors: string[]) => {
     if (actors.length > 1 || actors.includes('both')) return t('state.namtanfilm');
