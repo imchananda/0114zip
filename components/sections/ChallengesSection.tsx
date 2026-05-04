@@ -63,7 +63,14 @@ export function ChallengesSection({ initialChallenges, config }: { initialChalle
         </div>
 
         <div className={isList ? "flex flex-col gap-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"}>
-          {challenges.map((c, i) => (
+          {challenges.length === 0 ? (
+            <div className="col-span-full py-20 text-center bg-surface border border-theme/60 rounded-[2rem] opacity-60">
+              <p className="text-sm font-bold uppercase tracking-widest">{t('challenges.empty') ?? 'No active challenges at the moment'}</p>
+              <Link href="/challenges" className="inline-flex mt-5 text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-accent transition-colors">
+                {t('challenges.viewAll') ?? 'View All Challenges'}
+              </Link>
+            </div>
+          ) : challenges.map((c, i) => (
             <motion.div
               key={c.id}
               initial={{ opacity: 0, y: 20 }}
