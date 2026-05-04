@@ -1,137 +1,97 @@
-# 💕 NamtanFilm Fan Website
+# 💕 NamtanFilm Fan Website (Redesign 2026)
 
-เว็บไซต์แฟนเมดสำหรับคู่จิ้นขวัญใจ **น้ำตาล ทิพนารี × ฟิล์ม รัชชานนท์**
+เว็บไซต์แฟนคลับอย่างเป็นทางการสำหรับคู่จิ้นขวัญใจ **น้ำตาล ทิพนารี × ฟิล์ม รัชชานนท์**
+ได้รับการยกระดับการออกแบบ (Redesign) ด้วยปรัชญา **Premium Magazine Style** ให้ความรู้สึกอบอุ่น สวยงามเหมือนการอ่านนิตยสารเล่มโปรด
 
-สร้างด้วย Next.js 14, TypeScript, Tailwind CSS และ Framer Motion
+สร้างสรรค์ด้วยเทคโนโลยีระดับแนวหน้า (Modern Stack): **Next.js 14+ (App Router)**, **TypeScript**, **Tailwind CSS**, **Framer Motion**, และ **Supabase**
 
-## ✨ Features
+---
 
-- **Netflix-style Hero Banner** - ภาพคู่เต็มจอ hover เพื่อเลือกดูผลงาน
-- **Tri-State System** - ดูผลงานคู่ / น้ำตาล / ฟิล์ม
-- **Cinematic Transitions** - Animation สวยงามระดับ Production
-- **Mobile-First** - รองรับทุกขนาดหน้าจอ
-- **Thai Language Support** - รองรับภาษาไทยด้วย Sarabun font
-- **Accessibility** - รองรับ Screen Reader และ Reduced Motion
+## ✨ Features (จุดเด่นของระบบ)
+
+- **🎨 Premium Magazine Design:** การออกแบบโทนสีอบอุ่น (Parchment & Olive Grays) ใช้ Typography ผสมผสานระหว่าง Georgia และ Noto Sans Thai เพื่อความสวยงามลงตัว
+- **🌓 Tri-State System (ViewState):** ระบบฟิลเตอร์เนื้อหาแบบ 3 สถานะ (ผลงานคู่ / น้ำตาล / ฟิล์ม) ที่เปลี่ยนสีสันของเว็บแบบ Real-time
+- **🧱 Homepage Builder (Visual Config):** แอดมินสามารถจัดเรียงลำดับ ซ่อน/แสดง และปรับแต่ง Theme/Layout ของแต่ละ Section ในหน้าแรกได้ผ่านระบบหลังบ้านโดยไม่ต้องเขียนโค้ด
+- **📊 Live Dashboard & Stats:** ระบบแสดงสถิติผู้ติดตาม IG, เทรนด์ X, และประเทศของแฟนคลับแบบ Real-time
+- **🌍 Internationalization (i18n):** รองรับหลากหลายภาษาอย่างสมบูรณ์แบบด้วย `next-intl` (TH/EN)
+- **🔐 Secure Authentication:** ระบบล็อกอินและจัดการสิทธิ์ (Role-based Access) ผ่าน Supabase Auth
+- **⚡ Server-Side Performance:** ดึงข้อมูลผ่าน Server Components ควบคู่กับการทำ Caching เพื่อความรวดเร็วและเป็นมิตรกับ SEO
+
+---
 
 ## 🚀 Getting Started
 
-### ติดตั้ง Dependencies
+### 1. Prerequisites
+- Node.js (v18.17 หรือใหม่กว่า)
+- [Supabase](https://supabase.com/) Account & Project
+
+### 2. Environment Setup
+สร้างไฟล์ `.env.local` ไว้ที่ Root ของโปรเจกต์ และระบุค่าต่างๆ ดังนี้:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+```
+
+### 3. Installation
 
 ```bash
-cd namtanfilm-website
 npm install
 ```
 
-### รัน Development Server
+### 4. Running the Development Server
 
 ```bash
 npm run dev
 ```
 
-เปิด [http://localhost:3000](http://localhost:3000) เพื่อดูเว็บไซต์
-
-### Build สำหรับ Production
-
-```bash
-npm run build
-npm start
-```
-
-## 📁 โครงสร้างโปรเจค
-
-```
-namtanfilm-website/
-├── app/
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-├── components/
-│   ├── hero/
-│   │   └── HeroBanner.tsx      # Netflix-style hero
-│   ├── content/
-│   │   ├── ContentCard.tsx     # การ์ดผลงาน
-│   │   ├── ContentRow.tsx      # แถวผลงานแนวนอน
-│   │   └── ContentSection.tsx  # ส่วนเนื้อหาทั้งหมด
-│   ├── navigation/
-│   │   ├── Header.tsx
-│   │   └── StateIndicator.tsx  # ปุ่มเลือก Together/Namtan/Film
-│   └── ui/
-│       └── Footer.tsx
-├── context/
-│   └── ViewStateContext.tsx    # State Management
-├── data/
-│   ├── actors.ts               # ข้อมูลนักแสดง
-│   ├── works.ts                # ข้อมูลผลงาน
-│   └── categories.ts
-├── lib/
-│   └── utils.ts
-└── types/
-    └── index.ts
-```
-
-## 🎨 การปรับแต่ง
-
-### เปลี่ยนรูปภาพ
-
-แก้ไขไฟล์ `data/actors.ts` และ `data/works.ts`:
-
-```typescript
-// data/actors.ts
-export const actors = {
-  namtan: {
-    image: '/images/namtan.jpg',      // รูป profile
-    heroImage: '/images/hero.jpg',     // รูป banner
-    // ...
-  },
-};
-
-// data/works.ts
-{
-  id: 'work-1',
-  title: 'ชื่อผลงาน',
-  image: '/images/work-1.jpg',
-  // ...
-}
-```
-
-### เปลี่ยนสี
-
-แก้ไข `tailwind.config.ts`:
-
-```typescript
-colors: {
-  namtan: {
-    primary: '#EC4899',  // สีหลักของน้ำตาล
-  },
-  film: {
-    primary: '#3B82F6',  // สีหลักของฟิล์ม
-  },
-}
-```
-
-## 🌐 Deployment
-
-### Vercel (แนะนำ)
-
-```bash
-npm i -g vercel
-vercel
-```
-
-### Docker
-
-```bash
-docker build -t namtanfilm .
-docker run -p 3000:3000 namtanfilm
-```
-
-## 📝 Credits
-
-- **Design Inspiration**: Netflix
-- **Fonts**: Cormorant Garamond, Sarabun, Quicksand
-- **Icons**: Lucide React
-- **Animation**: Framer Motion
+เปิด [http://localhost:3000](http://localhost:3000) บนบราวเซอร์เพื่อเข้าสู่เว็บไซต์
 
 ---
 
-สร้างด้วย 💕 จากแฟนคลับ NamtanFilm
+## 📁 Project Structure (โครงสร้างหลัก)
+
+```text
+namtanfilm-website/
+├── app/
+│   ├── [locale]/           # หน้าเว็บส่วนหน้า (Frontend) ที่รองรับหลายภาษา
+│   │   ├── page.tsx        # Homepage (Server Component)
+│   │   ├── admin/          # Admin Dashboard (Protected Route)
+│   │   └── ...
+│   └── api/                # API Route Handlers สำหรับจัดการ Backend Logic
+├── components/
+│   ├── admin/              # UI สำหรับระบบจัดการหลังบ้าน
+│   ├── sections/           # Components หลักสำหรับจัดเรียงบน Homepage
+│   ├── ui/                 # Reusable UI components (Buttons, Cards, Inputs)
+│   └── ...
+├── lib/
+│   ├── data/               # Service files สำหรับดึงข้อมูลจาก Database (Supabase)
+│   └── supabase/           # Supabase Client configuration
+├── messages/               # ไฟล์แปลภาษาสำหรับ i18n (th.json, en.json)
+└── middleware.ts           # จัดการ Locale redirection และ Auth Protection
+```
+
+---
+
+## 📚 Documentation & Guidelines
+โปรเจกต์นี้มีเอกสารสำหรับนักพัฒนา (Developer Guidelines) ที่ควรศึกษาก่อนเริ่มทำงาน:
+
+1. **`DESIGN-ntf.md`**: คู่มือการออกแบบ (Design System) แบบละเอียดยิบ ครอบคลุมเรื่องโทนสี, การจัดช่องไฟ, และฟอนต์
+2. **`GEMINI.md`**: กฎเหล็กทางเทคนิค (Technical Mandates) สำหรับการเขียนโค้ดและรักษาความสม่ำเสมอของโครงสร้าง
+3. **`HOMEPAGE_VISUAL_CONFIG_2026_05_04.md`**: คู่มือระบบสถาปัตยกรรม Homepage Builder (การส่งค่า Config จาก Database ลงมาถึง UI)
+
+---
+
+## 🌐 Deployment (การนำขึ้นระบบจริง)
+
+โปรเจกต์นี้ถูกออกแบบมาเพื่อทำงานร่วมกับ **Vercel** อย่างสมบูรณ์แบบ
+
+```bash
+npm install -g vercel
+vercel
+```
+*อย่าลืมเพิ่ม Environment Variables ทั้งหมดใน Vercel Dashboard*
+
+---
+สร้างด้วย 💕 โดยและเพื่อครอบครัวชาวด้อม NamtanFilm
