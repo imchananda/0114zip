@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Link } from '@/i18n/routing';
@@ -12,17 +12,13 @@ export default function LoginPage() {
   const t = useTranslations('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (searchParams.get('error') === 'oauth_failed') {
-      setError(t('oauthFailed'));
-    }
-  }, [searchParams, t]);
+  const [error, setError] = useState(() =>
+    searchParams.get('error') === 'oauth_failed' ? t('oauthFailed') : ''
+  );
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

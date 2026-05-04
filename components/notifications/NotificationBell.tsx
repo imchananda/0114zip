@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { RealtimePostgresInsertPayload } from '@supabase/supabase-js';
 import { useAuth } from '@/context/AuthContext';
 import { createSupabaseBrowser } from '@/lib/supabase';
 
@@ -61,7 +62,7 @@ export function NotificationBell() {
         schema: 'public',
         table: 'user_notifications',
         filter: `user_id=eq.${user.id}`,
-      }, (payload: any) => {
+      }, (payload: RealtimePostgresInsertPayload<Notification>) => {
         const newNotif = payload.new as Notification;
         setNotifications((prev) => [newNotif, ...prev]);
         setUnreadCount((prev) => prev + 1);

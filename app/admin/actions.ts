@@ -24,8 +24,9 @@ export async function clearGlobalCacheAction() {
     revalidatePath('/', 'layout');
     
     return { success: true, timestamp: Date.now() };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return { success: false, error: message };
   }
 }
 
@@ -47,7 +48,8 @@ export async function revalidateTagAction(tag: string) {
     revalidateTag(tag);
     
     return { success: true, tag, timestamp: Date.now() };
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return { success: false, error: message };
   }
 }

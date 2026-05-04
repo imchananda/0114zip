@@ -41,50 +41,72 @@ import {
   normalizeContentItems,
   normalizeMediaEvents,
 } from '@/lib/transformers/home';
+import type {
+  HomeBrand,
+  HomeContentItem,
+  HomeEngData,
+  HomeFashionEvent,
+  HomeIgPost,
+  HomeMediaEvent,
+  HomeScheduleEvent,
+  HomeTimelineItem,
+} from '@/lib/homepage-data';
+import type { ContentDbItem, FanCountry } from '@/components/dashboard/LiveDashboardTypes';
+
+type SnapshotRow = { artist: string; platform: string; followers: number; recorded_date: string };
+type BrandMediaItem = { type?: unknown; title?: unknown; url?: unknown };
+type ProfileImageRow = { photo_url?: string | null };
+type BrandsSectionConfig = { layout?: 'split' | 'full-grid'; theme?: 'dark' | 'light'; title?: string };
+type ScheduleSectionConfig = { layout?: 'cards' | 'list'; theme?: 'light' | 'dark'; limit?: number; title?: string };
 
 async function AboutServer() {
   const [stats, content, settings] = await Promise.all([fetchLiveDashboardStats(), fetchContent(), fetchCoreSettings()]);
-  const awardsItems = content.filter((c: any) => c.content_type === 'award');
-  return <AboutSection ntWorks={stats.ntSeries || 0} flWorks={stats.flSeries || 0} totalAwards={awardsItems.length} config={(settings.homepageConfig as any)?.about} />;
+  const contentRows = content as unknown as HomeContentItem[];
+  const awardsItems = contentRows.filter((c) => c.content_type === 'award');
+  return <AboutSection ntWorks={stats.ntSeries || 0} flWorks={stats.flSeries || 0} totalAwards={awardsItems.length} config={settings.homepageConfig.about} />;
 }
 
 async function StatsServer() {
   const [stats, profiles] = await Promise.all([fetchLiveDashboardStats(), fetchProfiles()]);
   const brands = await fetchBrands();
-  const engData: any = {
+  const engData: HomeEngData = {
     latestSnapshots: {},
     snapshotHistory: [],
     igPosts: { namtan: [], film: [], luna: [] },
-    brandCollabs: brands
+    brandCollabs: (brands as HomeBrand[]).map((brand) => ({ artists: brand.artists }))
   };
   
   // Fill latestSnapshots
   const latestMap: Record<string, Record<string, number>> = { namtan: {}, film: {}, luna: {} };
-  stats.snapshots.forEach((row: any) => { latestMap[row.artist][row.platform] = row.followers; });
+  (stats.snapshots as SnapshotRow[]).forEach((row) => { latestMap[row.artist][row.platform] = row.followers; });
   
   // Fill snapshotHistory
   const historyByDate: Record<string, Record<string, number | string>> = {};
-  stats.snapshots.forEach((row: any) => {
+  (stats.snapshots as SnapshotRow[]).forEach((row) => {
     const month = row.recorded_date.substring(0, 7);
     if (!historyByDate[month]) historyByDate[month] = { date: month };
     const key = `${row.artist}_${row.platform}`;
     const existing = historyByDate[month][key] as number | undefined;
     if (existing === undefined || row.followers > existing) historyByDate[month][key] = row.followers;
   });
-  engData.snapshotHistory = Object.values(historyByDate).sort((a: any, b: any) => a.date.localeCompare(b.date));
+  engData.snapshotHistory = Object.values(historyByDate).sort((a, b) => String(a.date).localeCompare(String(b.date)));
   
   // Fill igPosts
   const ARTISTS = ['namtan', 'film', 'luna'];
-  ARTISTS.forEach(a => { engData.igPosts[a] = stats.igPosts.filter((p: any) => p.artist === a).slice(0, 6); });
+  ARTISTS.forEach(a => { engData.igPosts[a] = (stats.igPosts as HomeIgPost[]).filter((p) => p.artist === a).slice(0, 6); });
   engData.latestSnapshots = latestMap;
 
   return (
     <LiveDashboard
-      initialEng={normalizeEngData(engData as any)}
+      initialEng={normalizeEngData(engData)}
       initialProfiles={profiles}
-      initialFanCountries={stats.fanCountries as any}
-      initialFeaturedSeries={stats.featuredSeries as any}
-      initialFeaturedMusic={stats.featuredMusic as any}
+      initialFanCountries={(stats.fanCountries as Array<{ country: string; percentage: number | null; color: string | null }>).map((r) => ({
+        name: r.country,
+        value: r.percentage ?? 0,
+        color: r.color ?? 'var(--namtan-teal)',
+      } satisfies FanCountry))}
+      initialFeaturedSeries={stats.featuredSeries as unknown as ContentDbItem | null}
+      initialFeaturedMusic={stats.featuredMusic as unknown as ContentDbItem | null}
       initialNtSeries={stats.ntSeries}
       initialFlSeries={stats.flSeries}
     />
@@ -93,15 +115,16 @@ async function StatsServer() {
 
 async function BrandsServer() {
   const [brandsRaw, settings, profiles] = await Promise.all([fetchBrands(), fetchCoreSettings(), fetchProfiles()]);
+  const brands = brandsRaw as HomeBrand[];
   
-  const brandYears = Array.from(new Set(brandsRaw.filter((b: any) => b.start_date).map((b: any) => new Date(b.start_date!).getFullYear()))).sort((a, b) => b - a);
+  const brandYears = Array.from(new Set(brands.filter((b) => b.start_date).map((b) => new Date(b.start_date!).getFullYear()))).sort((a, b) => b - a);
   
-  const normalizedBrands = brandsRaw.map((b: any) => ({
+  const normalizedBrands = brands.map((b) => ({
     ...b,
     media_items: Array.isArray(b.media_items)
       ? b.media_items
-          .filter((item: any) => !!item && typeof item === 'object')
-          .map((item: any) => ({
+          .filter((item): item is BrandMediaItem => !!item && typeof item === 'object')
+          .map((item) => ({
             type: typeof item.type === 'string' ? item.type : 'Other',
             title: typeof item.title === 'string' ? item.title : '',
             ...(typeof item.url === 'string' ? { url: item.url } : {}),
@@ -110,14 +133,14 @@ async function BrandsServer() {
   }));
 
   const profileImages: Record<string, string> = {};
-  Object.entries(profiles).forEach(([k, v]: [string, any]) => {
+  Object.entries(profiles as Record<string, ProfileImageRow>).forEach(([k, v]) => {
     profileImages[k] = v.photo_url || '';
   });
 
   return (
     <BrandsSection
-      config={(settings.homepageConfig as any)?.brands}
-      initialBrands={normalizedBrands as any}
+      config={settings.homepageConfig.brands as BrandsSectionConfig}
+      initialBrands={normalizedBrands}
       initialYears={brandYears}
       initialSectionImages={settings.brandSectionImages}
       initialProfileImages={profileImages}
@@ -128,49 +151,49 @@ async function BrandsServer() {
 async function ScheduleServer() {
   const [schedule, settings] = await Promise.all([fetchSchedule(), fetchCoreSettings()]);
   return <SchedulePreview 
-    config={(settings.homepageConfig as any)?.schedule}
-    initialEvents={normalizeScheduleEvents(schedule as any)} 
+    config={settings.homepageConfig.schedule as ScheduleSectionConfig}
+    initialEvents={normalizeScheduleEvents(schedule as unknown as HomeScheduleEvent[])} 
   />;
 }
 
 async function ContentServer() {
   const [content, settings] = await Promise.all([fetchContent(), fetchCoreSettings()]);
-  return <ContentSection initialContent={normalizeContentItems(content as any)} config={(settings.homepageConfig as any)?.content} />;
+  return <ContentSection initialContent={normalizeContentItems(content as unknown as HomeContentItem[])} config={settings.homepageConfig.content} />;
 }
 
 async function FashionServer() {
   const [fashion, brands, settings] = await Promise.all([fetchFashion(), fetchBrands(), fetchCoreSettings()]);
-  return <FashionSection events={fashion as any} brandLookup={brands as any} config={(settings.homepageConfig as any)?.fashion} />;
+  return <FashionSection events={fashion as HomeFashionEvent[]} brandLookup={brands as HomeBrand[]} config={settings.homepageConfig.fashion} />;
 }
 
 async function AwardsServer() {
   const [content, settings] = await Promise.all([fetchContent(), fetchCoreSettings()]);
-  const awardsItems = content.filter((c: any) => c.content_type === 'award');
-  return <AwardsPreview initialAwards={awardsItems as any} config={(settings.homepageConfig as any)?.awards} />;
+  const awardsItems = (content as unknown as HomeContentItem[]).filter((c) => c.content_type === 'award');
+  return <AwardsPreview initialAwards={awardsItems} config={settings.homepageConfig.awards} />;
 }
 
 async function TimelineServer() {
   const [timeline, settings] = await Promise.all([fetchTimeline(), fetchCoreSettings()]);
-  const timelineRows = timeline.map((r: any) => ({
+  const timelineRows = (timeline as unknown as Array<HomeTimelineItem & { actors?: string[] }>).map((r) => ({
     id: r.id, year: r.year, title: r.title, title_thai: r.title_thai, description: r.description ?? '',
     category: r.category, actor: r.actors?.[0] ?? 'both', icon: r.icon ?? '✨', image: r.image
   }));
-  return <TimelineSection initialEvents={normalizeTimelineItems(timelineRows as any)} config={(settings.homepageConfig as any)?.timeline} />;
+  return <TimelineSection initialEvents={normalizeTimelineItems(timelineRows)} config={settings.homepageConfig.timeline} />;
 }
 
 async function MediaTagsServer() {
   const [mediaTags, settings] = await Promise.all([fetchMediaTags(), fetchCoreSettings()]);
-  return <MediaTagsSection initialEvents={normalizeMediaEvents(mediaTags as any)} config={(settings.homepageConfig as any)?.mediaTags} />;
+  return <MediaTagsSection initialEvents={normalizeMediaEvents(mediaTags as HomeMediaEvent[])} config={settings.homepageConfig.mediaTags} />;
 }
 
 async function ChallengesServer() {
   const [challenges, settings] = await Promise.all([fetchChallenges(), fetchCoreSettings()]);
-  return <ChallengesSection initialChallenges={normalizeChallenges(challenges as any)} config={(settings.homepageConfig as any)?.challenges} />;
+  return <ChallengesSection initialChallenges={normalizeChallenges(challenges)} config={settings.homepageConfig.challenges} />;
 }
 
 async function PrizesServer() {
   const [prizes, settings] = await Promise.all([fetchPrizes(), fetchCoreSettings()]);
-  return <PrizeSection initialPrizes={normalizePrizes(prizes as any)} config={(settings.homepageConfig as any)?.prizes} />;
+  return <PrizeSection initialPrizes={normalizePrizes(prizes)} config={settings.homepageConfig.prizes} />;
 }
 
 async function ProfileServer() {
@@ -182,14 +205,14 @@ async function ProfileServer() {
     fetchCoreSettings()
   ]);
 
-  const engData: any = {
+  const engData: HomeEngData = {
     latestSnapshots: {},
     snapshotHistory: [],
     igPosts: { namtan: [], film: [], luna: [] },
-    brandCollabs: brands
+    brandCollabs: (brands as HomeBrand[]).map((brand) => ({ artists: brand.artists }))
   };
   const latestMap: Record<string, Record<string, number>> = { namtan: {}, film: {}, luna: {} };
-  stats.snapshots.forEach((row: any) => { latestMap[row.artist][row.platform] = row.followers; });
+  (stats.snapshots as SnapshotRow[]).forEach((row) => { latestMap[row.artist][row.platform] = row.followers; });
   engData.latestSnapshots = latestMap;
 
   return (
@@ -198,8 +221,8 @@ async function ProfileServer() {
       engData={engData}
       ntWorksCount={stats.ntSeries}
       flWorksCount={stats.flSeries}
-      allContent={content as any}
-      config={(settings.homepageConfig as any)?.profile}
+      allContent={content as unknown as HomeContentItem[]}
+      config={settings.homepageConfig.profile}
     />
   );
 }

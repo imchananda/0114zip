@@ -182,14 +182,15 @@ export function FashionSection({ events, brandLookup, config }: Props) {
     return [...ys].sort((a, b) => b - a);
   }, [events]);
 
+  const highlightLimit = config?.limit;
   const highlightPool = useMemo(() => {
     const pool = events
       .filter(
         (e) => e.in_highlight && inFromYearRange(e, rangeFromYear) && matchesHighlightTab(e, tab)
       )
       .sort((a, b) => a.sort_order - b.sort_order || (b.event_date ?? '').localeCompare(a.event_date ?? ''));
-    return config?.limit ? pool.slice(0, config.limit) : pool;
-  }, [events, rangeFromYear, tab, config?.limit]);
+    return highlightLimit ? pool.slice(0, highlightLimit) : pool;
+  }, [events, rangeFromYear, tab, highlightLimit]);
 
   const activeSlide = Math.min(hlIndex, Math.max(0, highlightPool.length - 1));
 

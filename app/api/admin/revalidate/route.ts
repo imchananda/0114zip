@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 
+type RevalidateBody = {
+  tag?: string;
+  path?: string;
+  type?: 'page' | 'layout';
+};
+
 export async function POST(request: NextRequest) {
   try {
     // 1. ตรวจสอบสิทธิ์ (Admin Only)
@@ -18,7 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized: Invalid Admin Secret' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = (await request.json()) as RevalidateBody;
     const { tag, path, type } = body;
 
     // 2. สั่งล้าง Cache (On-Demand Revalidation)
@@ -33,7 +39,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: 'Missing "tag" or "path" in request body' }, { status: 400 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

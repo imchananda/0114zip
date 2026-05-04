@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
 
+type PageViewCreatedAt = { created_at: string };
+type PageViewCountry = { country: string | null };
+type PageViewPath = { path: string };
+
 // GET /api/admin/analytics?days=7
 export async function GET(req: NextRequest) {
   if (!(await verifyAdmin())) {
@@ -27,7 +31,7 @@ export async function GET(req: NextRequest) {
     .order('created_at', { ascending: true });
 
   const viewsByDay: Record<string, number> = {};
-  rawViews?.forEach((v) => {
+  (rawViews as PageViewCreatedAt[] | null)?.forEach((v) => {
     const day = v.created_at.slice(0, 10);
     viewsByDay[day] = (viewsByDay[day] || 0) + 1;
   });
@@ -40,7 +44,7 @@ export async function GET(req: NextRequest) {
     .not('country', 'is', null);
 
   const countryCounts: Record<string, number> = {};
-  countryData?.forEach((v) => {
+  (countryData as PageViewCountry[] | null)?.forEach((v) => {
     if (v.country) countryCounts[v.country] = (countryCounts[v.country] || 0) + 1;
   });
   const topCountries = Object.entries(countryCounts)
@@ -55,7 +59,7 @@ export async function GET(req: NextRequest) {
     .gte('created_at', since);
 
   const pathCounts: Record<string, number> = {};
-  pathData?.forEach((v) => {
+  (pathData as PageViewPath[] | null)?.forEach((v) => {
     pathCounts[v.path] = (pathCounts[v.path] || 0) + 1;
   });
   const topPages = Object.entries(pathCounts)

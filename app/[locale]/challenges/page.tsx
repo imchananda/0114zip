@@ -20,6 +20,8 @@ interface Challenge {
   is_active: boolean;
 }
 
+type ChallengeEntry = { challenge_id: string };
+
 const TYPE_CONFIG = {
   quiz: { label: 'ทายคำถาม', emoji: '🧠', color: '#6cbfd0' },
   vote: { label: 'โหวต', emoji: '🗳️', color: '#fbdf74' },
@@ -49,7 +51,7 @@ export default function ChallengesPage() {
           .from('challenge_entries')
           .select('challenge_id')
           .eq('user_id', user.id);
-        if (entries) setCompletedIds(new Set(entries.map((e) => e.challenge_id)));
+        if (entries) setCompletedIds(new Set((entries as ChallengeEntry[]).map((e) => e.challenge_id)));
       }
       setLoading(false);
     };

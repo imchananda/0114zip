@@ -64,7 +64,7 @@ export function getAdminClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey || serviceKey === 'YOUR_SERVICE_ROLE_KEY_HERE') {
     console.warn('[Supabase] SERVICE_ROLE_KEY not configured, using anon key');
-    return supabase as any;
+    return createClient(supabaseUrl, supabaseAnonKey);
   }
-  return createClient<any, "public", any>(supabaseUrl, serviceKey);
+  return createClient(supabaseUrl, serviceKey);
 }

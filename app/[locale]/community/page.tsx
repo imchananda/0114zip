@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
@@ -20,6 +20,8 @@ interface Post {
   };
   liked_by_me?: boolean;
 }
+
+type CommunityLike = { post_id: string };
 
 export default function CommunityPage() {
   const { user } = useAuth();
@@ -43,8 +45,8 @@ export default function CommunityPage() {
           .from('community_likes')
           .select('post_id')
           .eq('user_id', user.id);
-        const likedIds = new Set(myLikes?.map((l) => l.post_id));
-        setPosts(data.map((p) => ({ ...p, liked_by_me: likedIds.has(p.id) })) as Post[]);
+        const likedIds = new Set((myLikes as CommunityLike[] | null)?.map((l) => l.post_id));
+        setPosts((data as Post[]).map((p) => ({ ...p, liked_by_me: likedIds.has(p.id) })));
       } else {
         setPosts(data as Post[]);
       }
@@ -78,10 +80,10 @@ export default function CommunityPage() {
     if (!user) return;
     if (liked) {
       await supabase.from('community_likes').delete().eq('user_id', user.id).eq('post_id', postId);
-      await supabase.from('community_posts').update({ likes: Math.max(0, (posts.find((p: any) => p.id === postId)?.likes || 1) - 1) }).eq('id', postId);
+      await supabase.from('community_posts').update({ likes: Math.max(0, (posts.find((p) => p.id === postId)?.likes || 1) - 1) }).eq('id', postId);
     } else {
       await supabase.from('community_likes').insert({ user_id: user.id, post_id: postId });
-      await supabase.from('community_posts').update({ likes: (posts.find((p: any) => p.id === postId)?.likes || 0) + 1 }).eq('id', postId);
+      await supabase.from('community_posts').update({ likes: (posts.find((p) => p.id === postId)?.likes || 0) + 1 }).eq('id', postId);
     }
     fetchPosts();
   };

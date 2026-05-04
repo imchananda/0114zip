@@ -5,6 +5,8 @@ import * as jose from 'jose';
 
 const JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'namtanfilm-admin-secret-change-this-in-production';
 
+type UserRow = { id: string };
+
 async function checkAdminAuth(): Promise<boolean> {
   try {
     const token = (await cookies()).get('admin_session')?.value;
@@ -84,7 +86,7 @@ export async function POST(req: Request) {
     }
 
     // 3. Prepare bulk insert
-    const notifications = users.map((u: any) => ({
+    const notifications = (users as UserRow[]).map((u) => ({
       user_id: u.id,
       type,
       title,
