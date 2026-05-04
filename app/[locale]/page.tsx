@@ -43,9 +43,9 @@ import {
 } from '@/lib/transformers/home';
 
 async function AboutServer() {
-  const [stats, content] = await Promise.all([fetchLiveDashboardStats(), fetchContent()]);
+  const [stats, content, settings] = await Promise.all([fetchLiveDashboardStats(), fetchContent(), fetchCoreSettings()]);
   const awardsItems = content.filter((c: any) => c.content_type === 'award');
-  return <AboutSection ntWorks={stats.ntSeries || 0} flWorks={stats.flSeries || 0} totalAwards={awardsItems.length} />;
+  return <AboutSection ntWorks={stats.ntSeries || 0} flWorks={stats.flSeries || 0} totalAwards={awardsItems.length} config={(settings.homepageConfig as any)?.about} />;
 }
 
 async function StatsServer() {

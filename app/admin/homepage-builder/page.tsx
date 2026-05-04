@@ -29,7 +29,7 @@ interface SectionMeta {
 }
 
 const SECTION_META: Record<string, SectionMeta> = {
-  about:      { label: 'About',                  icon: '📝', desc: 'แนะนำ NamtanFilm ข้อมูลผลงานรวม',          sourcePath: 'components/sections/AboutSection.tsx' },
+  about:      { label: 'About',                  icon: '📝', desc: 'แนะนำ NamtanFilm ข้อมูลผลงานรวม', hasVisualConfig: true, sourcePath: 'components/sections/AboutSection.tsx' },
   stats:      { label: 'Live Dashboard',          icon: '📊', desc: 'สถิติโซเชียล + ลิงก์ด่วน',                  sourcePath: 'components/dashboard/LiveDashboard.tsx', adminPath: ['/admin/social-stats', '/admin/live-dashboard'] },
   brands:     { label: 'Brands & Collaborations', icon: '💼', desc: 'แบรนด์และแคมเปญโฆษณา', hasVisualConfig: true, sourcePath: 'components/sections/BrandsSection.tsx', adminPath: '/admin/brands' },
   profile:    { label: 'Profile',                 icon: '👤', desc: 'ข้อมูลโปรไฟล์ Namtan & Film',               sourcePath: 'components/sections/ProfileSection.tsx', adminPath: '/admin/profile' },
@@ -91,6 +91,24 @@ const VISUAL_CONFIGS: Record<string, VisualConfigDef> = {
     },
     limit: { label: 'จำนวนงานที่โชว์', options: [4, 6, 8] },
   },
+  about: {
+    layout: {
+      label: 'Layout',
+      options: [
+        { value: 'all', label: 'All (โชว์คู่ + เดี่ยว)', icon: '📋' },
+        { value: 'couple-only', label: 'Couple Only (โชว์เฉพาะคู่)', icon: '👥' },
+        { value: 'individuals-only', label: 'Individuals Only (โชว์เฉพาะเดี่ยว)', icon: '👤' },
+      ],
+    },
+    theme: {
+      label: 'Theme',
+      options: [
+        { value: 'default', label: 'Default', icon: '🎨' },
+        { value: 'glass', label: 'Glass (กระจกใส)', icon: '🪟' },
+        { value: 'minimal', label: 'Minimal (ไร้กรอบ)', icon: '✨' },
+      ],
+    },
+  },
   fashion: {
     limit: { label: 'จำนวน Highlight ที่โชว์', options: [4, 6, 8] },
   },
@@ -105,7 +123,7 @@ const VISUAL_CONFIGS: Record<string, VisualConfigDef> = {
 // ── Defaults ─────────────────────────────────────────────────────────────────
 
 const DEFAULT_SECTIONS: Record<string, SectionConfig> = {
-  about:      { enabled: true, order: 0 },
+  about:      { enabled: true, order: 0, layout: 'all', theme: 'default' },
   stats:      { enabled: true, order: 1 },
   brands:     { enabled: true, order: 2, layout: 'split', theme: 'dark' },
   profile:    { enabled: true, order: 3 },

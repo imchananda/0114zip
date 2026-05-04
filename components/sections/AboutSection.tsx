@@ -5,14 +5,18 @@ import { useViewState } from '@/context/ViewStateContext';
 import { useTranslations } from 'next-intl';
 import { actors } from '@/data/actors';
 
+import { cn } from '@/lib/utils';
+
 export function AboutSection({ 
     ntWorks = 0, 
     flWorks = 0, 
-    totalAwards = 0 
+    totalAwards = 0,
+    config
 }: { 
     ntWorks?: number; 
     flWorks?: number; 
-    totalAwards?: number 
+    totalAwards?: number;
+    config?: { layout?: string; theme?: string };
 } = {}) {
     const { reducedMotion } = useViewState();
     const t = useTranslations();
@@ -22,6 +26,23 @@ export function AboutSection({
         { labelKey: 'about.awards', value: totalAwards || '15+', icon: '🏆' },
         { labelKey: 'about.fans', value: '1.2M+', icon: '💕' },
     ];
+
+    const layout = config?.layout || 'all';
+    const theme = config?.theme || 'default';
+
+    const getThemeClasses = (type: 'card' | 'actorCard') => {
+        if (theme === 'glass') {
+            return 'bg-surface/30 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-glass';
+        }
+        if (theme === 'minimal') {
+            return 'bg-transparent border-none shadow-none';
+        }
+        // Default theme
+        return 'bg-surface border border-theme/60 shadow-sm hover:shadow-2xl';
+    };
+
+    const showCoupleCard = layout === 'all' || layout === 'couple-only';
+    const showActorCards = layout === 'all' || layout === 'individuals-only';
 
     return (
         <section id="about" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 overflow-hidden relative">
@@ -51,14 +72,17 @@ export function AboutSection({
                 {/* Main Content */}
                 <div className="max-w-5xl mx-auto">
                     {/* Couple Card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: reducedMotion ? 0 : 0.8, ease: [0.22, 1, 0.36, 1] }}
-                        className="relative overflow-hidden rounded-[2rem] border border-theme/60 p-10 md:p-16 mb-16 group hover:shadow-2xl transition-all duration-700"
-                        style={{ background: 'var(--color-surface)' }}
-                    >
+                    {showCoupleCard && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: reducedMotion ? 0 : 0.8, ease: [0.22, 1, 0.36, 1] }}
+                            className={cn(
+                                "relative overflow-hidden rounded-[2rem] p-10 md:p-16 mb-16 group transition-all duration-700",
+                                getThemeClasses('card')
+                            )}
+                        >
                         {/* Interactive Background Gradient */}
                         <div className="absolute inset-0 opacity-[0.08] group-hover:opacity-[0.12] transition-opacity duration-700 pointer-events-none">
                             <div className="absolute top-0 left-0 w-full h-full bg-nf-gradient" />
@@ -101,17 +125,22 @@ export function AboutSection({
                             </div>
                         </div>
                     </motion.div>
+                    )}
 
                     {/* Actor Cards */}
-                    <div className="grid md:grid-cols-2 gap-8 mb-16">
-                        {/* Namtan */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: reducedMotion ? 0 : 0.7 }}
-                            className="p-10 rounded-3xl border border-theme/60 bg-surface hover:shadow-xl transition-all duration-500 group relative overflow-hidden"
-                        >
+                    {showActorCards && (
+                        <div className="grid md:grid-cols-2 gap-8 mb-16">
+                            {/* Namtan */}
+                            <motion.div
+                                initial={{ opacity: 0, x: -30 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: reducedMotion ? 0 : 0.7 }}
+                                className={cn(
+                                    "p-10 rounded-3xl transition-all duration-500 group relative overflow-hidden",
+                                    getThemeClasses('actorCard')
+                                )}
+                            >
                             <div className="absolute top-0 left-0 w-full h-1 bg-namtan-primary opacity-40 group-hover:opacity-100 transition-opacity" />
                             <div className="flex items-center gap-6 mb-8">
                                 <div className="w-14 h-14 rounded-2xl bg-namtan-primary/10 flex items-center justify-center text-2xl shadow-sm shadow-namtan-primary/5 group-hover:scale-110 transition-transform duration-500">
@@ -143,14 +172,17 @@ export function AboutSection({
                             )}
                         </motion.div>
 
-                        {/* Film */}
-                        <motion.div
-                            initial={{ opacity: 0, x: 30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: reducedMotion ? 0 : 0.7 }}
-                            className="p-10 rounded-3xl border border-theme/60 bg-surface hover:shadow-xl transition-all duration-500 group relative overflow-hidden"
-                        >
+                            {/* Film */}
+                            <motion.div
+                                initial={{ opacity: 0, x: 30 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: reducedMotion ? 0 : 0.7 }}
+                                className={cn(
+                                    "p-10 rounded-3xl transition-all duration-500 group relative overflow-hidden",
+                                    getThemeClasses('actorCard')
+                                )}
+                            >
                             <div className="absolute top-0 left-0 w-full h-1 bg-film-primary opacity-40 group-hover:opacity-100 transition-opacity" />
                             <div className="flex items-center gap-6 mb-8">
                                 <div className="w-14 h-14 rounded-2xl bg-film-primary/10 flex items-center justify-center text-2xl shadow-sm shadow-film-primary/5 group-hover:scale-110 transition-transform duration-500">
@@ -182,6 +214,7 @@ export function AboutSection({
                             )}
                         </motion.div>
                     </div>
+                    )}
 
                     {/* Disclaimer */}
                     <motion.div
