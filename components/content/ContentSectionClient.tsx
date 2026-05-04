@@ -48,6 +48,7 @@ const contentCategories = [
 
 interface ContentSectionClientProps {
     initialContent: ContentItem[];
+    config?: { limit?: number };
 }
 
 // Helper to convert ContentItem to DisplayItem format for ContentRow
@@ -83,7 +84,7 @@ function contentToDisplayItem(item: ContentItem): DisplayItem {
     };
 }
 
-export function ContentSectionClient({ initialContent }: ContentSectionClientProps) {
+export function ContentSectionClient({ initialContent, config }: ContentSectionClientProps) {
     const { state, transitionTo, reducedMotion } = useViewState();
     const t = useTranslations();
 
@@ -95,15 +96,21 @@ export function ContentSectionClient({ initialContent }: ContentSectionClientPro
     }, [state, initialContent]);
 
     const contentByCategory = useMemo(() => {
+        const limit = config?.limit ?? 10;
         return contentCategories
-            .map(cat => ({
-                ...cat,
-                works: filteredContent
+            .map(cat => {
+                const works = filteredContent
                     .filter(item => item.contentType === cat.id)
-                    .map(contentToDisplayItem),
-            }))
+                    .map(contentToDisplayItem);
+                
+                return {
+                    ...cat,
+                    works: works.slice(0, limit),
+                    hasMore: works.length > limit,
+                };
+            })
             .filter(cat => cat.works.length > 0);
-    }, [filteredContent]);
+    }, [filteredContent, config?.limit]);
 
     const info = sectionInfo[state];
 

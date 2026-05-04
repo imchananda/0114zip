@@ -175,9 +175,10 @@ type PostWithEvent = MediaPost & { eventTitle: string };
 
 interface MediaTagsSectionProps {
   initialEvents?: MediaEvent[];
+  config?: { limit?: number; layout?: string };
 }
 
-export function MediaTagsSection({ initialEvents }: MediaTagsSectionProps = {}) {
+export function MediaTagsSection({ initialEvents, config }: MediaTagsSectionProps = {}) {
   const { state } = useViewState();
   const t = useTranslations();
   const [events, setEvents] = useState<MediaEvent[]>(initialEvents ?? []);
@@ -223,6 +224,10 @@ export function MediaTagsSection({ initialEvents }: MediaTagsSectionProps = {}) 
   ));
 
   const multipleEvents = events.length > 1;
+  const limit = config?.limit ?? 6;
+  const layout = config?.layout ?? 'split';
+  
+  const isStacked = layout === 'stacked';
 
   return (
     <section id="media-tags" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative">
@@ -254,7 +259,7 @@ export function MediaTagsSection({ initialEvents }: MediaTagsSectionProps = {}) 
           </Link>
         </div>
 
-        {/* Event filter tabs */}
+            {/* Event filter tabs */}
         {!loading && multipleEvents && (
           <motion.div
             className="flex flex-wrap gap-2 mb-10"
@@ -288,12 +293,12 @@ export function MediaTagsSection({ initialEvents }: MediaTagsSectionProps = {}) 
           </motion.div>
         )}
 
-        <div className="grid md:grid-cols-5 gap-12">
+        <div className={`grid gap-12 ${isStacked ? 'grid-cols-1' : 'md:grid-cols-5'}`}>
           {/* Media list */}
-          <div className="md:col-span-3 space-y-4">
+          <div className={`${isStacked ? 'grid md:grid-cols-2 gap-4' : 'md:col-span-3 space-y-4'}`}>
             {loading && (
-              <div className="space-y-4">
-                {[1, 2, 3].map(n => (
+              <div className={`${isStacked ? 'contents' : 'space-y-4'}`}>
+                {[...Array(limit)].map((_, n) => (
                   <div key={n} className="h-24 rounded-2xl bg-surface border border-theme/40 animate-pulse" />
                 ))}
               </div>
@@ -307,7 +312,7 @@ export function MediaTagsSection({ initialEvents }: MediaTagsSectionProps = {}) 
               </div>
             )}
             <AnimatePresence mode="popLayout">
-              {displayed.slice(0, 6).map((post, i) => (
+              {displayed.slice(0, limit).map((post, i) => (
                 <motion.div
                   key={post.id}
                   layout
@@ -327,8 +332,8 @@ export function MediaTagsSection({ initialEvents }: MediaTagsSectionProps = {}) 
           </div>
 
           {/* Hashtags column */}
-          <div className="md:col-span-2">
-            <div className="sticky top-32">
+          <div className={`${isStacked ? 'border-t border-theme/40 pt-10' : 'md:col-span-2'}`}>
+            <div className={`${isStacked ? '' : 'sticky top-32'}`}>
               <h3 className="text-xs font-bold text-muted uppercase tracking-[0.2em] mb-6 border-b border-theme/40 pb-2">
                 {t('mediaTags.activeHashtags')}
               </h3>

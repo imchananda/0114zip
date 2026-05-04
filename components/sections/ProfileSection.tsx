@@ -20,6 +20,7 @@ interface ProfileSectionProps {
   ntWorksCount?: number | null;
   flWorksCount?: number | null;
   allContent?: HomeContentItem[];
+  config?: { theme?: string; layout?: string };
 }
 
 /* ── Helpers ───────────────────────────────────────────────────────── */
@@ -364,6 +365,7 @@ export function ProfileSection({
   ntWorksCount,
   flWorksCount,
   allContent = [],
+  config,
 }: ProfileSectionProps) {
   const { state } = useViewState();
   const t = useTranslations();
@@ -391,22 +393,34 @@ export function ProfileSection({
   const emvTotal = emvNt + emvFl;
   const splitMode: 'pair' | 'single' = showNamtan && showFilm ? 'pair' : 'single';
 
+  const theme = config?.theme || 'cinematic';
+  const showTogetherBar = config?.layout !== 'hide';
+  
+  const sectionClasses = theme === 'clean' 
+    ? "relative z-0 scroll-mt-24 bg-[var(--color-bg)] text-primary"
+    : "relative z-0 scroll-mt-24 bg-[#03050c] text-white";
+    
+  const textPrimary = theme === 'clean' ? 'text-primary' : 'text-white';
+  const textMuted = theme === 'clean' ? 'text-muted' : 'text-white/50';
+  const textSub = theme === 'clean' ? 'text-accent' : 'text-cyan-300/80';
+  const kickerColor = theme === 'clean' ? 'text-muted/60' : 'text-white/40';
+
   return (
     <section
       id="profile"
-      className="relative z-0 scroll-mt-24 bg-[#03050c] text-white"
+      className={sectionClasses}
     >
       {/* full-bleed: break out of page container without fighting parent */}
       <div className="w-full max-w-[100vw] overflow-x-hidden">
         <div className="mx-auto max-w-[1800px] px-4 sm:px-6 md:px-8 pt-14 pb-4">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-1">{t('profile.sectionKicker')}</p>
-          <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-cyan-300/80 mb-2">
+          <p className={`text-[10px] uppercase tracking-[0.3em] ${kickerColor} mb-1`}>{t('profile.sectionKicker')}</p>
+          <p className={`text-[10px] sm:text-xs uppercase tracking-[0.2em] ${textSub} mb-2`}>
             {t('profile.sub')}
           </p>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-tight text-white">
+          <h2 className={`font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-tight ${textPrimary}`}>
             {t('profile.title')}
           </h2>
-          <p className="text-sm text-white/50 mt-1 font-thai max-w-2xl">{t('profile.subThai')}</p>
+          <p className={`text-sm ${textMuted} mt-1 font-thai max-w-2xl`}>{t('profile.subThai')}</p>
         </div>
 
         {/* Split: 2 columns — น้ำตาล | ฟิล์ม */}
@@ -450,63 +464,65 @@ export function ProfileSection({
         </div>
 
         {/* Mobile: thin divider between when stacked */}
-        {showNamtan && showFilm && <div className="lg:hidden h-px bg-white/10 w-full" />}
+        {showNamtan && showFilm && <div className={`lg:hidden h-px w-full ${theme === 'clean' ? 'bg-theme/40' : 'bg-white/10'}`} />}
 
-        {/* Together bar — สีและตัวเลขใกล้ mockup; EMV จาก ig_posts */}
-        {showNamtan && showFilm && (
+        {/* Together bar */}
+        {showNamtan && showFilm && showTogetherBar && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mx-4 sm:mx-6 md:mx-8 max-w-[1800px] md:mx-auto mt-2 mb-12 rounded-2xl border border-white/10 bg-[#060912]/95 p-5 sm:p-6 md:p-8 backdrop-blur-md"
-            style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.04) inset' }}
+            className={`mx-4 sm:mx-6 md:mx-8 max-w-[1800px] md:mx-auto mt-2 mb-12 rounded-2xl border p-5 sm:p-6 md:p-8 backdrop-blur-md
+              ${theme === 'clean' 
+                ? 'border-theme/40 bg-surface shadow-sm' 
+                : 'border-white/10 bg-[#060912]/95 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]'}`}
           >
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
-              <div className="shrink-0 md:border-r md:border-white/10 md:pr-8">
-                <h4 className="font-display text-xl sm:text-2xl font-bold uppercase tracking-tight text-white">
+              <div className={`shrink-0 md:border-r md:pr-8 ${theme === 'clean' ? 'md:border-theme/40' : 'md:border-white/10'}`}>
+                <h4 className={`font-display text-xl sm:text-2xl font-bold uppercase tracking-tight ${textPrimary}`}>
                   {t('profile.together')}
                 </h4>
-                <p className="text-xs text-white/45 mt-0.5">{t('profile.togetherSub')}</p>
+                <p className={`text-xs mt-0.5 ${theme === 'clean' ? 'text-muted' : 'text-white/45'}`}>{t('profile.togetherSub')}</p>
               </div>
               <div className="grid flex-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {combinedFollowers > 0 && (
-                  <div className="flex items-center gap-2 sm:gap-3 rounded-xl bg-white/[0.04] p-2.5 sm:p-3 ring-1 ring-white/5">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-300">
+                  <div className={`flex items-center gap-2 sm:gap-3 rounded-xl p-2.5 sm:p-3 ring-1 ${theme === 'clean' ? 'bg-panel ring-theme/40' : 'bg-white/[0.04] ring-white/5'}`}>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-500 dark:text-cyan-300">
                       <UsersIcon className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-base sm:text-lg font-display font-semibold tabular-nums text-white">
+                      <div className={`text-base sm:text-lg font-display font-semibold tabular-nums ${textPrimary}`}>
                         {fmt(combinedFollowers)}
                       </div>
-                      <div className="text-[8px] uppercase tracking-wider text-white/40 leading-tight">
+                      <div className={`text-[8px] uppercase tracking-wider leading-tight ${theme === 'clean' ? 'text-muted' : 'text-white/40'}`}>
                         {t('profile.totalFollowers')}
                       </div>
                     </div>
                   </div>
                 )}
                 {emvTotal > 0 && (
-                  <div className="flex items-center gap-2 sm:gap-3 rounded-xl bg-white/[0.04] p-2.5 sm:p-3 ring-1 ring-white/5">
-                    <div className="h-9 w-9 shrink-0 rounded-lg bg-emerald-500/10 text-emerald-300/90 flex items-center justify-center text-[10px] font-bold">E</div>
+                  <div className={`flex items-center gap-2 sm:gap-3 rounded-xl p-2.5 sm:p-3 ring-1 ${theme === 'clean' ? 'bg-panel ring-theme/40' : 'bg-white/[0.04] ring-white/5'}`}>
+                    <div className="h-9 w-9 shrink-0 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300/90 flex items-center justify-center text-[10px] font-bold">E</div>
                     <div>
-                      <div className="text-base sm:text-lg font-display font-semibold tabular-nums text-white">
+                      <div className={`text-base sm:text-lg font-display font-semibold tabular-nums ${textPrimary}`}>
                         {fmtDollar(emvTotal)}
                       </div>
-                      <div className="text-[8px] uppercase tracking-wider text-white/40 leading-tight line-clamp-2">
+                      <div className={`text-[8px] uppercase tracking-wider leading-tight line-clamp-2 ${theme === 'clean' ? 'text-muted' : 'text-white/40'}`}>
                         {t('profile.emv')}
                       </div>
                     </div>
                   </div>
                 )}
                 {(ntWorksCount ?? 0) + (flWorksCount ?? 0) > 0 && (
-                  <div className="flex items-center gap-2 sm:gap-3 rounded-xl bg-white/[0.04] p-2.5 sm:p-3 ring-1 ring-white/5">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-yellow-500/10 text-yellow-200">
+                  <div className={`flex items-center gap-2 sm:gap-3 rounded-xl p-2.5 sm:p-3 ring-1 ${theme === 'clean' ? 'bg-panel ring-theme/40' : 'bg-white/[0.04] ring-white/5'}`}>
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-yellow-500/10 text-yellow-600 dark:text-yellow-200">
                       <FilmIcon className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="text-base sm:text-lg font-display font-semibold tabular-nums text-white">
+                      <div className={`text-base sm:text-lg font-display font-semibold tabular-nums ${textPrimary}`}>
                         {(ntWorksCount ?? 0) + (flWorksCount ?? 0)}
                       </div>
-                      <div className="text-[8px] uppercase tracking-wider text-white/40 leading-tight">
+                      <div className={`text-[8px] uppercase tracking-wider leading-tight ${theme === 'clean' ? 'text-muted' : 'text-white/40'}`}>
                         {t('profile.totalWorks')}
                       </div>
                     </div>
@@ -514,7 +530,7 @@ export function ProfileSection({
                 )}
               </div>
             </div>
-            <p className="text-center text-[9px] uppercase tracking-[0.2em] text-white/30 mt-4">
+            <p className={`text-center text-[9px] uppercase tracking-[0.2em] mt-4 ${theme === 'clean' ? 'text-muted/50' : 'text-white/30'}`}>
               {t('profile.dataRange')}
             </p>
           </motion.div>

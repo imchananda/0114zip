@@ -134,8 +134,8 @@ async function ScheduleServer() {
 }
 
 async function ContentServer() {
-  const content = await fetchContent();
-  return <ContentSection initialContent={normalizeContentItems(content as any)} />;
+  const [content, settings] = await Promise.all([fetchContent(), fetchCoreSettings()]);
+  return <ContentSection initialContent={normalizeContentItems(content as any)} config={(settings.homepageConfig as any)?.content} />;
 }
 
 async function FashionServer() {
@@ -159,8 +159,8 @@ async function TimelineServer() {
 }
 
 async function MediaTagsServer() {
-  const mediaTags = await fetchMediaTags();
-  return <MediaTagsSection initialEvents={normalizeMediaEvents(mediaTags as any)} />;
+  const [mediaTags, settings] = await Promise.all([fetchMediaTags(), fetchCoreSettings()]);
+  return <MediaTagsSection initialEvents={normalizeMediaEvents(mediaTags as any)} config={(settings.homepageConfig as any)?.mediaTags} />;
 }
 
 async function ChallengesServer() {
@@ -174,11 +174,12 @@ async function PrizesServer() {
 }
 
 async function ProfileServer() {
-  const [profiles, stats, brands, content] = await Promise.all([
+  const [profiles, stats, brands, content, settings] = await Promise.all([
     fetchProfiles(),
     fetchLiveDashboardStats(),
     fetchBrands(),
-    fetchContent()
+    fetchContent(),
+    fetchCoreSettings()
   ]);
 
   const engData: any = {
@@ -198,6 +199,7 @@ async function ProfileServer() {
       ntWorksCount={stats.ntSeries}
       flWorksCount={stats.flSeries}
       allContent={content as any}
+      config={(settings.homepageConfig as any)?.profile}
     />
   );
 }
