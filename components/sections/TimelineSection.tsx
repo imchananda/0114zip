@@ -4,6 +4,12 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useViewState } from '@/context/ViewStateContext';
 import { useTranslations, useLocale } from 'next-intl';
+import {
+    getTimelineActorColor,
+    getTimelineCategoryStyle,
+    getTimelineStyles,
+    resolveTimelineTitle,
+} from './timeline.styles';
 
 type TimelineEvent = {
     id: string;
@@ -17,10 +23,18 @@ type TimelineEvent = {
     description_thai?: string;
 };
 
-export function TimelineSection({ initialEvents, config }: { initialEvents?: TimelineEvent[]; config?: { limit?: number } }) {
+export function TimelineSection({
+    initialEvents,
+    config,
+}: {
+    initialEvents?: TimelineEvent[];
+    config?: { limit?: number; layout?: string; theme?: string; title?: string };
+}) {
     const { state, reducedMotion } = useViewState();
     const t = useTranslations();
     const language = useLocale();
+    const styles = getTimelineStyles({ layout: config?.layout, theme: config?.theme });
+    const titleLines = resolveTimelineTitle(t('timeline.title'), config?.title);
 
     const eventsByYear = useMemo(() => {
         const items = initialEvents ?? [];
@@ -40,25 +54,8 @@ export function TimelineSection({ initialEvents, config }: { initialEvents?: Tim
     const allYears = Object.keys(eventsByYear).map(Number).sort((a, b) => b - a);
     const years = config?.limit ? allYears.slice(0, config.limit) : allYears;
 
-    const getActorColor = (actor: string) => {
-        if (actor === 'both') return 'var(--nf-gradient)';
-        if (actor === 'namtan') return 'var(--namtan-teal)';
-        return 'var(--film-gold)';
-    };
-
-    const getCategoryStyle = (category: string) => {
-        switch (category) {
-            case 'debut': return { bg: 'bg-purple-500/10', text: 'text-purple-600', border: 'border-purple-500/20' };
-            case 'work': return { bg: 'bg-namtan-primary/10', text: 'text-namtan-primary', border: 'border-namtan-primary/20' };
-            case 'award': return { bg: 'bg-film-primary/10', text: 'text-film-primary', border: 'border-film-primary/20' };
-            case 'event': return { bg: 'bg-green-500/10', text: 'text-green-600', border: 'border-green-500/20' };
-            case 'milestone': return { bg: 'bg-pink-500/10', text: 'text-pink-600', border: 'border-pink-500/20' };
-            default: return { bg: 'bg-panel', text: 'text-muted', border: 'border-theme/40' };
-        }
-    };
-
     return (
-        <section id="timeline" className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 relative">
+        <section id="timeline" className={styles.sectionClass}>
             <div className="container mx-auto px-6 md:px-12 lg:px-20 max-w-6xl">
                 {/* Section Header */}
                 <motion.div
@@ -66,21 +63,25 @@ export function TimelineSection({ initialEvents, config }: { initialEvents?: Tim
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: reducedMotion ? 0 : 0.6 }}
-                    className="text-center mb-16 md:mb-24"
+                    className={styles.headerClass}
                 >
                     <p className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]">
                         {t('timeline.sub')}
                     </p>
-                    <h2 className="text-section font-display text-primary leading-tight font-light">
-                        {t('timeline.title')}
+                    <h2 className={styles.titleClass}>
+                        {titleLines.map((line, index) => (
+                            <span key={`${line}-${index}`}>
+                                {line}
+                                {index < titleLines.length - 1 ? <br className="md:hidden" /> : null}
+                            </span>
+                        ))}
                     </h2>
                 </motion.div>
 
                 {/* Timeline */}
-                <div className="relative max-w-5xl mx-auto">
+                <div className={styles.rootClass}>
                     {/* Central Line */}
-                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-theme/60 to-transparent
-            -translate-x-1/2 hidden md:block" />
+                    <div className={styles.centerLineClass} />
 
                     {years.length === 0 ? (
                         <div className="text-center py-20 opacity-30">
@@ -97,8 +98,7 @@ export function TimelineSection({ initialEvents, config }: { initialEvents?: Tim
                                     transition={{ duration: reducedMotion ? 0 : 0.5 }}
                                     className="flex justify-center mb-12"
                                 >
-                                    <span className="px-8 py-2 bg-surface backdrop-blur-md border border-theme/60
-                      rounded-full text-primary text-2xl font-display font-light tracking-[0.2em] shadow-sm">
+                                    <span className={styles.yearPillClass}>
                                         {year}
                                     </span>
                                 </motion.div>
@@ -107,7 +107,7 @@ export function TimelineSection({ initialEvents, config }: { initialEvents?: Tim
                                 <div className="space-y-12">
                                     {eventsByYear[year].map((event: TimelineEvent, index: number) => {
                                         const isLeft = index % 2 === 0;
-                                        const style = getCategoryStyle(event.category);
+                                        const style = getTimelineCategoryStyle(event.category);
                                         return (
                                             <motion.div
                                                 key={event.id}
@@ -115,21 +115,15 @@ export function TimelineSection({ initialEvents, config }: { initialEvents?: Tim
                                                 whileInView={{ opacity: 1, x: 0 }}
                                                 viewport={{ once: true }}
                                                 transition={{ duration: reducedMotion ? 0 : 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.05 }}
-                                                className={`flex items-center gap-8 md:gap-16
-                            ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'}`}
+                                                className={styles.rowClass(isLeft)}
                                             >
                                                 {/* Content Card */}
-                                                <div className={`flex-1 ${isLeft ? 'md:text-right' : 'md:text-left'}`}>
-                                                    <div className={`group relative inline-block p-8 md:p-10 rounded-3xl bg-surface
-                              border border-theme/60 hover:border-accent/40 hover:shadow-2xl transition-all duration-500
-                              max-w-lg overflow-hidden
-                              ${isLeft ? 'md:ml-auto' : 'md:mr-auto'}`}
-                                                    >
-                                                        <div className="absolute top-0 left-0 w-1 h-full opacity-10 group-hover:opacity-100 transition-opacity" style={{ background: getActorColor(event.actor) }} />
+                                                <div className={styles.textAlignClass(isLeft)}>
+                                                    <div className={styles.cardClass(isLeft)}>
+                                                        <div className="absolute top-0 left-0 w-1 h-full opacity-10 group-hover:opacity-100 transition-opacity" style={{ background: getTimelineActorColor(event.actor) }} />
                                                         
                                                         {/* Icon & Category */}
-                                                        <div className={`flex items-center gap-4 mb-6
-                                ${isLeft ? 'md:justify-end' : 'md:justify-start'}`}>
+                                                        <div className={styles.iconRowClass(isLeft)}>
                                                             <span className="text-3xl grayscale-[0.4] group-hover:grayscale-0 transition-all duration-500">{event.icon}</span>
                                                             <span className={`text-[10px] font-bold tracking-[0.2em] uppercase px-3 py-1 rounded-full border shadow-sm
                                   ${style.bg} ${style.text} ${style.border}`}>
@@ -138,7 +132,7 @@ export function TimelineSection({ initialEvents, config }: { initialEvents?: Tim
                                                         </div>
 
                                                         {/* Title */}
-                                                        <h3 className="text-primary text-xl md:text-2xl font-display font-light mb-3 leading-snug group-hover:text-accent transition-colors">
+                                                        <h3 className="text-primary text-xl md:text-2xl font-display font-normal mb-3 leading-snug group-hover:text-accent transition-colors">
                                                             {language === 'th' ? event.title_thai : event.title}
                                                         </h3>
 
@@ -148,11 +142,10 @@ export function TimelineSection({ initialEvents, config }: { initialEvents?: Tim
                                                         </p>
 
                                                         {/* Actor Badge */}
-                                                        <div className={`mt-8 flex items-center gap-2
-                                ${isLeft ? 'md:justify-end' : 'md:justify-start'}`}>
+                                                        <div className={styles.actorBadgeClass(isLeft)}>
                                                             <div
                                                                 className="w-2 h-2 rounded-full shadow-sm"
-                                                                style={{ background: getActorColor(event.actor) }}
+                                                                style={{ background: getTimelineActorColor(event.actor) }}
                                                             />
                                                             <span className="text-muted text-xs font-bold uppercase tracking-[0.2em] opacity-60">
                                                                 {event.actor === 'both' ? t('state.namtanfilm') : event.actor}
@@ -163,15 +156,14 @@ export function TimelineSection({ initialEvents, config }: { initialEvents?: Tim
 
                                                 {/* Center Dot (Desktop) */}
                                                 <div
-                                                    className="hidden md:flex w-6 h-6 rounded-full border-2 border-theme
-                              items-center justify-center flex-shrink-0 z-10 shadow-sm transition-transform duration-500 hover:scale-125"
-                                                    style={{ background: getActorColor(event.actor) }}
+                                                    className={styles.centerDotClass}
+                                                    style={{ background: getTimelineActorColor(event.actor) }}
                                                 >
                                                     <div className="w-2 h-2 rounded-full bg-[var(--color-bg)] shadow-inner" />
                                                 </div>
 
                                                 {/* Spacer */}
-                                                <div className="hidden md:block flex-1" />
+                                                <div className={styles.spacerClass} />
                                             </motion.div>
                                         );
                                     })}
