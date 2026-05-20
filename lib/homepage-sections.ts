@@ -13,8 +13,10 @@ import {
   extractPageThemeFromHomeSections,
   normalizePageTheme,
   normalizeSectionTheme,
+  collectThemeSaveValidation,
   type PageThemeConfig,
   type SectionThemeConfig,
+  type ThemeSaveValidation,
 } from './visual/theme';
 
 export type { PageMotionConfig, SectionMotionConfig } from './visual/motion';
@@ -273,6 +275,124 @@ export function resetSectionDesignToDefaults(
   return next;
 }
 
+export type HomepageBuilderValidation = ThemeSaveValidation;
+
+function sectionDisplayLabel(sectionId: HomepageSectionId): string {
+  return SECTION_META[sectionId]?.label ?? sectionId;
+}
+
+/** Detect invalid visual fields still present in admin state (Phase 5 PR2). */
+export function collectVisualConfigWarnings(sections: HomepageSectionsConfig): string[] {
+  const warnings: string[] = [];
+
+  for (const sectionId of HOMEPAGE_SECTION_IDS) {
+    const config = sections[sectionId];
+    const visualDef = VISUAL_CONFIGS[sectionId];
+    const label = sectionDisplayLabel(sectionId);
+
+    if (config.layout != null) {
+      if (!visualDef?.layout) {
+        warnings.push(`${label}: layout is not configurable — will be removed on save`);
+      } else if (!visualDef.layout.options.some((opt) => opt.value === config.layout)) {
+        warnings.push(`${label}: unknown layout "${config.layout}" — will fall back on save`);
+      }
+    }
+
+    if (config.theme != null) {
+      if (!visualDef?.theme) {
+        warnings.push(`${label}: theme is not configurable — will be removed on save`);
+      } else if (!visualDef.theme.options.some((opt) => opt.value === config.theme)) {
+        warnings.push(`${label}: unknown theme "${config.theme}" — will fall back on save`);
+      }
+    }
+
+    if (config.limit != null) {
+      if (!visualDef?.limit) {
+        warnings.push(`${label}: limit is not configurable — will be removed on save`);
+      } else if (!visualDef.limit.options.includes(config.limit)) {
+        warnings.push(`${label}: unknown limit ${config.limit} — will fall back on save`);
+      }
+    }
+
+    if (config.title != null && config.title.trim().length > 0 && !visualDef?.title) {
+      warnings.push(`${label}: custom title is not configurable — will be removed on save`);
+    }
+  }
+
+  return warnings;
+}
+
+/** Strip visual fields outside VISUAL_CONFIGS whitelist; used during normalize (Phase 5 PR2). */
+export function sanitizeSectionVisualConfig(
+  sectionId: HomepageSectionId,
+  config: HomepageSectionConfig,
+): HomepageSectionConfig {
+  const visualDef = VISUAL_CONFIGS[sectionId];
+  const next: HomepageSectionConfig = { ...config };
+
+  if (!visualDef) {
+    delete next.layout;
+    delete next.theme;
+    delete next.limit;
+    delete next.title;
+    return next;
+  }
+
+  if (next.layout != null) {
+    if (!visualDef.layout || !visualDef.layout.options.some((opt) => opt.value === next.layout)) {
+      if (DEFAULT_SECTIONS[sectionId].layout != null) {
+        next.layout = DEFAULT_SECTIONS[sectionId].layout;
+      } else {
+        delete next.layout;
+      }
+    }
+  }
+
+  if (next.theme != null) {
+    if (!visualDef.theme || !visualDef.theme.options.some((opt) => opt.value === next.theme)) {
+      if (DEFAULT_SECTIONS[sectionId].theme != null) {
+        next.theme = DEFAULT_SECTIONS[sectionId].theme;
+      } else {
+        delete next.theme;
+      }
+    }
+  }
+
+  if (next.limit != null) {
+    if (!visualDef.limit || !visualDef.limit.options.includes(next.limit)) {
+      if (DEFAULT_SECTIONS[sectionId].limit != null) {
+        next.limit = DEFAULT_SECTIONS[sectionId].limit;
+      } else {
+        delete next.limit;
+      }
+    }
+  }
+
+  if (next.title != null) {
+    if (!visualDef.title) {
+      delete next.title;
+    } else if (typeof next.title === 'string' && next.title.trim().length === 0) {
+      delete next.title;
+    }
+  }
+
+  return next;
+}
+
+/** Theme + visual validation for admin save UI (Phase 5 PR2). */
+export function collectHomepageBuilderValidation(
+  pageTheme: PageThemeConfig,
+  sections: HomepageSectionsConfig,
+): HomepageBuilderValidation {
+  const theme = collectThemeSaveValidation(pageTheme, sections);
+  const visualWarnings = collectVisualConfigWarnings(sections);
+
+  return {
+    errors: theme.errors,
+    warnings: [...theme.warnings, ...visualWarnings],
+  };
+}
+
 export type HomepagePageConfig = {
   motion: PageMotionConfig;
   theme: PageThemeConfig;
@@ -364,6 +484,10 @@ export function normalizeHomepageSections(raw: unknown): HomepageSectionsConfig 
     }
 
     result[key] = next;
+  }
+
+  for (const sectionId of HOMEPAGE_SECTION_IDS) {
+    result[sectionId] = sanitizeSectionVisualConfig(sectionId, result[sectionId]);
   }
 
   return result;

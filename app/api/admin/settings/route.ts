@@ -2,14 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { getAdminClient, supabase } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
+import { normalizeHomepageBuilderConfig, serializeHomepageBuilderConfig } from '@/lib/homepage-sections';
+
 type SiteSettingRow = { key: string; value: unknown };
 
-// Cache GET for 5 minutes — settings change infrequently
 export const revalidate = 300;
 
-// GET /api/admin/settings — returns { general, features, social, maintenance }
+const HOME_SECTIONS_KEY = 'homeSections';
+
+/** Re-normalize raw JSONB before persist (Phase 5 PR2). */
+function normalizeHomeSectionsForStorage(value: unknown): unknown {
+  const builder = normalizeHomepageBuilderConfig(value);
+  return serializeHomepageBuilderConfig(builder.sections, builder.pageMotion, builder.pageTheme);
+}
+
+function normalizeSettingValue(key: string, value: unknown): unknown {
+  if (key === HOME_SECTIONS_KEY) {
+    return normalizeHomeSectionsForStorage(value);
+  }
+  return value;
+}
+
 export async function GET() {
-  // Settings are public-readable
   const { data, error } = await supabase
     .from('site_settings')
     .select('key, value');
@@ -23,8 +37,6 @@ export async function GET() {
   return NextResponse.json(settings);
 }
 
-// PUT /api/admin/settings — upsert one key at a time or all keys
-// Body: { key: string, value: object } or { general: {}, features: {}, ... }
 export async function PUT(req: NextRequest) {
   if (!(await verifyAdmin(req))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -33,15 +45,19 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   const admin = getAdminClient();
 
-  // Support both single-key { key, value } and multi-key { general, features, ... }
   let rows: { key: string; value: unknown; updated_at: string }[] = [];
 
   if ('key' in body && 'value' in body) {
-    rows = [{ key: body.key, value: body.value, updated_at: new Date().toISOString() }];
+    const key = String(body.key);
+    rows = [{
+      key,
+      value: normalizeSettingValue(key, body.value),
+      updated_at: new Date().toISOString(),
+    }];
   } else {
     rows = Object.entries(body).map(([key, value]) => ({
       key,
-      value,
+      value: normalizeSettingValue(key, value),
       updated_at: new Date().toISOString(),
     }));
   }
@@ -56,4 +72,5 @@ export async function PUT(req: NextRequest) {
     revalidateTag('schedule');
   }
 
-  return NextResponse.json({ success: true });}
+  return NextResponse.json({ success: true });
+}

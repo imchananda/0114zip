@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useMemo } from 'react';
 import Link from 'next/link';
 import { Reorder } from 'framer-motion';
 import { clearGlobalCacheAction } from '@/app/admin/actions';
@@ -8,6 +8,7 @@ import {
   cloneDefaultHomepageSections,
   cloneDefaultPageMotion,
   cloneDefaultPageTheme,
+  collectHomepageBuilderValidation,
   normalizeHomepageBuilderConfig,
   resetSectionDesignToDefaults,
   serializeHomepageBuilderConfig,
@@ -22,8 +23,8 @@ import {
 } from '@/app/admin/homepage-builder/ThemeTokenEditor';
 import { PageSettingsPanel } from '@/app/admin/homepage-builder/PageSettingsPanel';
 import { SectionSettingsPanel } from '@/app/admin/homepage-builder/SectionSettingsPanel';
+import { BuilderValidationBanner } from '@/app/admin/homepage-builder/BuilderValidationBanner';
 import {
-  collectThemeSaveValidation,
   formatSectionThemeSummary,
   normalizeSectionTheme,
   type ColorMode,
@@ -66,6 +67,12 @@ export default function HomepageBuilderPage() {
   }, []);
 
   const themeValidation = useThemeValidation(pageTheme, sections);
+  const builderValidation = useMemo(
+    () => collectHomepageBuilderValidation(pageTheme, sections),
+    [pageTheme, sections],
+  );
+  const hasSaveBlockingErrors =
+    builderValidation.errors.length > 0 || hasPendingInvalidThemeDraft(pageTheme, sections);
 
   const handleSave = async () => {
     if (hasPendingInvalidThemeDraft(pageTheme, sections)) {
@@ -74,24 +81,27 @@ export default function HomepageBuilderPage() {
       return;
     }
 
-    const validation = collectThemeSaveValidation(pageTheme, sections);
-    if (validation.errors.length > 0) {
-      setSaveMsg(`ไม่สามารถบันทึก: ${validation.errors[0]}`);
+    if (builderValidation.errors.length > 0) {
+      setSaveMsg(`ไม่สามารถบันทึก: ${builderValidation.errors[0]}`);
       setTimeout(() => setSaveMsg(''), 5000);
       return;
     }
+
+    const payload = serializeHomepageBuilderConfig(sections, pageMotion, pageTheme);
+    const normalized = normalizeHomepageBuilderConfig(payload);
 
     setSaving(true);
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          homeSections: serializeHomepageBuilderConfig(sections, pageMotion, pageTheme),
-        }),
+        body: JSON.stringify({ homeSections: payload }),
       });
 
       if (res.ok) {
+        setSections(normalized.sections);
+        setPageMotion(normalized.pageMotion);
+        setPageTheme(normalized.pageTheme);
         startTransition(async () => {
           await clearGlobalCacheAction();
         });
@@ -208,7 +218,7 @@ export default function HomepageBuilderPage() {
         </div>
         <button
           onClick={handleSave}
-          disabled={saving || isPending || hasPendingInvalidThemeDraft(pageTheme, sections)}
+          disabled={saving || isPending || hasSaveBlockingErrors}
           className="px-6 py-2.5 bg-[#6cbfd0] hover:bg-[#4a9aab] text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
         >
           {saving || isPending ? (
@@ -218,6 +228,11 @@ export default function HomepageBuilderPage() {
           )}
         </button>
       </div>
+
+      <BuilderValidationBanner
+        errors={builderValidation.errors}
+        warnings={builderValidation.warnings}
+      />
 
       {saveMsg && (
         <div className={`mb-6 px-4 py-3 rounded-xl text-sm border ${
