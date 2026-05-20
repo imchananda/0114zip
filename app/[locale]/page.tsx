@@ -188,7 +188,15 @@ async function ContentServer() {
 
 async function FashionServer() {
   const [fashion, brands, settings] = await Promise.all([fetchFashion(), fetchBrands(), fetchCoreSettings()]);
-  return <FashionSection events={fashion as HomeFashionEvent[]} brandLookup={brands as HomeBrand[]} config={settings.homepageConfig.fashion} />;
+  return (
+    <FashionSection
+      events={fashion as HomeFashionEvent[]}
+      brandLookup={brands as HomeBrand[]}
+      config={settings.homepageConfig.fashion}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
+    />
+  );
 }
 
 async function AwardsServer() {

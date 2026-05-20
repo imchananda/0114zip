@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * Phase 6 — cross-layer section (pattern from Brands/About pilots):
+ *   • Visual: getFashionStyles (fashionSection.styles.ts)
+ *   • Motion: useSectionMotion + toWhileInViewBinding
+ *   • Theme: SectionThemeWrapper → CSS vars
+ */
 import { useCallback, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -9,8 +15,12 @@ import { Link } from '@/i18n/routing';
 
 import { useSafeReducedMotion } from '@/lib/useSafeReducedMotion';
 import { cn } from '@/lib/utils';
+import type { HomepageSectionConfig, PageMotionConfig, PageThemeConfig } from '@/lib/homepage-sections';
+import { SectionThemeWrapper } from '@/components/ui/SectionThemeWrapper';
+import { toWhileInViewBinding, useSectionMotion } from '@/lib/visual';
 import type { HomeBrand, HomeFashionEvent } from '@/lib/homepage-data';
 import { FASHION_CATEGORY_IDS, type FashionCategoryId } from '@/lib/fashion-constants';
+import { getFashionStyles, resolveFashionLimit } from './fashionSection.styles';
 
 const PROXY_HOSTS = ['upload.wikimedia.org', 'commons.wikimedia.org', 'encrypted-tbn0.gstatic.com'];
 function logoSrc(url: string): string {
@@ -139,30 +149,30 @@ function actorTag(actors: string[], t: (k: string) => string) {
 
 /* —— Small presentational pieces —— */
 function SectionKicker({ children, className }: { children: React.ReactNode; className?: string }) {
+  const styles = getFashionStyles();
   return (
-    <div
-      className={cn(
-        'inline-flex items-center gap-2 rounded-full border px-3 py-1.5',
-        'border-cyan-500/25 dark:border-cyan-400/30 dark:bg-cyan-500/5',
-        'light:border-cyan-700/20 light:bg-cyan-900/5',
-        className
-      )}
-    >
-      <Sparkles
-        className="h-3.5 w-3.5 shrink-0 text-cyan-500 dark:text-cyan-300"
-        strokeWidth={2}
-        aria-hidden
-      />
-      <span className="text-[9px] font-bold uppercase tracking-[0.32em] text-primary">{children}</span>
+    <div className={cn(styles.sectionKickerClass, className)}>
+      <Sparkles className={styles.sectionKickerIconClass} strokeWidth={2} aria-hidden />
+      <span className={styles.sectionKickerTextClass}>{children}</span>
     </div>
   );
 }
 
-type Props = { events: HomeFashionEvent[]; brandLookup?: HomeBrand[]; config?: { limit?: number } };
+type Props = {
+  events: HomeFashionEvent[];
+  brandLookup?: HomeBrand[];
+  config?: Pick<HomepageSectionConfig, 'limit' | 'motion' | 'themeTokens'>;
+  pageMotion?: PageMotionConfig;
+  pageTheme?: PageThemeConfig;
+};
 
-export function FashionSection({ events, brandLookup, config }: Props) {
+export function FashionSection({ events, brandLookup, config, pageMotion, pageTheme }: Props) {
   const t = useTranslations();
   const locale = useLocale();
+  const styles = getFashionStyles();
+  const sectionMotion = useSectionMotion(pageMotion, config?.motion);
+  const headerSubMotion = toWhileInViewBinding(sectionMotion);
+  const headerTitleMotion = toWhileInViewBinding(sectionMotion, 1);
   const reduceMotion = useSafeReducedMotion();
   const [tab, setTab] = useState<HighlightTab>('all');
   const [rangeFromYear, setRangeFromYear] = useState<'all' | number>('all');
@@ -183,7 +193,7 @@ export function FashionSection({ events, brandLookup, config }: Props) {
     return [...ys].sort((a, b) => b - a);
   }, [events]);
 
-  const highlightLimit = config?.limit;
+  const highlightLimit = resolveFashionLimit(config?.limit);
   const highlightPool = useMemo(() => {
     const pool = events
       .filter(
@@ -227,37 +237,41 @@ export function FashionSection({ events, brandLookup, config }: Props) {
   );
 
   return (
-    <div
+    <SectionThemeWrapper
+      as="section"
+      id="fashion"
       role="region"
       aria-label={t('fashion.sub')}
-      className={cn(
-        'fashion-ambient w-full py-16 md:py-20 lg:py-24',
-        'bg-[var(--color-bg)] text-[var(--color-text-primary)]',
-        'transition-[background-color,color] duration-500'
-      )}
+      className={styles.sectionClass}
+      pageTheme={pageTheme}
+      sectionTheme={config?.themeTokens}
     >
-      <div className="fashion-ambient-inner w-full max-w-[100vw] px-4 sm:px-5 md:px-8 lg:px-12 xl:px-16 2xl:px-20">
-        {/* Page kicker + title */}
-        <div className="mb-10 md:mb-14 text-center">
-          <p className="text-overline text-accent font-bold mb-3 uppercase tracking-[0.4em]">{t('fashion.sub')}</p>
-          <h2 className="font-display text-3xl font-light text-primary md:text-4xl">
+      <div className={styles.innerWrapClass}>
+        <div className={styles.headerWrapClass}>
+          <motion.p
+            initial={headerSubMotion.initial}
+            whileInView={headerSubMotion.whileInView}
+            viewport={headerSubMotion.viewport}
+            transition={headerSubMotion.transition}
+            className={styles.sublineClass}
+          >
+            {t('fashion.sub')}
+          </motion.p>
+          <motion.h2
+            initial={headerTitleMotion.initial}
+            whileInView={headerTitleMotion.whileInView}
+            viewport={headerTitleMotion.viewport}
+            transition={headerTitleMotion.transition}
+            className={styles.titleClass}
+          >
             {t('fashion.titleLine1')} <span className="text-balance">{t('fashion.titleLine2')}</span>
-          </h2>
+          </motion.h2>
         </div>
 
         {events.length === 0 ? (
-          <div
-            className={cn(
-              'rounded-3xl border py-20 text-center',
-              'border-theme/50 bg-surface/50 dark:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04)]',
-              'light:shadow-sm'
-            )}
-          >
-            <p className="mb-3 text-sm font-bold uppercase tracking-widest text-muted">{t('fashion.empty')}</p>
-            <Link
-              href="/works?type=magazine"
-              className="text-xs font-bold uppercase tracking-widest text-accent underline-offset-2 hover:underline"
-            >
+          <div className={styles.emptyStateClass}>
+            <p className={styles.emptyStateTextClass}>{t('fashion.empty')}</p>
+            <Link href="/works?type=magazine" className={styles.emptyActionClass}>
               {t('fashion.emptyAction')}
             </Link>
           </div>
@@ -604,17 +618,9 @@ export function FashionSection({ events, brandLookup, config }: Props) {
             </div>
 
             {/* —— Categories + Top brands —— */}
-            <div
-              className={cn(
-                'grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8',
-                'rounded-[1.5rem] border p-5 md:p-8',
-                'border-cyan-500/15 dark:border-cyan-400/20 dark:bg-zinc-900/15',
-                'light:border-[var(--color-border)] light:bg-[var(--color-surface)]/60',
-                'light:shadow-md'
-              )}
-            >
+            <div className={styles.statsPanelClass}>
               <div>
-                <h3 className="mb-4 text-[10px] font-bold uppercase tracking-[0.32em] text-muted">{t('fashion.byCategory')}</h3>
+                <h3 className={styles.panelHeadingClass}>{t('fashion.byCategory')}</h3>
                 <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                   {FASHION_CATEGORY_IDS.map((id) => (
                     <div
@@ -647,7 +653,7 @@ export function FashionSection({ events, brandLookup, config }: Props) {
               </div>
               <div>
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-[10px] font-bold uppercase tracking-[0.32em] text-muted">{t('fashion.topBrands')}</h3>
+                  <h3 className={styles.panelHeadingClass}>{t('fashion.topBrands')}</h3>
                   <Link
                     href="/"
                     className="text-[9px] font-bold uppercase tracking-widest text-muted transition hover:text-accent"
@@ -809,6 +815,6 @@ export function FashionSection({ events, brandLookup, config }: Props) {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </SectionThemeWrapper>
   );
 }
