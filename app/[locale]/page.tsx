@@ -170,7 +170,14 @@ async function ScheduleServer() {
 
 async function ContentServer() {
   const [content, settings] = await Promise.all([fetchContent(), fetchCoreSettings()]);
-  return <ContentSection initialContent={normalizeContentItems(content as unknown as HomeContentItem[])} config={settings.homepageConfig.content} />;
+  return (
+    <ContentSection
+      initialContent={normalizeContentItems(content as unknown as HomeContentItem[])}
+      config={settings.homepageConfig.content}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
+    />
+  );
 }
 
 async function FashionServer() {

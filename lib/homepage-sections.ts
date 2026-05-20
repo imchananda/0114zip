@@ -92,7 +92,7 @@ export const SECTION_META: Record<string, SectionMeta> = {
   brands:     { label: 'Brands & Collaborations', icon: '💼', desc: 'แบรนด์และแคมเปญโฆษณา', hasVisualConfig: true, sourcePath: 'components/sections/BrandsSection.tsx', adminPath: '/admin/brands' },
   profile:    { label: 'Profile',                 icon: '👤', desc: 'ข้อมูลโปรไฟล์ Namtan & Film', hasVisualConfig: true, sourcePath: 'components/sections/ProfileSection.tsx', adminPath: '/admin/profile' },
   schedule:   { label: 'Schedule Preview',        icon: '📅', desc: 'กำหนดการและอีเวนต์ที่กำลังจะมาถึง', hasVisualConfig: true, sourcePath: 'components/sections/SchedulePreview.tsx', adminPath: '/admin/schedule' },
-  content:    { label: 'Content',                 icon: '🎞️', desc: 'ซีรีส์ ละคร และผลงาน', hasVisualConfig: true, sourcePath: 'components/sections/ContentSection.tsx', adminPath: '/admin/content' },
+  content:    { label: 'Content',                 icon: '🎞️', desc: 'ซีรีส์ ละคร และผลงาน', hasVisualConfig: true, sourcePath: 'components/content/ContentSection.tsx', adminPath: '/admin/content' },
   fashion:    { label: 'Fashion & Style',         icon: '👗', desc: 'แฟชั่นและลุคเด่นล่าสุด', hasVisualConfig: true, sourcePath: 'components/sections/FashionSection.tsx', adminPath: '/admin/fashion' },
   awards:     { label: 'Awards',                  icon: '🏆', desc: 'รางวัลที่ได้รับ', hasVisualConfig: true, sourcePath: 'components/sections/AwardsPreview.tsx', adminPath: '/admin/awards' },
   timeline:   { label: 'Timeline',                icon: '📖', desc: 'ไทม์ไลน์เหตุการณ์สำคัญ', hasVisualConfig: true, sourcePath: 'components/sections/TimelineSection.tsx', adminPath: '/admin/timeline' },

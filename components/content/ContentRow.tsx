@@ -8,20 +8,34 @@ import { useViewState } from '@/context/ViewStateContext';
 import { DisplayItem } from '@/types';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
+import type { WhileInViewMotionBinding } from '@/lib/visual/motion';
+import { getContentRowStyles } from './content.styles';
 
 interface ContentRowProps {
   title: string;
   titleThai?: string;
   icon: string;
   works: DisplayItem[];
-  index: number;
   hasMore?: boolean;
+  rowMotion: WhileInViewMotionBinding;
+  cardMotion: (cardIndex: number) => WhileInViewMotionBinding;
+  moreCardMotion: WhileInViewMotionBinding;
 }
 
-export function ContentRow({ title, titleThai, icon, works, index, hasMore }: ContentRowProps) {
+export function ContentRow({
+  title,
+  titleThai,
+  icon,
+  works,
+  hasMore,
+  rowMotion,
+  cardMotion,
+  moreCardMotion,
+}: ContentRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { reducedMotion } = useViewState();
   const t = useTranslations();
+  const styles = getContentRowStyles();
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
@@ -36,53 +50,39 @@ export function ContentRow({ title, titleThai, icon, works, index, hasMore }: Co
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{
-        delay: reducedMotion ? 0 : index * 0.1,
-        duration: reducedMotion ? 0 : 0.6,
-        ease: [0.22, 1, 0.36, 1]
-      }}
-      className="py-12 md:py-16 group/row border-b border-theme/30 last:border-0"
+      initial={rowMotion.initial}
+      whileInView={rowMotion.whileInView}
+      viewport={rowMotion.viewport}
+      transition={rowMotion.transition}
+      className={styles.rowClass}
     >
-      {/* Row Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-6 md:px-12 lg:px-20 mb-10">
         <div className="flex items-center gap-6">
-          <div className="w-14 h-14 rounded-2xl bg-panel border border-theme/40 flex items-center justify-center text-3xl shadow-sm grayscale-[0.4] group-hover/row:grayscale-0 transition-all duration-500">
-             {icon}
-          </div>
+          <div className={styles.iconWrapperClass}>{icon}</div>
           <div>
-            <h3 className="text-primary text-2xl md:text-3xl font-display font-light tracking-tight group-hover/row:text-accent transition-colors duration-300">
-              {title}
-            </h3>
-            {titleThai && (
-              <p className="text-muted text-sm font-medium font-thai tracking-wide opacity-70 mt-1">{titleThai}</p>
-            )}
+            <h3 className={styles.rowTitleClass}>{title}</h3>
+            {titleThai && <p className={styles.rowSubtitleClass}>{titleThai}</p>}
           </div>
         </div>
-        
+
         <div className="flex items-center gap-6">
-          <span className="text-xs font-bold tracking-[0.2em] text-muted/50 uppercase border-r border-theme/40 pr-6 hidden md:block">
+          <span className={styles.countClass}>
             {works.length} {t('content.portfolioItems')}
           </span>
 
-          {/* Scroll Buttons - Desktop */}
           <div className="hidden md:flex gap-3">
             <button
+              type="button"
               onClick={() => scroll('left')}
-              className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300
-                         bg-surface hover:bg-accent hover:text-deep-dark
-                         text-muted border border-theme hover:border-accent shadow-sm"
+              className={styles.scrollButtonClass}
               aria-label="Scroll left"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
+              type="button"
               onClick={() => scroll('right')}
-              className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300
-                         bg-surface hover:bg-accent hover:text-deep-dark
-                         text-muted border border-theme hover:border-accent shadow-sm"
+              className={styles.scrollButtonClass}
               aria-label="Scroll right"
             >
               <ChevronRight className="w-5 h-5" />
@@ -91,51 +91,40 @@ export function ContentRow({ title, titleThai, icon, works, index, hasMore }: Co
         </div>
       </div>
 
-      {/* Horizontal Scroll */}
-      <div
-        ref={scrollRef}
-        className={cn(
-          'flex gap-6 md:gap-8 overflow-x-auto',
-          'px-6 md:px-12 lg:px-20 pb-8',
-          'snap-x snap-mandatory',
-          'scrollbar-hide scroll-smooth'
-        )}
-      >
-        {works.map((work, i) => (
-          <motion.div
-            key={work.id}
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{
-              delay: reducedMotion ? 0 : i * 0.05,
-              duration: reducedMotion ? 0 : 0.5
-            }}
-            className="snap-start flex-shrink-0"
-          >
-            <ContentCard work={work} />
-          </motion.div>
-        ))}
+      <div ref={scrollRef} className={cn(styles.scrollTrackClass)}>
+        {works.map((work, i) => {
+          const motionBinding = cardMotion(i);
+          return (
+            <motion.div
+              key={work.id}
+              initial={motionBinding.initial}
+              whileInView={motionBinding.whileInView}
+              viewport={motionBinding.viewport}
+              transition={motionBinding.transition}
+              className="snap-start flex-shrink-0"
+            >
+              <ContentCard work={work} />
+            </motion.div>
+          );
+        })}
 
         {hasMore && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="snap-start flex-shrink-0 flex items-center justify-center w-[280px] md:w-[320px] rounded-[2rem] border border-theme/40 bg-surface/50 hover:bg-surface hover:border-accent transition-all duration-300 group/more"
+            initial={moreCardMotion.initial}
+            whileInView={moreCardMotion.whileInView}
+            viewport={moreCardMotion.viewport}
+            transition={moreCardMotion.transition}
+            className={styles.moreCardClass}
           >
             <div className="text-center p-8">
-              <div className="w-16 h-16 rounded-full bg-panel border border-theme/40 flex items-center justify-center text-accent mx-auto mb-4 group-hover/more:scale-110 group-hover/more:shadow-lg transition-all duration-500">
+              <div className={styles.moreIconWrapperClass}>
                 <ChevronRight className="w-8 h-8" />
               </div>
-              <p className="text-sm font-bold uppercase tracking-widest text-primary group-hover/more:text-accent transition-colors">
-                {t('content.viewAllWorks')}
-              </p>
+              <p className={styles.moreLabelClass}>{t('content.viewAllWorks')}</p>
             </div>
           </motion.div>
         )}
       </div>
     </motion.section>
   );
-
 }
