@@ -251,6 +251,28 @@ export function cloneDefaultPageTheme(): PageThemeConfig {
   return { ...DEFAULT_PAGE_THEME };
 }
 
+/** Reset design fields to DEFAULT_SECTIONS; preserves enabled + order (Phase 5). */
+export function resetSectionDesignToDefaults(
+  sectionId: HomepageSectionId,
+  current: HomepageSectionConfig,
+): HomepageSectionConfig {
+  const defaults = DEFAULT_SECTIONS[sectionId];
+  const next: HomepageSectionConfig = {
+    enabled: current.enabled,
+    order: current.order,
+  };
+
+  if (defaults.layout != null) next.layout = defaults.layout;
+  if (defaults.theme != null) next.theme = defaults.theme;
+  if (defaults.limit != null) next.limit = defaults.limit;
+  if (defaults.title != null) next.title = defaults.title;
+  if (defaults.motion) {
+    next.motion = { ...defaults.motion };
+  }
+
+  return next;
+}
+
 export type HomepagePageConfig = {
   motion: PageMotionConfig;
   theme: PageThemeConfig;
