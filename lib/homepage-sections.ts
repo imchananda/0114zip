@@ -1,3 +1,14 @@
+import {
+  extractPageMotionFromHomeSections,
+  HEAVY_SECTION_MOTION_DEFAULTS,
+  HOMEPAGE_PAGE_CONFIG_KEY,
+  normalizeSectionMotion,
+  type PageMotionConfig,
+  type SectionMotionConfig,
+} from './visual/motion';
+
+export type { PageMotionConfig, SectionMotionConfig } from './visual/motion';
+
 export type HomepageSectionConfig = {
   enabled: boolean;
   order: number;
@@ -5,6 +16,8 @@ export type HomepageSectionConfig = {
   theme?: string;
   limit?: number;
   title?: string;
+  /** Phase 2 — section motion override (inherit | preset) */
+  motion?: SectionMotionConfig;
 };
 
 export type HomepageSectionsConfig = Record<HomepageSectionId, HomepageSectionConfig>;
@@ -190,7 +203,7 @@ export const VISUAL_CONFIGS: Record<string, VisualConfigDef> = {
 
 export const DEFAULT_SECTIONS: HomepageSectionsConfig = {
   about:      { enabled: true, order: 0, layout: 'all', theme: 'default' },
-  stats:      { enabled: true, order: 1 },
+  stats:      { enabled: true, order: 1, ...HEAVY_SECTION_MOTION_DEFAULTS.stats },
   brands:     { enabled: true, order: 2, layout: 'split', theme: 'dark' },
   profile:    { enabled: true, order: 3, theme: 'cinematic', layout: 'show' },
   schedule:   { enabled: true, order: 4, layout: 'cards', theme: 'light', limit: 4 },
@@ -198,7 +211,7 @@ export const DEFAULT_SECTIONS: HomepageSectionsConfig = {
   fashion:    { enabled: true, order: 6, limit: 6 },
   awards:     { enabled: true, order: 7, limit: 6 },
   timeline:   { enabled: true, order: 8, limit: 5 },
-  mediaTags:  { enabled: true, order: 9, layout: 'split', limit: 6 },
+  mediaTags:  { enabled: true, order: 9, layout: 'split', limit: 6, ...HEAVY_SECTION_MOTION_DEFAULTS.mediaTags },
   challenges: { enabled: true, order: 10, layout: 'grid', limit: 3 },
   prizes:     { enabled: true, order: 11, theme: 'default', limit: 3 },
   floatingArtistSelector: { enabled: true, order: 99 },
@@ -207,8 +220,25 @@ export const DEFAULT_SECTIONS: HomepageSectionsConfig = {
 
 export function cloneDefaultHomepageSections(): HomepageSectionsConfig {
   return Object.fromEntries(
-    Object.entries(DEFAULT_SECTIONS).map(([key, value]) => [key, { ...value }])
+    Object.entries(DEFAULT_SECTIONS).map(([key, value]) => [
+      key,
+      {
+        ...value,
+        ...(value.motion ? { motion: { ...value.motion } } : {}),
+      },
+    ]),
   ) as HomepageSectionsConfig;
+}
+
+/** Phase 2 — page default + sections from raw homeSections JSONB */
+export function normalizeHomepageBuilderConfig(raw: unknown): {
+  pageMotion: PageMotionConfig;
+  sections: HomepageSectionsConfig;
+} {
+  return {
+    pageMotion: extractPageMotionFromHomeSections(raw),
+    sections: normalizeHomepageSections(raw),
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -228,6 +258,7 @@ export function normalizeHomepageSections(raw: unknown): HomepageSectionsConfig 
   if (!isRecord(raw)) return result;
 
   for (const [key, value] of Object.entries(raw)) {
+    if (key === HOMEPAGE_PAGE_CONFIG_KEY) continue;
     if (!isHomepageSectionId(key)) continue;
 
     if (typeof value === 'boolean') {
@@ -250,6 +281,10 @@ export function normalizeHomepageSections(raw: unknown): HomepageSectionsConfig 
     if (limit !== undefined) next.limit = limit;
 
     if (typeof value.title === 'string') next.title = value.title;
+
+    if (value.motion !== undefined) {
+      next.motion = normalizeSectionMotion(value.motion);
+    }
 
     result[key] = next;
   }
