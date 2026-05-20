@@ -1,5 +1,11 @@
 'use client';
 
+/**
+ * Phase 6 — cross-layer section (pattern from MediaTags pilots):
+ *   • Visual: getLiveDashboardStyles (liveDashboard.styles.ts)
+ *   • Motion: useSectionMotion + toWhileInViewBinding
+ *   • Theme: SectionThemeWrapper → CSS vars
+ */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -7,6 +13,10 @@ import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { useSafeReducedMotion } from '@/lib/useSafeReducedMotion';
 import { useMounted } from '@/hooks/useMounted';
+import type { HomepageSectionConfig, PageMotionConfig, PageThemeConfig } from '@/lib/homepage-sections';
+import { SectionThemeWrapper } from '@/components/ui/SectionThemeWrapper';
+import { toWhileInViewBinding, useSectionMotion } from '@/lib/visual';
+import { getLiveDashboardStyles } from './liveDashboard.styles';
 import { DonutChart, MultiDonut } from './widgets/Charts';
 import { FollowerCard } from './widgets/FollowerCard';
 import { PortraitCard } from './widgets/PortraitCard';
@@ -390,16 +400,26 @@ export function LiveDashboard({
   initialFeaturedMusic,
   initialNtSeries,
   initialFlSeries,
+  config,
+  pageMotion,
+  pageTheme,
 }: {
-  initialEng?:            EngData | null;
-  initialProfiles?:       Record<string, ArtistProfile>;
-  initialFanCountries?:   FanCountry[];
+  initialEng?: EngData | null;
+  initialProfiles?: Record<string, ArtistProfile>;
+  initialFanCountries?: FanCountry[];
   initialFeaturedSeries?: ContentDbItem | null;
-  initialFeaturedMusic?:  ContentDbItem | null;
-  initialNtSeries?:       number | null;
-  initialFlSeries?:       number | null;
+  initialFeaturedMusic?: ContentDbItem | null;
+  initialNtSeries?: number | null;
+  initialFlSeries?: number | null;
+  config?: Pick<HomepageSectionConfig, 'motion' | 'themeTokens'>;
+  pageMotion?: PageMotionConfig;
+  pageTheme?: PageThemeConfig;
 } = {}) {
   const t = useTranslations();
+  const styles = getLiveDashboardStyles();
+  const sectionMotion = useSectionMotion(pageMotion, config?.motion);
+  const headerSubMotion = toWhileInViewBinding(sectionMotion);
+  const headerTitleMotion = toWhileInViewBinding(sectionMotion, 1);
   const reducedMotion = useSafeReducedMotion();
   const mounted = useMounted();
   const [eng,            setEng]            = useState<EngData | null>(initialEng ?? null);
@@ -603,68 +623,59 @@ export function LiveDashboard({
     return buildBreakdown(filtered);
   }, [dbFlWorks, selectedYear, buildBreakdown, staticWorks]);
 
-  const sectionInitial = reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 };
-  const cardInitial = reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 };
-  const statInitial = reducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 };
-
   return (
-    <section className="py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500">
-      <div className="container mx-auto px-6 md:px-12 max-w-7xl">
-
-        {/* ── Section header ─────────────────────────────────────────────── */}
-        <div className="flex flex-col md:flex-row items-baseline justify-between mb-12 pb-6 border-b border-theme/40">
+    <SectionThemeWrapper
+      as="section"
+      id="stats"
+      className={styles.sectionClass}
+      pageTheme={pageTheme}
+      sectionTheme={config?.themeTokens}
+    >
+      <div className={styles.containerClass}>
+        <div className={styles.headerClass}>
           <div>
-            <motion.p 
-              initial={sectionInitial}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]"
+            <motion.p
+              initial={headerSubMotion.initial}
+              whileInView={headerSubMotion.whileInView}
+              viewport={headerSubMotion.viewport}
+              transition={headerSubMotion.transition}
+              className={styles.sublineClass}
             >
               {t('stats.sub')}
             </motion.p>
-            <motion.h2 
-              initial={sectionInitial}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: reducedMotion ? 0 : 0.1, duration: reducedMotion ? 0 : 0.4 }}
-              className="font-display text-4xl md:text-section text-primary leading-none font-light"
+            <motion.h2
+              initial={headerTitleMotion.initial}
+              whileInView={headerTitleMotion.whileInView}
+              viewport={headerTitleMotion.viewport}
+              transition={headerTitleMotion.transition}
+              className={styles.titleClass}
             >
-              {t('stats.titleLine1')} <br className="md:hidden" />{t('stats.titleLine2')}
+              {t('stats.titleLine1')} <br className="md:hidden" />
+              {t('stats.titleLine2')}
             </motion.h2>
           </div>
-          <div className="flex flex-wrap items-center gap-6 mt-8 md:mt-0">
-            {/* Year filter pills */}
-            <div className="flex items-center gap-1.5 p-1 rounded-full bg-surface/50 border border-theme/40">
-              {YEAR_OPTIONS.map(opt => (
+          <div className={styles.headerActionsClass}>
+            <div className={styles.yearPillsWrapClass}>
+              {YEAR_OPTIONS.map((opt) => (
                 <button
                   key={opt.value ?? 'all'}
+                  type="button"
                   onClick={() => handleYearChange(opt.value)}
-                  className={`px-4 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all duration-300
-                    ${selectedYear === opt.value
-                      ? 'bg-primary text-deep-dark shadow-sm'
-                      : 'text-muted hover:text-primary'
-                    }`}
+                  className={styles.yearPillClass(selectedYear === opt.value)}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
-            <Link
-              href="/stats"
-              className="text-xs tracking-[0.2em] font-bold uppercase
-                text-muted hover:text-accent transition-colors flex items-center gap-2 group"
-            >
-              {t('stats.fullReport')} <span className="group-hover:translate-x-1 transition-transform">→</span>
+            <Link href="/stats" className={styles.fullReportLinkClass}>
+              {t('stats.fullReport')}{' '}
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
             </Link>
           </div>
         </div>
 
-        {/* ── Bento grid ─────────────────────────────────────────────────────
-            Mobile  : 2 cols, rows auto ~160px
-            Desktop : 4 cols × 3 rows  ~200px each
-        ─────────────────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[160px] md:auto-rows-[200px] gap-3 md:gap-4">
-          {SLOT_DEFS.map(slot => {
+        <div className={styles.bentoGridClass}>
+          {SLOT_DEFS.map((slot, slotIndex) => {
             const widget = ((cfg.bento ?? DEFAULT_BENTO)[slot.id] ?? slot.defaultWidget) as WidgetType;
             if (widget === 'hidden') return null;
             const slotLink = cfg.bentoLinks?.[slot.id];
@@ -714,14 +725,15 @@ export function LiveDashboard({
             }
 
             // Regular surface card
+            const cardMotion = toWhileInViewBinding(sectionMotion, slotIndex + 2);
             return (
               <motion.div
                 key={slot.id}
-                className={`relative group rounded-2xl overflow-hidden bg-surface border border-theme/40 hover:border-accent/40 shadow-sm transition-all duration-500 ${slot.gridClass}`}
-                initial={cardInitial}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: reducedMotion ? 0 : slot.delay, duration: reducedMotion ? 0 : 0.4 }}
+                className={`${styles.bentoCardClass} ${slot.gridClass}`}
+                initial={cardMotion.initial}
+                whileInView={cardMotion.whileInView}
+                viewport={cardMotion.viewport}
+                transition={cardMotion.transition}
               >
                 <WidgetContent widget={widget} d={wData} />
                 {slotLink && <LinkOverlay link={slotLink} isDual={dual} />}
@@ -730,36 +742,31 @@ export function LiveDashboard({
           })}
         </div>
 
-        {/* ── Bottom stats strip (data-driven by cfg.statsStrip) ────────── */}
-        <div className="mt-4 grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
+        <div className={styles.statsStripGridClass}>
           {STATS_STRIP_DEFS.map((def, i) => {
             const tile = ((cfg.statsStrip ?? DEFAULT_STATS_STRIP)[def.id] ?? def.defaultTile) as StatsTileType;
             if (tile === 'hidden') return null;
             const resolved = resolveStatsTile(tile, { mounted, nt, fl, ntEMV, flEMV, ntBrands, flBrands, ntSeries, flSeries, ntAwards, flAwards });
             if (!resolved) return null;
+            const stripMotion = toWhileInViewBinding(sectionMotion, 20 + i);
             return (
               <motion.div
                 key={def.id}
-                className="rounded-2xl p-5 text-center
-                  bg-surface border border-theme/40 hover:border-theme transition-all duration-300 group"
-                initial={statInitial}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: reducedMotion ? 0 : 0.5 + i * 0.05, duration: reducedMotion ? 0 : 0.35 }}
+                className={styles.statsStripCardClass}
+                initial={stripMotion.initial}
+                whileInView={stripMotion.whileInView}
+                viewport={stripMotion.viewport}
+                transition={stripMotion.transition}
               >
-                <div className="font-display text-2xl md:text-3xl font-bold text-primary leading-none tabular-nums group-hover:scale-110 transition-transform">
-                  {resolved.v}
-                </div>
-                <div className="text-[9px] tracking-[0.25em] uppercase font-bold text-muted mt-3 opacity-60">
-                  {resolved.top}
-                </div>
-                <div className="text-[10px] font-bold text-accent uppercase tracking-widest mt-1 opacity-80">{resolved.sub}</div>
+                <div className={styles.statsStripValueClass}>{resolved.v}</div>
+                <div className={styles.statsStripTopClass}>{resolved.top}</div>
+                <div className={styles.statsStripSubClass}>{resolved.sub}</div>
               </motion.div>
             );
           })}
         </div>
 
       </div>
-    </section>
+    </SectionThemeWrapper>
   );
 }

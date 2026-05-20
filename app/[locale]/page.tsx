@@ -79,7 +79,11 @@ async function AboutServer() {
 }
 
 async function StatsServer() {
-  const [stats, profiles] = await Promise.all([fetchLiveDashboardStats(), fetchProfiles()]);
+  const [stats, profiles, settings] = await Promise.all([
+    fetchLiveDashboardStats(),
+    fetchProfiles(),
+    fetchCoreSettings(),
+  ]);
   const brands = await fetchBrands();
   const engData: HomeEngData = {
     latestSnapshots: {},
@@ -121,6 +125,9 @@ async function StatsServer() {
       initialFeaturedMusic={stats.featuredMusic as unknown as ContentDbItem | null}
       initialNtSeries={stats.ntSeries}
       initialFlSeries={stats.flSeries}
+      config={settings.homepageConfig.stats}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
     />
   );
 }
