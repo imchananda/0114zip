@@ -1,6 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminClient, supabase } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
+import { isLegacyContentType, LEGACY_CONTENT_TYPES } from '@/lib/content-constants';
+
+const LEGACY_CONTENT_MESSAGE: Record<string, string> = {
+  magazine: 'Magazine content moved to /admin/fashion (category: magazine).',
+  award: 'Awards moved to /admin/awards.',
+};
+
+function rejectLegacyContentType(type: string | null): NextResponse | null {
+  if (type && isLegacyContentType(type)) {
+    return NextResponse.json(
+      { error: LEGACY_CONTENT_MESSAGE[type], deprecated: true },
+      { status: 410 },
+    );
+  }
+  return null;
+}
+
+function rejectLegacyContentBody(body: Record<string, unknown>): NextResponse | null {
+  const contentType = body.content_type;
+  if (typeof contentType === 'string' && isLegacyContentType(contentType)) {
+    return NextResponse.json(
+      { error: LEGACY_CONTENT_MESSAGE[contentType], deprecated: true },
+      { status: 410 },
+    );
+  }
+  return null;
+}
 
 // GET /api/admin/content?type=series
 export async function GET(req: NextRequest) {
@@ -8,9 +35,20 @@ export async function GET(req: NextRequest) {
   const client = isAdmin ? getAdminClient() : supabase;
 
   const type = req.nextUrl.searchParams.get('type');
-  let query = client.from('content_items').select('*, brand_collaborations(id, brand_name, brand_logo)').order('sort_order', { ascending: true }).order('year', { ascending: false });
+  const legacyReject = rejectLegacyContentType(type);
+  if (legacyReject) return legacyReject;
 
-  if (type) query = query.eq('content_type', type);
+  let query = client
+    .from('content_items')
+    .select('*, brand_collaborations(id, brand_name, brand_logo)')
+    .order('sort_order', { ascending: true })
+    .order('year', { ascending: false });
+
+  if (type) {
+    query = query.eq('content_type', type);
+  } else {
+    query = query.not('content_type', 'in', `(${LEGACY_CONTENT_TYPES.join(',')})`);
+  }
   if (!isAdmin) query = query.eq('visible', true);
 
   const { data, error } = await query;
@@ -26,6 +64,9 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
+  const legacyReject = rejectLegacyContentBody(body as Record<string, unknown>);
+  if (legacyReject) return legacyReject;
+
   const admin = getAdminClient();
 
   const { data, error } = await admin.from('content_items').insert(body).select().single();
@@ -41,6 +82,9 @@ export async function PUT(req: NextRequest) {
   }
 
   const body = await req.json();
+  const legacyReject = rejectLegacyContentBody(body as Record<string, unknown>);
+  if (legacyReject) return legacyReject;
+
   const { id, ...updates } = body;
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 

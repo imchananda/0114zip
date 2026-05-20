@@ -24,6 +24,8 @@ import {
   fetchBrands,
   fetchSchedule,
   fetchContent,
+  fetchAwards,
+  fetchAwardCount,
   fetchFashion,
   fetchTimeline,
   fetchMediaTags,
@@ -41,6 +43,7 @@ import {
   normalizeContentItems,
   normalizeMediaEvents,
 } from '@/lib/transformers/home';
+import { normalizeHomeAwards } from '@/lib/awards-preview';
 import type {
   HomeBrand,
   HomeContentItem,
@@ -60,10 +63,19 @@ type BrandsSectionConfig = { layout?: 'split' | 'full-grid'; theme?: 'dark' | 'l
 type ScheduleSectionConfig = { layout?: 'cards' | 'list'; theme?: 'light' | 'dark'; limit?: number; title?: string };
 
 async function AboutServer() {
-  const [stats, content, settings] = await Promise.all([fetchLiveDashboardStats(), fetchContent(), fetchCoreSettings()]);
-  const contentRows = content as unknown as HomeContentItem[];
-  const awardsItems = contentRows.filter((c) => c.content_type === 'award');
-  return <AboutSection ntWorks={stats.ntSeries || 0} flWorks={stats.flSeries || 0} totalAwards={awardsItems.length} config={settings.homepageConfig.about} />;
+  const [stats, awardCount, settings] = await Promise.all([
+    fetchLiveDashboardStats(),
+    fetchAwardCount(),
+    fetchCoreSettings(),
+  ]);
+  return (
+    <AboutSection
+      ntWorks={stats.ntSeries || 0}
+      flWorks={stats.flSeries || 0}
+      totalAwards={awardCount}
+      config={settings.homepageConfig.about}
+    />
+  );
 }
 
 async function StatsServer() {
@@ -167,9 +179,13 @@ async function FashionServer() {
 }
 
 async function AwardsServer() {
-  const [content, settings] = await Promise.all([fetchContent(), fetchCoreSettings()]);
-  const awardsItems = (content as unknown as HomeContentItem[]).filter((c) => c.content_type === 'award');
-  return <AwardsPreview initialAwards={awardsItems} config={settings.homepageConfig.awards} />;
+  const [awards, settings] = await Promise.all([fetchAwards(), fetchCoreSettings()]);
+  return (
+    <AwardsPreview
+      initialAwards={normalizeHomeAwards(awards)}
+      config={settings.homepageConfig.awards}
+    />
+  );
 }
 
 async function TimelineServer() {

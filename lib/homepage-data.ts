@@ -7,6 +7,7 @@ import {
 import { aggregateSchedule } from './schedule/aggregate';
 import { normalizeScheduleSourceToggles } from './schedule/settings';
 import { toPublicScheduleEvents } from './schedule/public-dto';
+import { normalizeHomeAwards } from './awards-preview';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -87,10 +88,29 @@ export interface HomeContentItem {
   image?: string | null;
   links?: { platform: string; url: string }[];
   description?: string;
-  award_name?: string;
-  ceremony?: string;
-  magazine_name?: string;
-  issue?: string;
+}
+
+/** Row from `awards` table — canonical homepage awards source (PR6) */
+export interface HomeAwardItem {
+  id: string;
+  title: string;
+  title_thai?: string | null;
+  show: string;
+  year: number;
+  category: string;
+  artist: string;
+  result: string;
+}
+
+/** Normalized shape for AwardsPreview section */
+export interface HomeAwardPreviewItem {
+  id: string;
+  year: number;
+  title: string;
+  award_name: string;
+  ceremony: string;
+  description?: string;
+  actors: string[];
 }
 
 /** Fashion event row — matches `fashion_events` (admin: /admin/fashion) */
@@ -193,7 +213,7 @@ export interface HomePageData {
   prizes:             unknown[];
   timelineItems:      HomeTimelineItem[];
   fashionEvents:      HomeFashionEvent[];
-  awardsItems:        HomeContentItem[];
+  awardsItems:        HomeAwardPreviewItem[];
   allContent:         HomeContentItem[];
   homepageConfig:     HomepageSectionsConfig;
   heroBannerConfig:   HeroBannerConfig;
@@ -226,7 +246,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
   const needPrizes = isEnabled('prizes');
 
   const needProfiles = needStats || needBrands || needProfile;
-  const needAllContent = needContent || needAwards;
+  const needAllContent = needContent;
 
   const [
     heroSlidesRes,
@@ -246,6 +266,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
     timelineResMaybe,
     allContentResMaybe,
     fashionEventsResMaybe,
+    awardsResMaybe,
   ] = await Promise.allSettled([
     db.from('hero_slides').select('*').eq('enabled', true).order('sort_order'),
     needStats ? db.from('artist_follower_snapshots').select('*').order('recorded_date', { ascending: true }) : Promise.resolve({ data: [] }),
@@ -264,7 +285,15 @@ export async function fetchHomeData(): Promise<HomePageData> {
     needChallenges ? db.from('challenges').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: [] }),
     needPrizes ? db.from('prize_draws').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: [] }),
     needTimeline ? db.from('timeline_items').select('*').eq('visible', true).order('year', { ascending: false }).order('sort_order', { ascending: true }) : Promise.resolve({ data: [] }),
-    needAllContent ? db.from('content_items').select('*').eq('visible', true).order('year', { ascending: false }).order('sort_order', { ascending: true }) : Promise.resolve({ data: [] }),
+    needAllContent
+      ? db
+          .from('content_items')
+          .select('*')
+          .eq('visible', true)
+          .not('content_type', 'in', '(magazine,award)')
+          .order('year', { ascending: false })
+          .order('sort_order', { ascending: true })
+      : Promise.resolve({ data: [] }),
     needFashion
       ? db
           .from('fashion_events')
@@ -272,6 +301,14 @@ export async function fetchHomeData(): Promise<HomePageData> {
           .eq('visible', true)
           .order('sort_order', { ascending: true })
           .order('event_date', { ascending: false, nullsFirst: false })
+      : Promise.resolve({ data: [] }),
+    needAwards
+      ? db
+          .from('awards')
+          .select('id, title, title_thai, show, year, category, artist, result')
+          .order('year', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(12)
       : Promise.resolve({ data: [] }),
   ]);
 
@@ -335,7 +372,10 @@ export async function fetchHomeData(): Promise<HomePageData> {
   const fashionEvents = fashionEventsResMaybe.status === 'fulfilled'
     ? (fashionEventsResMaybe.value.data as HomeFashionEvent[] ?? [])
     : [];
-  const awardsItems = allContent.filter(c => c.content_type === 'award').slice(0, 6);
+  const awardsRows = awardsResMaybe.status === 'fulfilled'
+    ? (awardsResMaybe.value.data as HomeAwardItem[] ?? [])
+    : [];
+  const awardsItems = normalizeHomeAwards(awardsRows).slice(0, 6);
   const defaultHeroConfig: HeroBannerConfig = { type: 'cinematic', showScrollHint: true };
   const heroBannerConfig = (settings.heroBanner as HeroBannerConfig) || defaultHeroConfig;
 

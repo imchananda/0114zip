@@ -226,41 +226,18 @@ export function toPlatform(platform: string): Platform {
 
 export function normalizeContentItems(items: HomePageData['allContent']): ContentItem[] {
   return (items ?? [])
-    .filter((item) => typeof item.id === 'string' && typeof item.title === 'string')
+    .filter(
+      (item) =>
+        typeof item.id === 'string' &&
+        typeof item.title === 'string' &&
+        item.content_type !== 'magazine' &&
+        item.content_type !== 'award',
+    )
     .map((item) => {
       const actors = normalizeActors(item.actors ?? []);
       const year = item.year ?? new Date().getFullYear();
       const image = item.image ?? '';
       const titleThai = item.title_thai;
-
-      if (item.content_type === 'award') {
-        return {
-          contentType: 'award',
-          id: item.id,
-          awardName: item.award_name ?? item.title,
-          awardNameThai: titleThai,
-          ceremony: item.ceremony ?? '',
-          year,
-          actors,
-          description: item.description,
-          image,
-        } as ContentItem;
-      }
-
-      if (item.content_type === 'magazine') {
-        return {
-          contentType: 'magazine',
-          id: item.id,
-          title: item.title,
-          titleThai,
-          year,
-          actors,
-          image,
-          magazineName: item.magazine_name ?? '',
-          issue: item.issue,
-          description: item.description,
-        } as ContentItem;
-      }
 
       if (item.content_type === 'event') {
         return {

@@ -24,7 +24,7 @@ function isPlatform(value: string): value is Platform {
 }
 
 function normalizeContentType(contentType?: string | null): ContentItem['contentType'] {
-  if (contentType === 'variety' || contentType === 'event' || contentType === 'magazine' || contentType === 'award') {
+  if (contentType === 'variety' || contentType === 'event') {
     return contentType;
   }
   return 'series';
@@ -63,6 +63,7 @@ export default async function ArtistPage({
     .from('content_items')
     .select('*')
     .eq('visible', true)
+    .not('content_type', 'in', '(magazine,award)')
     .order('sort_order', { ascending: true })
     .order('year', { ascending: false }) as { data: ContentRow[] | null };
 
@@ -76,31 +77,6 @@ export default async function ArtistPage({
       image: d.image || '/images/placeholders/content.jpg',
       actors: normalizeActors(d.actors),
     };
-
-    if (contentType === 'award') {
-      return {
-        contentType: 'award',
-        id: d.id,
-        awardName: d.title,
-        ceremony: d.description || 'Award',
-        year: d.year ?? new Date().getFullYear(),
-        actors: normalizeActors(d.actors),
-        image: d.image || '/images/placeholders/content.jpg',
-        link: d.link ?? undefined,
-        description: d.description ?? undefined,
-      };
-    }
-
-    if (contentType === 'magazine') {
-      return {
-        ...base,
-        contentType: 'magazine',
-        magazineName: d.title,
-        issue: undefined,
-        description: d.description ?? undefined,
-        link: d.link ?? undefined,
-      };
-    }
 
     if (contentType === 'event') {
       return {

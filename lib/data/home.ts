@@ -1,8 +1,9 @@
 import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../database.types';
-import { HeroBannerConfig, HomeArtistProfile, HomeHeroSlide } from '../homepage-data';
+import { HeroBannerConfig, HomeArtistProfile, HomeAwardItem, HomeHeroSlide } from '../homepage-data';
 import { normalizeHomepageSections } from '../homepage-sections';
+import { LEGACY_CONTENT_TYPES } from '../content-constants';
 import { aggregateSchedule } from '../schedule/aggregate';
 import { fetchScheduleSourceToggles } from '../schedule/settings';
 import { toPublicScheduleEvents } from '../schedule/public-dto';
@@ -119,11 +120,42 @@ export const fetchSchedule = unstable_cache(
 
 export const fetchContent = unstable_cache(
   async () => {
-    const { data } = await db.from('content_items').select('*').eq('visible', true).order('year', { ascending: false }).order('sort_order', { ascending: true });
+    const { data } = await db
+      .from('content_items')
+      .select('*')
+      .eq('visible', true)
+      .not('content_type', 'in', `(${LEGACY_CONTENT_TYPES.join(',')})`)
+      .order('year', { ascending: false })
+      .order('sort_order', { ascending: true });
     return data ?? [];
   },
   ['home-content'],
   { revalidate: REVALIDATE_TIME, tags: ['content_items'] }
+);
+
+export const fetchAwards = unstable_cache(
+  async () => {
+    const { data } = await db
+      .from('awards')
+      .select('id, title, title_thai, show, year, category, artist, result')
+      .order('year', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(12);
+    return (data ?? []) as HomeAwardItem[];
+  },
+  ['home-awards'],
+  { revalidate: REVALIDATE_TIME, tags: ['awards'] }
+);
+
+export const fetchAwardCount = unstable_cache(
+  async () => {
+    const { count } = await db
+      .from('awards')
+      .select('id', { count: 'exact', head: true });
+    return count ?? 0;
+  },
+  ['home-award-count'],
+  { revalidate: REVALIDATE_TIME, tags: ['awards'] }
 );
 
 export const fetchFashion = unstable_cache(

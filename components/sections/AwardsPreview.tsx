@@ -5,15 +5,9 @@ import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { useViewState } from '@/context/ViewStateContext';
 
-type AwardItem = {
-  id: string;
-  year?: number;
-  title?: string;
-  award_name?: string;
-  ceremony?: string;
-  description?: string;
-  actors: string[];
-};
+import type { HomeAwardPreviewItem } from '@/lib/homepage-data';
+
+type AwardItem = HomeAwardPreviewItem;
 
 export function AwardsPreview({ initialAwards, config }: { initialAwards?: AwardItem[]; config?: { limit?: number } }) {
   const t = useTranslations();

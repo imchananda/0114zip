@@ -6,7 +6,7 @@ import { useViewState } from '@/context/ViewStateContext';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { ContentRow } from './ContentRow';
-import { ViewState, ContentItem, Series, Variety, Event, Magazine, Award, DisplayItem } from '@/types';
+import { ViewState, ContentItem, Series, Variety, Event, DisplayItem } from '@/types';
 
 interface SectionInfo {
     titleKey: string;
@@ -42,8 +42,6 @@ const contentCategories = [
     { id: 'series' as const, titleKey: 'content.categories.series', titleThaiKey: 'content.categoriesThai.series', icon: '▶' },
     { id: 'variety' as const, titleKey: 'content.categories.variety', titleThaiKey: 'content.categoriesThai.variety', icon: '★' },
     { id: 'event' as const, titleKey: 'content.categories.event', titleThaiKey: 'content.categoriesThai.event', icon: '◈' },
-    { id: 'magazine' as const, titleKey: 'content.categories.magazine', titleThaiKey: 'content.categoriesThai.magazine', icon: '◇' },
-    { id: 'award' as const, titleKey: 'content.categories.award', titleThaiKey: 'content.categoriesThai.award', icon: '★' },
 ];
 
 interface ContentSectionClientProps {
@@ -53,22 +51,7 @@ interface ContentSectionClientProps {
 
 // Helper to convert ContentItem to DisplayItem format for ContentRow
 function contentToDisplayItem(item: ContentItem): DisplayItem {
-    if (item.contentType === 'award') {
-        const award = item as Award;
-        return {
-            id: award.id,
-            title: award.awardName,
-            titleThai: award.awardNameThai,
-            year: award.year,
-            image: award.image,
-            actors: award.actors,
-            contentType: 'award',
-            link: award.link,
-            description: award.description,
-        };
-    }
-
-    const baseItem = item as Series | Variety | Event | Magazine;
+    const baseItem = item as Series | Variety | Event;
     return {
         id: baseItem.id,
         title: baseItem.title,
@@ -80,7 +63,7 @@ function contentToDisplayItem(item: ContentItem): DisplayItem {
         description: 'description' in baseItem ? baseItem.description : undefined,
         role: 'role' in baseItem ? (baseItem as Series).role : undefined,
         links: 'links' in baseItem ? (baseItem as Series).links : undefined,
-        link: 'link' in baseItem ? (baseItem as Variety | Event | Magazine).link : undefined,
+        link: 'link' in baseItem ? (baseItem as Variety | Event).link : undefined,
     };
 }
 

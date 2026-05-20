@@ -1,7 +1,7 @@
 # Phase Data — Admin Schedule Aggregation
 
 Branch: `feat/admin-schedule-aggregation`  
-Status: PR5 complete — admin UI + source toggles; PR6 (deprecation) next
+Status: PR6 complete — Phase Data schedule aggregation done
 
 ## Goal
 
@@ -46,7 +46,7 @@ See `lib/schedule/types.ts` — `AdminScheduleItem`, `ScheduleSource`, `Schedule
 | **PR3** ✅ | Data migration SQL + runbook: legacy magazine/award → fashion_events/awards |
 | **PR4** ✅ | `GET /api/admin/schedule` + public `/api/schedule` aggregator; homepage/server fetch via `aggregateSchedule` |
 | **PR5** ✅ | Wire `/admin/schedule` UI + source toggles in settings |
-| **PR6** | Deprecate legacy content_types in schedule paths |
+| **PR6** ✅ | Deprecate legacy `content_items.magazine`/`award`; homepage awards from `awards` table |
 
 ## Verification (Phase B complete)
 

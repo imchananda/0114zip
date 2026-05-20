@@ -48,7 +48,40 @@ File: `supabase/migration_schedule_legacy_content_data.sql`
 
 ## Execute
 
-Run the full SQL file in Supabase SQL Editor (service role / postgres).
+### Option A — Supabase SQL Editor (recommended if no local DATABASE_URL)
+
+1. Open [SQL Editor](https://supabase.com/dashboard/project/rsnsndhzdtkxzgkccrzn/sql/new) for project `rsnsndhzdtkxzgkccrzn`.
+2. Run **`supabase/migration_awards_schedule_fields.sql`** (PR2) — paste full file → Run.
+3. Run **`supabase/migration_schedule_legacy_content_data.sql`** (PR3) — paste full file → Run.
+4. Run verification queries below.
+
+### Option B — CLI script (requires real `DATABASE_URL`)
+
+Add to `.env.local` (from Dashboard → Settings → Database → Connection string URI):
+
+```env
+DATABASE_URL=postgresql://postgres.[ref]:[PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres
+```
+
+Then:
+
+```bash
+npm install pg
+node scripts/run-schedule-pr2-pr3.mjs
+```
+
+PR2 only: `node scripts/run-schedule-pr2-pr3.mjs --pr2-only`  
+PR3 only: `node scripts/run-schedule-pr2-pr3.mjs --pr3-only`
+
+### Current remote status (checked via API)
+
+| Check | Status |
+|---|---|
+| `awards.ceremony_date` / `show_on_schedule` (PR2) | **Not applied** |
+| `schedule_legacy_migrations` ledger (PR3) | **Not applied** |
+| Legacy `content_items` magazine/award rows | **0 rows** (nothing to migrate) |
+
+PR2 is required for awards in the schedule aggregator. PR3 still applies the fashion sync patch (`category=magazine` skip) even with zero legacy rows.
 
 ## Verify
 
@@ -78,4 +111,4 @@ Review `schedule_legacy_migrations.target_id` before deleting destination rows.
 
 - Re-running is safe: already-migrated `content_item_id` values are skipped via ledger.
 - Award rows that match existing `awards` (title + show + year) link to existing row instead of duplicating.
-- Homepage still reads `content_items.award` until PR4/PR6 wire aggregator — migrated rows are hidden (`visible = false`).
+- Homepage awards section reads `awards` table directly (PR6); legacy `content_items.award` rows stay hidden.

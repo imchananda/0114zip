@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import type { AdminContentType } from '@/lib/content-constants';
 
 const PROXY_HOSTS = ['upload.wikimedia.org', 'commons.wikimedia.org', 'encrypted-tbn0.gstatic.com'];
 function imgSrc(url: string): string {
@@ -12,7 +13,7 @@ function imgSrc(url: string): string {
   return url.replace(/^http:\/\//, 'https://');
 }
 
-type ContentType = 'series' | 'variety' | 'music' | 'magazine' | 'award';
+type ContentType = AdminContentType;
 
 interface PlatformLink { platform: string; url: string; }
 
@@ -44,12 +45,14 @@ function serializeContentDate(dateInput: string): string | null {
 }
 
 const TYPE_LABELS: Record<ContentType, string> = {
-  series: '📺 Series', variety: '🎭 Variety', music: '🎵 งานเพลง',
-  magazine: '📰 Magazine', award: '🏆 Award',
+  series: '📺 Series',
+  variety: '🎭 Variety',
+  music: '🎵 งานเพลง',
 };
 const TYPE_COLORS: Record<ContentType, string> = {
-  series: '#4CAF50', variety: '#FF9800', music: '#E91E63',
-  magazine: '#9C27B0', award: '#fbdf74',
+  series: '#4CAF50',
+  variety: '#FF9800',
+  music: '#E91E63',
 };
 
 const PLATFORM_OPTIONS = [
@@ -124,6 +127,14 @@ export default function ContentManagementPage() {
         >
           + เพิ่มเนื้อหาใหม่
         </button>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+        <span className="font-medium text-amber-500/90">Legacy types moved:</span>{' '}
+        Magazine →{' '}
+        <Link href="/admin/fashion" className="text-[#6cbfd0] hover:underline">/admin/fashion</Link>
+        {' '}· Awards →{' '}
+        <Link href="/admin/awards" className="text-[#6cbfd0] hover:underline">/admin/awards</Link>
       </div>
 
       {/* Type filter */}
@@ -371,8 +382,6 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
               <option value="series">Series &amp; Drama</option>
               <option value="variety">Variety</option>
               <option value="music">งานเพลง</option>
-              <option value="magazine">Magazine</option>
-              <option value="award">Award</option>
             </select>
           </Field>
 
