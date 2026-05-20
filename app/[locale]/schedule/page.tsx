@@ -11,22 +11,25 @@ import { cn } from '@/lib/utils';
 interface ScheduleEvent {
   id: string;
   title: string;
-  title_thai?: string;
-  event_type: 'event' | 'show' | 'concert' | 'fanmeet' | 'live' | 'release';
+  title_thai?: string | null;
+  event_type: 'event' | 'fashion' | 'show' | 'concert' | 'fanmeet' | 'live' | 'release' | 'award' | 'media';
   date: string; // YYYY-MM-DD HH:mm
-  venue?: string;
+  venue?: string | null;
   actors: string[];
-  link?: string;
-  description?: string;
+  link?: string | null;
+  description?: string | null;
 }
 
 const TYPE_STYLES: Record<string, { icon: LucideIcon; color: string; label: string }> = {
   event:    { icon: Calendar,  color: 'var(--namtan-teal)', label: 'Event' },
+  fashion:  { icon: Calendar,  color: '#EC407A', label: 'Fashion' },
   show:     { icon: Calendar,  color: '#AB47BC', label: 'Show' },
   concert:  { icon: Calendar,  color: '#EF5350', label: 'Concert' },
   fanmeet:  { icon: Calendar,  color: 'var(--film-gold)', label: 'Fan Meet' },
   live:     { icon: Calendar,  color: '#66BB6A', label: 'Live' },
   release:  { icon: Calendar,  color: '#FF7043', label: 'Release' },
+  award:    { icon: Calendar,  color: '#FFB300', label: 'Award' },
+  media:    { icon: Calendar,  color: '#42A5F5', label: 'Media' },
 };
 
 function formatDate(dateStr: string) {

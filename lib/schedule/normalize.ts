@@ -102,3 +102,10 @@ export function dateOnlyToScheduledAt(dateOnly: string | null | undefined): stri
   if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return null;
   return `${d} 12:00:00`;
 }
+
+/** GMT+7 approximate "now" string for schedule filters (matches legacy /api/schedule). */
+export function scheduleNowString(): string {
+  const now = new Date();
+  now.setHours(now.getHours() + 7);
+  return now.toISOString().slice(0, 16).replace('T', ' ');
+}

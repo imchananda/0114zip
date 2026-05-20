@@ -4,6 +4,8 @@ import {
   normalizeHomepageSections,
   type HomepageSectionsConfig,
 } from './homepage-sections';
+import { aggregateSchedule } from './schedule/aggregate';
+import { toPublicScheduleEvents } from './schedule/public-dto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -114,12 +116,14 @@ export interface HomeFashionEvent {
 export interface HomeScheduleEvent {
   id: string;
   title: string;
-  title_thai?: string;
+  title_thai?: string | null;
   event_type: string;
   date: string;
-  venue?: string;
+  venue?: string | null;
   actors: string[];
-  link: string | null;
+  link?: string | null;
+  description?: string | null;
+  source?: string;
 }
 
 export interface HomeMediaEvent {
@@ -146,16 +150,6 @@ export interface HomeBrand {
 type SiteSettingRow = { key: string; value: unknown };
 type SnapshotRow = { artist: string; platform: string; followers: number; recorded_date: string };
 type CountryRow = { country: string; percentage: number; color: string };
-type ScheduleRow = {
-  id: string;
-  title: string;
-  title_thai?: string;
-  content_type?: string;
-  date: string;
-  venue?: string;
-  actors?: string[];
-  link: string | null;
-};
 type TimelineRow = {
   id: string;
   year: number;
@@ -206,10 +200,6 @@ export interface HomePageData {
 
 // ── Server-side data fetch for the homepage ────────────────────────────────────
 export async function fetchHomeData(): Promise<HomePageData> {
-  const now = new Date();
-  now.setHours(now.getHours() + 7);
-  const nowStr = now.toISOString().slice(0, 16).replace('T', ' ');
-
   const siteSettingsRes = await db.from('site_settings').select('key, value');
 
   const settings: Record<string, unknown> = {};
@@ -265,7 +255,9 @@ export async function fetchHomeData(): Promise<HomePageData> {
     needStats ? db.from('content_items').select('*').eq('visible', true).eq('show_on_live_dashboard', true).eq('content_type', 'music').limit(1) : Promise.resolve({ data: [] }),
     (needStats || needAbout) ? db.from('content_items').select('id', { count: 'exact', head: true }).eq('visible', true).eq('content_type', 'series').contains('actors', ['namtan']) : Promise.resolve({ count: null }),
     (needStats || needAbout) ? db.from('content_items').select('id', { count: 'exact', head: true }).eq('visible', true).eq('content_type', 'series').contains('actors', ['film']) : Promise.resolve({ count: null }),
-    needSchedule ? db.from('content_items').select('*').eq('content_type', 'event').eq('visible', true).gte('date', nowStr).order('date', { ascending: true }).limit(10) : Promise.resolve({ data: [] }),
+    needSchedule
+      ? aggregateSchedule(db, { includeHidden: false, type: 'upcoming', limit: 10 })
+      : Promise.resolve([]),
     needMediaTags ? db.from('media_events').select('*, media_posts(*)').eq('is_active', true).order('start_date', { ascending: false, nullsFirst: true }) : Promise.resolve({ data: [] }),
     needChallenges ? db.from('challenges').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: [] }),
     needPrizes ? db.from('prize_draws').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: [] }),
@@ -322,12 +314,10 @@ export async function fetchHomeData(): Promise<HomePageData> {
   const ntSeries = ntSeriesResMaybe.status === 'fulfilled' ? (ntSeriesResMaybe.value.count ?? null) : null;
   const flSeries = flSeriesResMaybe.status === 'fulfilled' ? (flSeriesResMaybe.value.count ?? null) : null;
 
-  const scheduleEvents = scheduleResMaybe.status === 'fulfilled'
-    ? (scheduleResMaybe.value.data as ScheduleRow[] ?? []).map(r => ({
-        id: r.id, title: r.title, title_thai: r.title_thai, event_type: r.content_type ?? 'event',
-        date: r.date, venue: r.venue, actors: r.actors ?? [], link: r.link
-      }))
+  const scheduleItems = scheduleResMaybe.status === 'fulfilled'
+    ? (scheduleResMaybe.value ?? [])
     : [];
+  const scheduleEvents = toPublicScheduleEvents(scheduleItems);
 
   const brands = engData.brandCollabs as unknown as HomeBrand[];
   const brandYears = Array.from(new Set(brands.filter(b => b.start_date).map(b => new Date(b.start_date!).getFullYear()))).sort((a, b) => b - a);

@@ -30,12 +30,21 @@ export type TimelineEvent = {
 export type ScheduleEvent = {
   id: string;
   title: string;
-  title_thai?: string;
-  event_type: 'event' | 'show' | 'concert' | 'fanmeet' | 'live' | 'release';
+  title_thai?: string | null;
+  event_type:
+    | 'event'
+    | 'fashion'
+    | 'show'
+    | 'concert'
+    | 'fanmeet'
+    | 'live'
+    | 'release'
+    | 'award'
+    | 'media';
   date: string;
-  venue?: string;
+  venue?: string | null;
   actors: string[];
-  link?: string;
+  link?: string | null;
 };
 
 export type ChallengeItem = {
@@ -142,8 +151,20 @@ export function normalizeTimelineItems(items: HomePageData['timelineItems']): Ti
     }));
 }
 
-export function normalizeScheduleEvents(items: HomePageData['scheduleEvents']): ScheduleEvent[] {
-  const allowedTypes: ScheduleEvent['event_type'][] = ['event', 'show', 'concert', 'fanmeet', 'live', 'release'];
+export function normalizeScheduleEvents(
+  items: HomePageData['scheduleEvents'] | ScheduleEvent[],
+): ScheduleEvent[] {
+  const allowedTypes: ScheduleEvent['event_type'][] = [
+    'event',
+    'fashion',
+    'show',
+    'concert',
+    'fanmeet',
+    'live',
+    'release',
+    'award',
+    'media',
+  ];
 
   return (items ?? [])
     .filter((item) => typeof item.id === 'string' && typeof item.title === 'string')

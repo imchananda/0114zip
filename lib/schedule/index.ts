@@ -13,6 +13,8 @@ export {
   type ScheduleCategory,
   type ScheduleSource,
   type ScheduleSourceToggles,
+  type ScheduleTimeFilter,
+  type AggregateScheduleOptions,
 } from './types';
 
 export {
@@ -24,6 +26,7 @@ export {
   normalizeActors,
   normalizeScheduledAt,
   normalizeTitleKey,
+  scheduleNowString,
   resolveEventTypeCategory,
   resolveWorkCategory,
 } from './normalize';
@@ -38,3 +41,12 @@ export {
 } from './mappers';
 
 export { isLinkedContentItemMirror, mergeScheduleItems } from './merge';
+
+export { aggregateSchedule } from './aggregate';
+
+export {
+  toPublicScheduleEvent,
+  toPublicScheduleEvents,
+  type PublicScheduleEvent,
+  type PublicScheduleEventType,
+} from './public-dto';

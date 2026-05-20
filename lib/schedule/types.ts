@@ -112,9 +112,9 @@ export interface AwardScheduleRow {
   artist: string;
   result: string;
   /** PR2 — ceremony date for schedule sort/display */
-  ceremony_date: string | null;
+  ceremony_date?: string | null;
   /** PR2 — admin toggle in /admin/awards */
-  show_on_schedule: boolean;
+  show_on_schedule?: boolean | null;
 }
 
 export interface MediaEventScheduleRow {
@@ -139,4 +139,14 @@ export interface MapContentEventOptions {
 export interface MergeScheduleOptions {
   /** Normalized title/date/actors key merge (product default: merge) */
   strategy?: 'merge' | 'none';
+}
+
+export type ScheduleTimeFilter = 'upcoming' | 'past' | 'all';
+
+export interface AggregateScheduleOptions {
+  /** Admin: include hidden/inactive rows */
+  includeHidden?: boolean;
+  sources?: ScheduleSourceToggles;
+  type?: ScheduleTimeFilter;
+  limit?: number;
 }

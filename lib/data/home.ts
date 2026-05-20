@@ -3,18 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 import { Database } from '../database.types';
 import { HeroBannerConfig, HomeArtistProfile, HomeHeroSlide } from '../homepage-data';
 import { normalizeHomepageSections } from '../homepage-sections';
+import { aggregateSchedule } from '../schedule/aggregate';
+import { toPublicScheduleEvents } from '../schedule/public-dto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 const db = createClient<Database>(supabaseUrl, supabaseKey);
-
-const nowStr = () => {
-  const now = new Date();
-  now.setHours(now.getHours() + 7);
-  return now.toISOString().slice(0, 16).replace('T', ' ');
-};
 
 const REVALIDATE_TIME = 300; // 5 minutes
 
@@ -107,11 +103,15 @@ export const fetchBrands = unstable_cache(
 
 export const fetchSchedule = unstable_cache(
   async () => {
-    const { data } = await db.from('content_items').select('*').eq('content_type', 'event').eq('visible', true).gte('date', nowStr()).order('date', { ascending: true }).limit(10);
-    return data ?? [];
+    const items = await aggregateSchedule(db, {
+      includeHidden: false,
+      type: 'upcoming',
+      limit: 10,
+    });
+    return toPublicScheduleEvents(items);
   },
   ['home-schedule'],
-  { revalidate: 60, tags: ['content_items'] } // 1 minute for schedule
+  { revalidate: 60, tags: ['schedule', 'content_items', 'fashion_events', 'awards', 'media_events'] }
 );
 
 export const fetchContent = unstable_cache(
