@@ -6,7 +6,6 @@ import {
 } from './homepage-sections';
 import type { PageMotionConfig } from './visual/motion';
 import type { PageThemeConfig } from './visual/theme';
-import type { PageThemeConfig } from './visual/theme';
 import { aggregateSchedule } from './schedule/aggregate';
 import { normalizeScheduleSourceToggles } from './schedule/settings';
 import { toPublicScheduleEvents } from './schedule/public-dto';
@@ -236,7 +235,6 @@ export async function fetchHomeData(): Promise<HomePageData> {
   const builderConfig = normalizeHomepageBuilderConfig(settings.homeSections);
   const homepageConfig = builderConfig.sections;
   const pageMotion = builderConfig.pageMotion;
-  const pageTheme = builderConfig.pageTheme;
   const pageTheme = builderConfig.pageTheme;
   const scheduleSources = normalizeScheduleSourceToggles(settings.scheduleSources);
   const isEnabled = (section: keyof typeof homepageConfig) => homepageConfig[section]?.enabled !== false;

@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useViewState } from '@/context/ViewStateContext';
-import type { HomepageSectionConfig, PageMotionConfig } from '@/lib/homepage-sections';
+import type { HomepageSectionConfig, PageMotionConfig, PageThemeConfig } from '@/lib/homepage-sections';
+import { SectionThemeWrapper } from '@/components/ui/SectionThemeWrapper';
 import { toEnterMotionBinding, toWhileInViewBinding, useSectionMotion } from '@/lib/visual';
 import { supabase } from '@/lib/supabase';
 import { Instagram, Twitter, Hash, Facebook, Youtube } from 'lucide-react';
@@ -184,11 +185,12 @@ type PostWithEvent = MediaPost & { eventTitle: string };
 
 interface MediaTagsSectionProps {
   initialEvents?: MediaEvent[];
-  config?: Pick<HomepageSectionConfig, 'limit' | 'layout' | 'title' | 'motion'>;
+  config?: Pick<HomepageSectionConfig, 'limit' | 'layout' | 'title' | 'motion' | 'themeTokens'>;
   pageMotion?: PageMotionConfig;
+  pageTheme?: PageThemeConfig;
 }
 
-export function MediaTagsSection({ initialEvents, config, pageMotion }: MediaTagsSectionProps = {}) {
+export function MediaTagsSection({ initialEvents, config, pageMotion, pageTheme }: MediaTagsSectionProps = {}) {
   const { state } = useViewState();
   const t = useTranslations();
   const styles = getMediaTagsStyles({ layout: config?.layout });
@@ -242,7 +244,13 @@ export function MediaTagsSection({ initialEvents, config, pageMotion }: MediaTag
   const limit = resolveMediaTagsLimit(config?.limit);
 
   return (
-    <section id="media-tags" className={styles.sectionClass}>
+    <SectionThemeWrapper
+      as="section"
+      id="media-tags"
+      className={styles.sectionClass}
+      pageTheme={pageTheme}
+      sectionTheme={config?.themeTokens}
+    >
       <div className="container mx-auto px-6 md:px-12 max-w-6xl">
 
         <div className={styles.headerClass}>
@@ -380,6 +388,6 @@ export function MediaTagsSection({ initialEvents, config, pageMotion }: MediaTag
         </div>
 
       </div>
-    </section>
+    </SectionThemeWrapper>
   );
 }

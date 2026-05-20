@@ -199,6 +199,7 @@ async function TimelineServer() {
       initialEvents={normalizeTimelineItems(timelineRows)}
       config={settings.homepageConfig.timeline}
       pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
     />
   );
 }
@@ -210,6 +211,7 @@ async function MediaTagsServer() {
       initialEvents={normalizeMediaEvents(mediaTags as HomeMediaEvent[])}
       config={settings.homepageConfig.mediaTags}
       pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
     />
   );
 }

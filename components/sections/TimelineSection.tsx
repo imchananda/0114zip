@@ -4,7 +4,8 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useViewState } from '@/context/ViewStateContext';
 import { useTranslations, useLocale } from 'next-intl';
-import type { HomepageSectionConfig, PageMotionConfig } from '@/lib/homepage-sections';
+import type { HomepageSectionConfig, PageMotionConfig, PageThemeConfig } from '@/lib/homepage-sections';
+import { SectionThemeWrapper } from '@/components/ui/SectionThemeWrapper';
 import { toWhileInViewBinding, useSectionMotion } from '@/lib/visual';
 import {
     getTimelineActorColor,
@@ -29,10 +30,12 @@ export function TimelineSection({
     initialEvents,
     config,
     pageMotion,
+    pageTheme,
 }: {
     initialEvents?: TimelineEvent[];
-    config?: Pick<HomepageSectionConfig, 'limit' | 'layout' | 'theme' | 'title' | 'motion'>;
+    config?: Pick<HomepageSectionConfig, 'limit' | 'layout' | 'theme' | 'title' | 'motion' | 'themeTokens'>;
     pageMotion?: PageMotionConfig;
+    pageTheme?: PageThemeConfig;
 }) {
     const { state } = useViewState();
     const t = useTranslations();
@@ -61,7 +64,13 @@ export function TimelineSection({
     const years = config?.limit ? allYears.slice(0, config.limit) : allYears;
 
     return (
-        <section id="timeline" className={styles.sectionClass}>
+        <SectionThemeWrapper
+            as="section"
+            id="timeline"
+            className={styles.sectionClass}
+            pageTheme={pageTheme}
+            sectionTheme={config?.themeTokens}
+        >
             <div className="container mx-auto px-6 md:px-12 lg:px-20 max-w-6xl">
                 <motion.div
                     initial={headerMotion.initial}
@@ -172,6 +181,6 @@ export function TimelineSection({
                     )}
                 </div>
             </div>
-        </section>
+        </SectionThemeWrapper>
     );
 }

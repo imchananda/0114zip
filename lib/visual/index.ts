@@ -66,3 +66,9 @@ export {
   type ThemeTokenKey,
   type ThemeSaveValidation,
 } from './theme';
+
+export {
+  shouldApplySectionTheme,
+  useSectionTheme,
+  useThemeColorMode,
+} from './useSectionTheme';
