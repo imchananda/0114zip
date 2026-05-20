@@ -7,6 +7,7 @@ import { clearGlobalCacheAction } from '@/app/admin/actions';
 import {
   cloneDefaultHomepageSections,
   cloneDefaultPageMotion,
+  cloneDefaultPageTheme,
   normalizeHomepageBuilderConfig,
   serializeHomepageBuilderConfig,
   SECTION_META,
@@ -14,6 +15,21 @@ import {
   type HomepageSectionsConfig,
   type HomepageSectionId,
 } from '@/lib/homepage-sections';
+import {
+  PageThemeEditor,
+  SectionThemeEditor,
+  hasPendingInvalidThemeDraft,
+  useThemeValidation,
+} from '@/app/admin/homepage-builder/ThemeTokenEditor';
+import {
+  collectThemeSaveValidation,
+  DEFAULT_SECTION_THEME,
+  formatSectionThemeSummary,
+  type ColorMode,
+  type PageThemeConfig,
+  type SectionThemeConfig,
+  normalizeSectionTheme,
+} from '@/lib/visual/theme';
 import {
   DEFAULT_SECTION_MOTION,
   formatSectionMotionSummary,
@@ -37,6 +53,8 @@ import {
 export default function HomepageBuilderPage() {
   const [sections, setSections] = useState<HomepageSectionsConfig>(() => cloneDefaultHomepageSections());
   const [pageMotion, setPageMotion] = useState<PageMotionConfig>(() => cloneDefaultPageMotion());
+  const [pageTheme, setPageTheme] = useState<PageThemeConfig>(() => cloneDefaultPageTheme());
+  const [previewColorMode, setPreviewColorMode] = useState<ColorMode>('dark');
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState('');
   const [saving, setSaving] = useState(false);
@@ -54,6 +72,7 @@ export default function HomepageBuilderPage() {
           const builder = normalizeHomepageBuilderConfig(data.homeSections);
           setSections(builder.sections);
           setPageMotion(builder.pageMotion);
+          setPageTheme(builder.pageTheme);
         }
       })
       .catch(console.error)
@@ -62,14 +81,29 @@ export default function HomepageBuilderPage() {
 
   // ── Save + Auto-Revalidate ─────────────────────────────────────────────────
 
+  const themeValidation = useThemeValidation(pageTheme, sections);
+
   const handleSave = async () => {
+    if (hasPendingInvalidThemeDraft(pageTheme, sections)) {
+      setSaveMsg('ไม่สามารถบันทึก: มีสี hex ไม่ถูกต้อง — แก้ไขก่อนบันทึก');
+      setTimeout(() => setSaveMsg(''), 5000);
+      return;
+    }
+
+    const validation = collectThemeSaveValidation(pageTheme, sections);
+    if (validation.errors.length > 0) {
+      setSaveMsg(`ไม่สามารถบันทึก: ${validation.errors[0]}`);
+      setTimeout(() => setSaveMsg(''), 5000);
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          homeSections: serializeHomepageBuilderConfig(sections, pageMotion),
+          homeSections: serializeHomepageBuilderConfig(sections, pageMotion, pageTheme),
         }),
       });
 
@@ -124,6 +158,27 @@ export default function HomepageBuilderPage() {
     setPageMotion((prev) => ({ ...prev, ...patch }));
   };
 
+  const updatePageTheme = (next: PageThemeConfig) => {
+    setPageTheme(next);
+  };
+
+  const updateSectionTheme = (key: HomepageSectionId, patch: Partial<SectionThemeConfig>) => {
+    setSections((s) => {
+      const base = normalizeSectionTheme(s[key].themeTokens);
+      const merged: SectionThemeConfig = { ...base, ...patch };
+      if ('tokens' in patch && patch.tokens === undefined) {
+        delete merged.tokens;
+      }
+      return {
+        ...s,
+        [key]: {
+          ...s[key],
+          themeTokens: normalizeSectionTheme(merged),
+        },
+      };
+    });
+  };
+
   // ── Derived lists ──────────────────────────────────────────────────────────
 
   const orderableSections = Object.entries(sections)
@@ -165,12 +220,12 @@ export default function HomepageBuilderPage() {
             🏠 Homepage Builder
           </h1>
           <p className="text-xs text-[var(--color-text-muted)]">
-            จัดลำดับ · เปิด/ปิด · ปรับ motion และหน้าตาของแต่ละ Section บนหน้าแรก
+            จัดลำดับ · เปิด/ปิด · ปรับ motion · theme tokens · visual ของแต่ละ Section
           </p>
         </div>
         <button
           onClick={handleSave}
-          disabled={saving || isPending}
+          disabled={saving || isPending || hasPendingInvalidThemeDraft(pageTheme, sections)}
           className="px-6 py-2.5 bg-[#6cbfd0] hover:bg-[#4a9aab] text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
         >
           {saving || isPending ? (
@@ -203,6 +258,23 @@ export default function HomepageBuilderPage() {
         <PageMotionEditor value={pageMotion} onChange={updatePageMotion} />
       </div>
 
+      {/* ── Page Theme Tokens ─────────────────────────────────────────────── */}
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6 mb-6">
+        <h2 className="font-display text-lg font-normal text-[var(--color-text-primary)] mb-1">
+          🎨 Page Theme Tokens
+        </h2>
+        <p className="text-[11px] text-[var(--color-text-muted)] mb-5">
+          ชุดสีเริ่มต้นของทั้งหน้า — Section สามารถ inherit หรือ override token บางตัวได้ · preview ก่อนบันทึก
+        </p>
+        <PageThemeEditor
+          value={pageTheme}
+          onChange={updatePageTheme}
+          previewColorMode={previewColorMode}
+          onPreviewColorModeChange={setPreviewColorMode}
+          validationWarnings={themeValidation.warnings}
+        />
+      </div>
+
       {/* ── Orderable Sections ────────────────────────────────────────────── */}
       <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6 mb-6">
         <div className="flex items-center justify-between mb-1">
@@ -214,7 +286,7 @@ export default function HomepageBuilderPage() {
           </span>
         </div>
         <p className="text-[11px] text-[var(--color-text-muted)] mb-5">
-          ลากเพื่อสลับตำแหน่ง · กดเพื่อเปิด/ปิด · กด ⚙️ เพื่อปรับ motion / visual
+          ลากเพื่อสลับตำแหน่ง · กดเพื่อเปิด/ปิด · กด ⚙️ เพื่อปรับ motion / theme / visual
         </p>
 
         <Reorder.Group
@@ -273,6 +345,9 @@ export default function HomepageBuilderPage() {
                     <p className="text-[10px] text-[var(--color-text-muted)] mt-1 opacity-80">
                       Motion: {formatSectionMotionSummary(cfg.motion, pageMotion)}
                     </p>
+                    <p className="text-[10px] text-[var(--color-text-muted)] opacity-80">
+                      Theme: {formatSectionThemeSummary(cfg.themeTokens, pageTheme)}
+                    </p>
                   </div>
 
                   {/* Admin link button */}
@@ -300,7 +375,7 @@ export default function HomepageBuilderPage() {
                         ? 'bg-blue-500/20 text-blue-500 border-blue-500/30'
                         : 'bg-[var(--color-panel)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-blue-500/30 hover:text-blue-500'
                     }`}
-                    title="ปรับ motion / visual"
+                    title="ปรับ motion / theme / visual"
                   >
                     ⚙️ {isExpanded ? 'ซ่อน' : 'ปรับ'}
                   </button>
@@ -331,6 +406,16 @@ export default function HomepageBuilderPage() {
                       pageMotion={pageMotion}
                       onChange={(patch) => updateSectionMotion(sectionId, patch)}
                     />
+
+                    <div className="border-t border-[var(--color-border)] pt-5">
+                      <SectionThemeEditor
+                        sectionKey={sectionId}
+                        value={cfg.themeTokens}
+                        pageTheme={pageTheme}
+                        previewColorMode={previewColorMode}
+                        onChange={(patch) => updateSectionTheme(sectionId, patch)}
+                      />
+                    </div>
 
                     {visualDef && (
                       <>
