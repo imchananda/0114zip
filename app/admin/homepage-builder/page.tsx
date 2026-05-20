@@ -8,7 +8,9 @@ import {
   cloneDefaultHomepageSections,
   cloneDefaultPageMotion,
   cloneDefaultPageTheme,
+  buildHomepageBuilderSnapshot,
   collectHomepageBuilderValidation,
+  isHomepageBuilderDirty,
   normalizeHomepageBuilderConfig,
   resetSectionDesignToDefaults,
   serializeHomepageBuilderConfig,
@@ -24,6 +26,7 @@ import {
 import { PageSettingsPanel } from '@/app/admin/homepage-builder/PageSettingsPanel';
 import { SectionSettingsPanel } from '@/app/admin/homepage-builder/SectionSettingsPanel';
 import { BuilderValidationBanner } from '@/app/admin/homepage-builder/BuilderValidationBanner';
+import { BuilderSaveStatus, getSaveDisabledReason } from '@/app/admin/homepage-builder/BuilderSaveStatus';
 import {
   formatSectionThemeSummary,
   normalizeSectionTheme,
@@ -49,6 +52,7 @@ export default function HomepageBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [expandedSection, setExpandedSection] = useState<HomepageSectionId | null>(null);
   const [showDevRef, setShowDevRef] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -60,10 +64,18 @@ export default function HomepageBuilderPage() {
           setSections(builder.sections);
           setPageMotion(builder.pageMotion);
           setPageTheme(builder.pageTheme);
+          setSavedSnapshot(
+            buildHomepageBuilderSnapshot(builder.sections, builder.pageMotion, builder.pageTheme),
+          );
+        } else {
+          setSavedSnapshot(
+            buildHomepageBuilderSnapshot(sections, pageMotion, pageTheme),
+          );
         }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- snapshot baseline uses initial defaults when no homeSections
   }, []);
 
   const themeValidation = useThemeValidation(pageTheme, sections);
@@ -73,6 +85,21 @@ export default function HomepageBuilderPage() {
   );
   const hasSaveBlockingErrors =
     builderValidation.errors.length > 0 || hasPendingInvalidThemeDraft(pageTheme, sections);
+  const isDirty = useMemo(
+    () => isHomepageBuilderDirty(sections, pageMotion, pageTheme, savedSnapshot),
+    [sections, pageMotion, pageTheme, savedSnapshot],
+  );
+  const blockingReason = hasPendingInvalidThemeDraft(pageTheme, sections)
+    ? 'มีสี hex ไม่ถูกต้อง — แก้ไขก่อนบันทึก'
+    : builderValidation.errors[0];
+  const saveDisabledReason = getSaveDisabledReason({
+    saving,
+    isPending,
+    hasBlockingErrors: hasSaveBlockingErrors,
+    blockingReason,
+    isDirty,
+  });
+  const isSaveDisabled = Boolean(saveDisabledReason);
 
   const handleSave = async () => {
     if (hasPendingInvalidThemeDraft(pageTheme, sections)) {
@@ -102,6 +129,9 @@ export default function HomepageBuilderPage() {
         setSections(normalized.sections);
         setPageMotion(normalized.pageMotion);
         setPageTheme(normalized.pageTheme);
+        setSavedSnapshot(
+          buildHomepageBuilderSnapshot(normalized.sections, normalized.pageMotion, normalized.pageTheme),
+        );
         startTransition(async () => {
           await clearGlobalCacheAction();
         });
@@ -216,17 +246,25 @@ export default function HomepageBuilderPage() {
             จัดลำดับ · เปิด/ปิด · ปรับ motion · theme tokens · visual ของแต่ละ Section
           </p>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving || isPending || hasSaveBlockingErrors}
-          className="px-6 py-2.5 bg-[#6cbfd0] hover:bg-[#4a9aab] text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
-        >
-          {saving || isPending ? (
-            <><span className="animate-spin">⏳</span> กำลังบันทึก...</>
-          ) : (
-            <>💾 บันทึก + ล้างแคช</>
-          )}
-        </button>
+        <div className="flex flex-col items-end gap-2 shrink-0">
+          <BuilderSaveStatus
+            isDirty={isDirty}
+            hasBlockingErrors={hasSaveBlockingErrors}
+            blockingReason={blockingReason}
+          />
+          <button
+            onClick={handleSave}
+            disabled={isSaveDisabled}
+            title={saveDisabledReason}
+            className="px-6 py-2.5 bg-[#6cbfd0] hover:bg-[#4a9aab] text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            {saving || isPending ? (
+              <><span className="animate-spin">⏳</span> กำลังบันทึก...</>
+            ) : (
+              <>💾 บันทึก + ล้างแคช</>
+            )}
+          </button>
+        </div>
       </div>
 
       <BuilderValidationBanner

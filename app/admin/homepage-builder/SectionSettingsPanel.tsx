@@ -1,9 +1,10 @@
 'use client';
 
-import type {
-  HomepageSectionConfig,
-  HomepageSectionId,
-  VisualConfigDef,
+import {
+  DEFAULT_SECTIONS,
+  type HomepageSectionConfig,
+  type HomepageSectionId,
+  type VisualConfigDef,
 } from '@/lib/homepage-sections';
 import type { PageMotionConfig, SectionMotionConfig } from '@/lib/visual/motion';
 import type { ColorMode, PageThemeConfig, SectionThemeConfig } from '@/lib/visual/theme';
@@ -24,6 +25,21 @@ type SectionSettingsPanelProps = {
   onVisualChange: (field: string, value: string | number) => void;
   onResetDesign: () => void;
 };
+
+function resolveVisualDefault(
+  sectionId: HomepageSectionId,
+  field: 'layout' | 'theme' | 'limit',
+  visualDef: VisualConfigDef | undefined,
+): string | number | undefined {
+  const fromDefaults = DEFAULT_SECTIONS[sectionId];
+  if (field === 'layout') {
+    return fromDefaults.layout ?? visualDef?.layout?.options[0]?.value;
+  }
+  if (field === 'theme') {
+    return fromDefaults.theme ?? visualDef?.theme?.options[0]?.value;
+  }
+  return fromDefaults.limit ?? visualDef?.limit?.options[0];
+}
 
 export function SectionSettingsPanel({
   sectionId,
@@ -89,7 +105,7 @@ export function SectionSettingsPanel({
                     type="button"
                     onClick={() => onVisualChange('layout', opt.value)}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                      (config.layout || (sectionId === 'brands' ? 'split' : 'cards')) === opt.value
+                      (config.layout ?? resolveVisualDefault(sectionId, 'layout', visualDef)) === opt.value
                         ? 'bg-[#6cbfd0]/20 text-[#6cbfd0] border-[#6cbfd0]/40 shadow-sm'
                         : 'bg-[var(--color-panel)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[#6cbfd0]/30'
                     }`}
@@ -113,7 +129,7 @@ export function SectionSettingsPanel({
                     type="button"
                     onClick={() => onVisualChange('theme', opt.value)}
                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                      (config.theme || (sectionId === 'brands' ? 'dark' : 'light')) === opt.value
+                      (config.theme ?? resolveVisualDefault(sectionId, 'theme', visualDef)) === opt.value
                         ? 'bg-[#6cbfd0]/20 text-[#6cbfd0] border-[#6cbfd0]/40 shadow-sm'
                         : 'bg-[var(--color-panel)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[#6cbfd0]/30'
                     }`}
@@ -137,7 +153,7 @@ export function SectionSettingsPanel({
                     type="button"
                     onClick={() => onVisualChange('limit', n)}
                     className={`w-12 h-10 rounded-xl text-sm font-bold transition-all border ${
-                      (config.limit || 4) === n
+                      (config.limit ?? resolveVisualDefault(sectionId, 'limit', visualDef)) === n
                         ? 'bg-[#6cbfd0]/20 text-[#6cbfd0] border-[#6cbfd0]/40 shadow-sm'
                         : 'bg-[var(--color-panel)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[#6cbfd0]/30'
                     }`}

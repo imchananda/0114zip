@@ -163,6 +163,21 @@ export const VISUAL_CONFIGS: Record<string, VisualConfigDef> = {
     limit: { label: 'จำนวนรางวัลที่โชว์', options: [3, 6, 9] },
   },
   timeline: {
+    layout: {
+      label: 'Layout',
+      options: [
+        { value: 'alternating', label: 'Alternating (สลับซ้าย-ขวา)', icon: '↔️' },
+        { value: 'stacked', label: 'Stacked (เรียงเดียว)', icon: '📚' },
+      ],
+    },
+    theme: {
+      label: 'Visual theme',
+      options: [
+        { value: 'default', label: 'Default', icon: '🎨' },
+        { value: 'minimal', label: 'Minimal', icon: '✨' },
+        { value: 'dark', label: 'Dark emphasis', icon: '🌙' },
+      ],
+    },
     limit: { label: 'จำนวนปีที่โชว์', options: [3, 5, 10] },
   },
   profile: {
@@ -225,7 +240,7 @@ export const DEFAULT_SECTIONS: HomepageSectionsConfig = {
   content:    { enabled: true, order: 5, limit: 10 },
   fashion:    { enabled: true, order: 6, limit: 6 },
   awards:     { enabled: true, order: 7, limit: 6 },
-  timeline:   { enabled: true, order: 8, limit: 5 },
+  timeline:   { enabled: true, order: 8, layout: 'alternating', theme: 'default', limit: 5 },
   mediaTags:  { enabled: true, order: 9, layout: 'split', limit: 6, ...HEAVY_SECTION_MOTION_DEFAULTS.mediaTags },
   challenges: { enabled: true, order: 10, layout: 'grid', limit: 3 },
   prizes:     { enabled: true, order: 11, theme: 'default', limit: 3 },
@@ -419,6 +434,25 @@ export function serializeHomepageBuilderConfig(
   }
 
   return payload;
+}
+
+/** Stable JSON snapshot for dirty-state comparison (Phase 5 PR3). */
+export function buildHomepageBuilderSnapshot(
+  sections: HomepageSectionsConfig,
+  pageMotion: PageMotionConfig,
+  pageTheme: PageThemeConfig,
+): string {
+  return JSON.stringify(serializeHomepageBuilderConfig(sections, pageMotion, pageTheme));
+}
+
+export function isHomepageBuilderDirty(
+  sections: HomepageSectionsConfig,
+  pageMotion: PageMotionConfig,
+  pageTheme: PageThemeConfig,
+  savedSnapshot: string | null,
+): boolean {
+  if (savedSnapshot === null) return false;
+  return buildHomepageBuilderSnapshot(sections, pageMotion, pageTheme) !== savedSnapshot;
 }
 
 /** Phase 2/3 — page defaults + sections from raw homeSections JSONB */
