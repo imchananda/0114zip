@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from './database.types';
 import {
-  normalizeHomepageSections,
+  normalizeHomepageBuilderConfig,
   type HomepageSectionsConfig,
 } from './homepage-sections';
+import type { PageMotionConfig } from './visual/motion';
 import { aggregateSchedule } from './schedule/aggregate';
 import { normalizeScheduleSourceToggles } from './schedule/settings';
 import { toPublicScheduleEvents } from './schedule/public-dto';
@@ -216,6 +217,7 @@ export interface HomePageData {
   awardsItems:        HomeAwardPreviewItem[];
   allContent:         HomeContentItem[];
   homepageConfig:     HomepageSectionsConfig;
+  pageMotion:         PageMotionConfig;
   heroBannerConfig:   HeroBannerConfig;
 }
 
@@ -228,7 +230,9 @@ export async function fetchHomeData(): Promise<HomePageData> {
     (siteSettingsRes.data as SiteSettingRow[]).forEach((r) => { settings[r.key] = r.value; });
   }
 
-  const homepageConfig = normalizeHomepageSections(settings.homeSections);
+  const builderConfig = normalizeHomepageBuilderConfig(settings.homeSections);
+  const homepageConfig = builderConfig.sections;
+  const pageMotion = builderConfig.pageMotion;
   const scheduleSources = normalizeScheduleSourceToggles(settings.scheduleSources);
   const isEnabled = (section: keyof typeof homepageConfig) => homepageConfig[section]?.enabled !== false;
 
@@ -400,6 +404,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
     awardsItems,
     allContent,
     homepageConfig,
+    pageMotion,
     heroBannerConfig,
   };
 }

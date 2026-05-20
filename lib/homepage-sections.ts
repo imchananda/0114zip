@@ -1,7 +1,9 @@
 import {
+  DEFAULT_PAGE_MOTION,
   extractPageMotionFromHomeSections,
   HEAVY_SECTION_MOTION_DEFAULTS,
   HOMEPAGE_PAGE_CONFIG_KEY,
+  normalizePageMotion,
   normalizeSectionMotion,
   type PageMotionConfig,
   type SectionMotionConfig,
@@ -228,6 +230,27 @@ export function cloneDefaultHomepageSections(): HomepageSectionsConfig {
       },
     ]),
   ) as HomepageSectionsConfig;
+}
+
+export function cloneDefaultPageMotion(): PageMotionConfig {
+  return { ...DEFAULT_PAGE_MOTION };
+}
+
+/** Phase 2B — persist sections + `_page.motion` in homeSections JSONB */
+export function serializeHomepageBuilderConfig(
+  sections: HomepageSectionsConfig,
+  pageMotion: PageMotionConfig,
+): Record<string, unknown> {
+  const normalizedPageMotion = normalizePageMotion(pageMotion);
+  const payload: Record<string, unknown> = {
+    [HOMEPAGE_PAGE_CONFIG_KEY]: { motion: normalizedPageMotion },
+  };
+
+  for (const [key, value] of Object.entries(normalizeHomepageSections(sections))) {
+    payload[key] = value;
+  }
+
+  return payload;
 }
 
 /** Phase 2 — page default + sections from raw homeSections JSONB */

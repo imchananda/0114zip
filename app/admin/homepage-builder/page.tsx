@@ -6,20 +6,41 @@ import { Reorder } from 'framer-motion';
 import { clearGlobalCacheAction } from '@/app/admin/actions';
 import {
   cloneDefaultHomepageSections,
-  normalizeHomepageSections,
+  cloneDefaultPageMotion,
+  normalizeHomepageBuilderConfig,
+  serializeHomepageBuilderConfig,
   SECTION_META,
   VISUAL_CONFIGS,
-  type HomepageSectionConfig,
+  type HomepageSectionsConfig,
+  type HomepageSectionId,
 } from '@/lib/homepage-sections';
+import {
+  DEFAULT_SECTION_MOTION,
+  formatSectionMotionSummary,
+  MOTION_INTENSITY_OPTIONS,
+  MOTION_PRESET_OPTIONS,
+  MOTION_STAGGER_OPTIONS,
+  normalizeSectionMotion,
+  PAGE_MOTION_INTENSITY_OPTIONS,
+  PAGE_MOTION_PRESET_OPTIONS,
+  type MotionIntensity,
+  type MotionPreset,
+  type MotionStaggerMode,
+  type PageMotionConfig,
+  type PageMotionIntensity,
+  type PageMotionPreset,
+  type SectionMotionConfig,
+} from '@/lib/visual/motion';
 
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export default function HomepageBuilderPage() {
-  const [sections, setSections] = useState<Record<string, HomepageSectionConfig>>(() => cloneDefaultHomepageSections());
+  const [sections, setSections] = useState<HomepageSectionsConfig>(() => cloneDefaultHomepageSections());
+  const [pageMotion, setPageMotion] = useState<PageMotionConfig>(() => cloneDefaultPageMotion());
   const [loading, setLoading] = useState(true);
   const [saveMsg, setSaveMsg] = useState('');
   const [saving, setSaving] = useState(false);
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [expandedSection, setExpandedSection] = useState<HomepageSectionId | null>(null);
   const [showDevRef, setShowDevRef] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -30,7 +51,9 @@ export default function HomepageBuilderPage() {
       .then(r => r.json())
       .then(data => {
         if (data.homeSections) {
-          setSections(normalizeHomepageSections(data.homeSections));
+          const builder = normalizeHomepageBuilderConfig(data.homeSections);
+          setSections(builder.sections);
+          setPageMotion(builder.pageMotion);
         }
       })
       .catch(console.error)
@@ -45,7 +68,9 @@ export default function HomepageBuilderPage() {
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ homeSections: sections }),
+        body: JSON.stringify({
+          homeSections: serializeHomepageBuilderConfig(sections, pageMotion),
+        }),
       });
 
       if (res.ok) {
@@ -67,18 +92,36 @@ export default function HomepageBuilderPage() {
 
   // ── Section helpers ────────────────────────────────────────────────────────
 
-  const toggleSection = (key: string) => {
+  const toggleSection = (key: HomepageSectionId) => {
     setSections(s => ({
       ...s,
       [key]: { ...s[key], enabled: !s[key].enabled },
     }));
   };
 
-  const updateVisual = (key: string, field: string, value: string | number) => {
+  const updateVisual = (key: HomepageSectionId, field: string, value: string | number) => {
     setSections(s => ({
       ...s,
       [key]: { ...s[key], [field]: value },
     }));
+  };
+
+  const updateSectionMotion = (key: HomepageSectionId, patch: Partial<SectionMotionConfig>) => {
+    setSections((s) => ({
+      ...s,
+      [key]: {
+        ...s[key],
+        motion: normalizeSectionMotion({
+          ...DEFAULT_SECTION_MOTION,
+          ...s[key].motion,
+          ...patch,
+        }),
+      },
+    }));
+  };
+
+  const updatePageMotion = (patch: Partial<PageMotionConfig>) => {
+    setPageMotion((prev) => ({ ...prev, ...patch }));
   };
 
   // ── Derived lists ──────────────────────────────────────────────────────────
@@ -122,7 +165,7 @@ export default function HomepageBuilderPage() {
             🏠 Homepage Builder
           </h1>
           <p className="text-xs text-[var(--color-text-muted)]">
-            จัดลำดับ · เปิด/ปิด · ปรับหน้าตาของแต่ละ Section บนหน้าแรก
+            จัดลำดับ · เปิด/ปิด · ปรับ motion และหน้าตาของแต่ละ Section บนหน้าแรก
           </p>
         </div>
         <button
@@ -149,6 +192,17 @@ export default function HomepageBuilderPage() {
         </div>
       )}
 
+      {/* ── Page Motion Defaults ──────────────────────────────────────────── */}
+      <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6 mb-6">
+        <h2 className="font-display text-lg font-normal text-[var(--color-text-primary)] mb-1">
+          ✨ Page Motion
+        </h2>
+        <p className="text-[11px] text-[var(--color-text-muted)] mb-5">
+          ค่าเริ่มต้นสำหรับทุก Section — แต่ละ Section สามารถ override เป็น inherit / none / preset ได้
+        </p>
+        <PageMotionEditor value={pageMotion} onChange={updatePageMotion} />
+      </div>
+
       {/* ── Orderable Sections ────────────────────────────────────────────── */}
       <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6 mb-6">
         <div className="flex items-center justify-between mb-1">
@@ -160,7 +214,7 @@ export default function HomepageBuilderPage() {
           </span>
         </div>
         <p className="text-[11px] text-[var(--color-text-muted)] mb-5">
-          ลากเพื่อสลับตำแหน่ง · กดเพื่อเปิด/ปิด · กด 🎨 เพื่อปรับหน้าตา
+          ลากเพื่อสลับตำแหน่ง · กดเพื่อเปิด/ปิด · กด ⚙️ เพื่อปรับ motion / visual
         </p>
 
         <Reorder.Group
@@ -170,7 +224,8 @@ export default function HomepageBuilderPage() {
             setSections(s => {
               const next = { ...s };
               newKeys.forEach((k, idx) => {
-                if (next[k]) next[k] = { ...next[k], order: idx };
+                const key = k as HomepageSectionId;
+                if (next[key]) next[key] = { ...next[key], order: idx };
               });
               return next;
             });
@@ -178,9 +233,10 @@ export default function HomepageBuilderPage() {
           className="space-y-2"
         >
           {orderableSections.map(([key, cfg], idx) => {
-            const meta = SECTION_META[key];
-            const visualDef = VISUAL_CONFIGS[key];
-            const isExpanded = expandedSection === key;
+            const sectionId = key as HomepageSectionId;
+            const meta = SECTION_META[sectionId];
+            const visualDef = VISUAL_CONFIGS[sectionId];
+            const isExpanded = expandedSection === sectionId;
 
             return (
               <Reorder.Item
@@ -214,6 +270,9 @@ export default function HomepageBuilderPage() {
                       {meta?.label ?? key}
                     </p>
                     <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">{meta?.desc}</p>
+                    <p className="text-[10px] text-[var(--color-text-muted)] mt-1 opacity-80">
+                      Motion: {formatSectionMotionSummary(cfg.motion, pageMotion)}
+                    </p>
                   </div>
 
                   {/* Admin link button */}
@@ -232,25 +291,23 @@ export default function HomepageBuilderPage() {
                     </div>
                   )}
 
-                  {/* Visual Config button */}
-                  {visualDef && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setExpandedSection(isExpanded ? null : key); }}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full transition-all border ${
-                        isExpanded
-                          ? 'bg-blue-500/20 text-blue-500 border-blue-500/30'
-                          : 'bg-[var(--color-panel)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-blue-500/30 hover:text-blue-500'
-                      }`}
-                      title="ปรับหน้าตา"
-                    >
-                      🎨 {isExpanded ? 'ซ่อน' : 'ปรับ'}
-                    </button>
-                  )}
+                  {/* Settings button (motion + optional visual) */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setExpandedSection(isExpanded ? null : sectionId); }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full transition-all border ${
+                      isExpanded
+                        ? 'bg-blue-500/20 text-blue-500 border-blue-500/30'
+                        : 'bg-[var(--color-panel)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-blue-500/30 hover:text-blue-500'
+                    }`}
+                    title="ปรับ motion / visual"
+                  >
+                    ⚙️ {isExpanded ? 'ซ่อน' : 'ปรับ'}
+                  </button>
 
                   {/* Toggle */}
                   <button
-                    onClick={() => toggleSection(key)}
+                    onClick={() => toggleSection(sectionId)}
                     onPointerDown={(e) => e.stopPropagation()}
                     className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
                       cfg.enabled
@@ -262,15 +319,26 @@ export default function HomepageBuilderPage() {
                   </button>
                 </div>
 
-                {/* ── Visual Config Panel (Expandable) ────────────── */}
-                {isExpanded && visualDef && (
+                {/* ── Section Settings Panel (Expandable) ────────────── */}
+                {isExpanded && (
                   <div
                     className="mx-4 mb-4 p-4 rounded-xl bg-[var(--color-panel)]/60 border border-[var(--color-border)] space-y-5"
                     onPointerDown={(e) => e.stopPropagation()}
                   >
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-muted)] flex items-center gap-2">
-                      🎨 Visual Settings — {meta?.label}
-                    </p>
+                    <SectionMotionEditor
+                      sectionKey={sectionId}
+                      value={cfg.motion}
+                      pageMotion={pageMotion}
+                      onChange={(patch) => updateSectionMotion(sectionId, patch)}
+                    />
+
+                    {visualDef && (
+                      <>
+                        <div className="border-t border-[var(--color-border)] pt-5">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-muted)] flex items-center gap-2 mb-4">
+                            🎨 Visual Settings — {meta?.label}
+                          </p>
+                        </div>
 
                     {/* Layout picker */}
                     {visualDef.layout && (
@@ -282,9 +350,9 @@ export default function HomepageBuilderPage() {
                           {visualDef.layout.options.map(opt => (
                             <button
                               key={opt.value}
-                              onClick={() => updateVisual(key, 'layout', opt.value)}
+                              onClick={() => updateVisual(sectionId, 'layout', opt.value)}
                               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                                (cfg.layout || (key === 'brands' ? 'split' : 'cards')) === opt.value
+                                (cfg.layout || (sectionId === 'brands' ? 'split' : 'cards')) === opt.value
                                   ? 'bg-[#6cbfd0]/20 text-[#6cbfd0] border-[#6cbfd0]/40 shadow-sm'
                                   : 'bg-[var(--color-panel)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[#6cbfd0]/30'
                               }`}
@@ -306,9 +374,9 @@ export default function HomepageBuilderPage() {
                           {visualDef.theme.options.map(opt => (
                             <button
                               key={opt.value}
-                              onClick={() => updateVisual(key, 'theme', opt.value)}
+                              onClick={() => updateVisual(sectionId, 'theme', opt.value)}
                               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-                                (cfg.theme || (key === 'brands' ? 'dark' : 'light')) === opt.value
+                                (cfg.theme || (sectionId === 'brands' ? 'dark' : 'light')) === opt.value
                                   ? 'bg-[#6cbfd0]/20 text-[#6cbfd0] border-[#6cbfd0]/40 shadow-sm'
                                   : 'bg-[var(--color-panel)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[#6cbfd0]/30'
                               }`}
@@ -330,7 +398,7 @@ export default function HomepageBuilderPage() {
                           {visualDef.limit.options.map(n => (
                             <button
                               key={n}
-                              onClick={() => updateVisual(key, 'limit', n)}
+                              onClick={() => updateVisual(sectionId, 'limit', n)}
                               className={`w-12 h-10 rounded-xl text-sm font-bold transition-all border ${
                                 (cfg.limit || 4) === n
                                   ? 'bg-[#6cbfd0]/20 text-[#6cbfd0] border-[#6cbfd0]/40 shadow-sm'
@@ -352,7 +420,7 @@ export default function HomepageBuilderPage() {
                         </label>
                         <input
                           value={cfg.title || ''}
-                          onChange={(e) => updateVisual(key, 'title', e.target.value)}
+                          onChange={(e) => updateVisual(sectionId, 'title', e.target.value)}
                           placeholder={visualDef.title.placeholder}
                           className="w-full px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl text-sm text-[var(--color-text-primary)] outline-none focus:border-[#6cbfd0] transition-colors"
                         />
@@ -360,6 +428,8 @@ export default function HomepageBuilderPage() {
                           เว้นว่างเพื่อใช้ชื่อเริ่มต้น: {visualDef.title.placeholder}
                         </p>
                       </div>
+                    )}
+                      </>
                     )}
                   </div>
                 )}
@@ -383,7 +453,7 @@ export default function HomepageBuilderPage() {
             return (
               <button
                 key={key}
-                onClick={() => toggleSection(key)}
+                onClick={() => toggleSection(key as HomepageSectionId)}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all text-left ${
                   cfg.enabled
                     ? 'bg-green-500/5 border-green-500/30'
@@ -483,6 +553,155 @@ export default function HomepageBuilderPage() {
         )}
       </div>
 
+    </div>
+  );
+}
+
+// ── Motion editor subcomponents ─────────────────────────────────────────────
+
+function optionButtonClass(active: boolean): string {
+  return active
+    ? 'bg-[#6cbfd0]/20 text-[#6cbfd0] border-[#6cbfd0]/40 shadow-sm'
+    : 'bg-[var(--color-panel)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[#6cbfd0]/30';
+}
+
+function PageMotionEditor({
+  value,
+  onChange,
+}: {
+  value: PageMotionConfig;
+  onChange: (patch: Partial<PageMotionConfig>) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <label className="block text-[11px] font-medium text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">
+          Preset
+        </label>
+        <div className="flex gap-2 flex-wrap">
+          {PAGE_MOTION_PRESET_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onChange({ preset: opt.value as PageMotionPreset })}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${optionButtonClass(value.preset === opt.value)}`}
+              title={opt.description}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-medium text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">
+          Intensity
+        </label>
+        <div className="flex gap-2 flex-wrap">
+          {PAGE_MOTION_INTENSITY_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onChange({ intensity: opt.value as PageMotionIntensity })}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${optionButtonClass(value.intensity === opt.value)}`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SectionMotionEditor({
+  sectionKey,
+  value,
+  pageMotion,
+  onChange,
+}: {
+  sectionKey: HomepageSectionId;
+  value: SectionMotionConfig | undefined;
+  pageMotion: PageMotionConfig;
+  onChange: (patch: Partial<SectionMotionConfig>) => void;
+}) {
+  const motion = normalizeSectionMotion(value);
+  const allowCinematic = sectionKey === 'about' || sectionKey === 'profile';
+  const presetOptions = MOTION_PRESET_OPTIONS.filter(
+    (opt) => opt.value !== 'cinematic' || allowCinematic,
+  );
+  const showStagger = motion.preset === 'stagger-cards' || motion.preset === 'inherit';
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--color-text-muted)] flex items-center gap-2">
+        ✨ Section Motion
+        <span className="font-normal normal-case tracking-normal text-[10px] opacity-70">
+          ({formatSectionMotionSummary(motion, pageMotion)})
+        </span>
+      </p>
+
+      <div>
+        <label className="block text-[11px] font-medium text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">
+          Preset
+        </label>
+        <div className="flex gap-2 flex-wrap">
+          {presetOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onChange({ preset: opt.value as MotionPreset })}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${optionButtonClass((motion.preset ?? 'inherit') === opt.value)}`}
+              title={opt.description}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {!allowCinematic && (
+          <p className="text-[10px] text-[var(--color-text-muted)] mt-2 opacity-70">
+            Cinematic preset is limited to hero/editorial sections (About, Profile).
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-[11px] font-medium text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">
+          Intensity
+        </label>
+        <div className="flex gap-2 flex-wrap">
+          {MOTION_INTENSITY_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onChange({ intensity: opt.value as MotionIntensity })}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${optionButtonClass((motion.intensity ?? 'inherit') === opt.value)}`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {showStagger && (
+        <div>
+          <label className="block text-[11px] font-medium text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">
+            Stagger children
+          </label>
+          <div className="flex gap-2 flex-wrap">
+            {MOTION_STAGGER_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => onChange({ stagger: opt.value as MotionStaggerMode })}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${optionButtonClass((motion.stagger ?? 'inherit') === opt.value)}`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
