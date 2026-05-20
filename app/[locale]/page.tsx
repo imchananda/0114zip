@@ -194,12 +194,24 @@ async function TimelineServer() {
     id: r.id, year: r.year, title: r.title, title_thai: r.title_thai, description: r.description ?? '',
     category: r.category, actor: r.actors?.[0] ?? 'both', icon: r.icon ?? '✨', image: r.image
   }));
-  return <TimelineSection initialEvents={normalizeTimelineItems(timelineRows)} config={settings.homepageConfig.timeline} />;
+  return (
+    <TimelineSection
+      initialEvents={normalizeTimelineItems(timelineRows)}
+      config={settings.homepageConfig.timeline}
+      pageMotion={settings.pageMotion}
+    />
+  );
 }
 
 async function MediaTagsServer() {
   const [mediaTags, settings] = await Promise.all([fetchMediaTags(), fetchCoreSettings()]);
-  return <MediaTagsSection initialEvents={normalizeMediaEvents(mediaTags as HomeMediaEvent[])} config={settings.homepageConfig.mediaTags} />;
+  return (
+    <MediaTagsSection
+      initialEvents={normalizeMediaEvents(mediaTags as HomeMediaEvent[])}
+      config={settings.homepageConfig.mediaTags}
+      pageMotion={settings.pageMotion}
+    />
+  );
 }
 
 async function ChallengesServer() {

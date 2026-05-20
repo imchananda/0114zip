@@ -358,6 +358,79 @@ export function toFramerMotionProps(
   return props;
 }
 
+export type WhileInViewMotionBinding = {
+  initial: Record<string, number | string> | false;
+  whileInView: Record<string, number | string>;
+  viewport: { once: boolean; margin: string };
+  transition: SafeMotionProps['transition'];
+};
+
+export type EnterMotionBinding = {
+  initial: Record<string, number | string> | false;
+  animate: Record<string, number | string>;
+  exit: Record<string, number | string>;
+  transition: SafeMotionProps['transition'];
+};
+
+function resolveMotionDelay(motion: SafeMotionProps, index: number): number {
+  if (motion.disabled) return 0;
+  const baseDelay = motion.transition.delay ?? 0;
+  const stagger = motion.staggerChildren ?? 0;
+  return baseDelay + index * stagger;
+}
+
+/** Map resolved section motion to scroll-triggered `whileInView` props */
+export function toWhileInViewBinding(
+  motion: SafeMotionProps,
+  index = 0,
+): WhileInViewMotionBinding {
+  if (motion.disabled) {
+    return {
+      initial: false,
+      whileInView: {},
+      viewport: motion.viewport ?? { once: true, margin: '-40px' },
+      transition: { duration: 0, ease: motion.transition.ease },
+    };
+  }
+
+  return {
+    initial: motion.initial === false ? false : { ...motion.initial },
+    whileInView: { ...motion.animate },
+    viewport: motion.viewport ?? { once: true, margin: '-40px' },
+    transition: {
+      duration: motion.transition.duration,
+      ease: motion.transition.ease,
+      delay: resolveMotionDelay(motion, index),
+    },
+  };
+}
+
+/** Map resolved section motion to mount/exit props (e.g. AnimatePresence lists) */
+export function toEnterMotionBinding(
+  motion: SafeMotionProps,
+  index = 0,
+): EnterMotionBinding {
+  if (motion.disabled) {
+    return {
+      initial: false,
+      animate: {},
+      exit: {},
+      transition: { duration: 0, ease: motion.transition.ease },
+    };
+  }
+
+  return {
+    initial: motion.initial === false ? false : { ...motion.initial },
+    animate: { ...motion.animate },
+    exit: { opacity: 0, scale: 0.98 },
+    transition: {
+      duration: motion.transition.duration,
+      ease: motion.transition.ease,
+      delay: resolveMotionDelay(motion, index),
+    },
+  };
+}
+
 /** Whitelist labels for admin UI (Phase 2B) */
 export const MOTION_PRESET_OPTIONS: ReadonlyArray<{
   value: MotionPreset;
@@ -395,3 +468,28 @@ export const MOTION_INTENSITY_OPTIONS: ReadonlyArray<{
 export const PAGE_MOTION_INTENSITY_OPTIONS = MOTION_INTENSITY_OPTIONS.filter(
   (o): o is { value: PageMotionIntensity; label: string } => o.value !== 'inherit',
 );
+
+export const MOTION_STAGGER_OPTIONS: ReadonlyArray<{
+  value: MotionStaggerMode;
+  label: string;
+}> = [
+  { value: 'inherit', label: 'Use page default' },
+  { value: 'on', label: 'On' },
+  { value: 'off', label: 'Off' },
+];
+
+/** Admin list row — shows selected preset or inherit hint */
+export function formatSectionMotionSummary(
+  sectionMotion: SectionMotionConfig | undefined,
+  pageMotion: PageMotionConfig,
+): string {
+  const preset = sectionMotion?.preset ?? 'inherit';
+  if (preset === 'inherit') {
+    const resolved = resolveSectionMotion(pageMotion, sectionMotion);
+    const label =
+      PAGE_MOTION_PRESET_OPTIONS.find((o) => o.value === resolved.preset)?.label ??
+      resolved.preset;
+    return `↳ ${label}`;
+  }
+  return MOTION_PRESET_OPTIONS.find((o) => o.value === preset)?.label ?? preset;
+}

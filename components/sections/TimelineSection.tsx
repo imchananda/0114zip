@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useViewState } from '@/context/ViewStateContext';
 import { useTranslations, useLocale } from 'next-intl';
+import type { HomepageSectionConfig, PageMotionConfig } from '@/lib/homepage-sections';
+import { toWhileInViewBinding, useSectionMotion } from '@/lib/visual';
 import {
     getTimelineActorColor,
     getTimelineCategoryStyle,
@@ -26,15 +28,19 @@ type TimelineEvent = {
 export function TimelineSection({
     initialEvents,
     config,
+    pageMotion,
 }: {
     initialEvents?: TimelineEvent[];
-    config?: { limit?: number; layout?: string; theme?: string; title?: string };
+    config?: Pick<HomepageSectionConfig, 'limit' | 'layout' | 'theme' | 'title' | 'motion'>;
+    pageMotion?: PageMotionConfig;
 }) {
-    const { state, reducedMotion } = useViewState();
+    const { state } = useViewState();
     const t = useTranslations();
     const language = useLocale();
     const styles = getTimelineStyles({ layout: config?.layout, theme: config?.theme });
     const titleLines = resolveTimelineTitle(t('timeline.title'), config?.title);
+    const sectionMotion = useSectionMotion(pageMotion, config?.motion);
+    const headerMotion = toWhileInViewBinding(sectionMotion);
 
     const eventsByYear = useMemo(() => {
         const items = initialEvents ?? [];
@@ -57,12 +63,11 @@ export function TimelineSection({
     return (
         <section id="timeline" className={styles.sectionClass}>
             <div className="container mx-auto px-6 md:px-12 lg:px-20 max-w-6xl">
-                {/* Section Header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: reducedMotion ? 0 : 0.6 }}
+                    initial={headerMotion.initial}
+                    whileInView={headerMotion.whileInView}
+                    viewport={headerMotion.viewport}
+                    transition={headerMotion.transition}
                     className={styles.headerClass}
                 >
                     <p className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]">
@@ -78,9 +83,7 @@ export function TimelineSection({
                     </h2>
                 </motion.div>
 
-                {/* Timeline */}
                 <div className={styles.rootClass}>
-                    {/* Central Line */}
                     <div className={styles.centerLineClass} />
 
                     {years.length === 0 ? (
@@ -88,14 +91,16 @@ export function TimelineSection({
                             <p className="text-sm font-bold uppercase tracking-widest">{t('timeline.empty')}</p>
                         </div>
                     ) : (
-                        years.map((year) => (
+                        years.map((year) => {
+                            const yearMotion = toWhileInViewBinding(sectionMotion);
+
+                            return (
                             <div key={year} className="mb-20">
-                                {/* Year Label */}
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    whileInView={{ opacity: 1, scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: reducedMotion ? 0 : 0.5 }}
+                                    initial={yearMotion.initial}
+                                    whileInView={yearMotion.whileInView}
+                                    viewport={yearMotion.viewport}
+                                    transition={yearMotion.transition}
                                     className="flex justify-center mb-12"
                                 >
                                     <span className={styles.yearPillClass}>
@@ -103,26 +108,24 @@ export function TimelineSection({
                                     </span>
                                 </motion.div>
 
-                                {/* Events */}
                                 <div className="space-y-12">
                                     {eventsByYear[year].map((event: TimelineEvent, index: number) => {
                                         const isLeft = index % 2 === 0;
                                         const style = getTimelineCategoryStyle(event.category);
+                                        const eventMotion = toWhileInViewBinding(sectionMotion, index);
                                         return (
                                             <motion.div
                                                 key={event.id}
-                                                initial={{ opacity: 0, x: isLeft ? -30 : 30 }}
-                                                whileInView={{ opacity: 1, x: 0 }}
-                                                viewport={{ once: true }}
-                                                transition={{ duration: reducedMotion ? 0 : 0.8, ease: [0.22, 1, 0.36, 1], delay: index * 0.05 }}
+                                                initial={eventMotion.initial}
+                                                whileInView={eventMotion.whileInView}
+                                                viewport={eventMotion.viewport}
+                                                transition={eventMotion.transition}
                                                 className={styles.rowClass(isLeft)}
                                             >
-                                                {/* Content Card */}
                                                 <div className={styles.textAlignClass(isLeft)}>
                                                     <div className={styles.cardClass(isLeft)}>
                                                         <div className="absolute top-0 left-0 w-1 h-full opacity-10 group-hover:opacity-100 transition-opacity" style={{ background: getTimelineActorColor(event.actor) }} />
-                                                        
-                                                        {/* Icon & Category */}
+
                                                         <div className={styles.iconRowClass(isLeft)}>
                                                             <span className="text-3xl grayscale-[0.4] group-hover:grayscale-0 transition-all duration-500">{event.icon}</span>
                                                             <span className={`text-[10px] font-bold tracking-[0.2em] uppercase px-3 py-1 rounded-full border shadow-sm
@@ -131,17 +134,14 @@ export function TimelineSection({
                                                             </span>
                                                         </div>
 
-                                                        {/* Title */}
                                                         <h3 className="text-primary text-xl md:text-2xl font-display font-normal mb-3 leading-snug group-hover:text-accent transition-colors">
                                                             {language === 'th' ? event.title_thai : event.title}
                                                         </h3>
 
-                                                        {/* Description */}
                                                         <p className="text-muted text-sm md:text-base font-body leading-relaxed opacity-80">
                                                             {language === 'th' && event.description_thai ? event.description_thai : event.description}
                                                         </p>
 
-                                                        {/* Actor Badge */}
                                                         <div className={styles.actorBadgeClass(isLeft)}>
                                                             <div
                                                                 className="w-2 h-2 rounded-full shadow-sm"
@@ -154,7 +154,6 @@ export function TimelineSection({
                                                     </div>
                                                 </div>
 
-                                                {/* Center Dot (Desktop) */}
                                                 <div
                                                     className={styles.centerDotClass}
                                                     style={{ background: getTimelineActorColor(event.actor) }}
@@ -162,14 +161,14 @@ export function TimelineSection({
                                                     <div className="w-2 h-2 rounded-full bg-[var(--color-bg)] shadow-inner" />
                                                 </div>
 
-                                                {/* Spacer */}
                                                 <div className={styles.spacerClass} />
                                             </motion.div>
                                         );
                                     })}
                                 </div>
                             </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
             </div>

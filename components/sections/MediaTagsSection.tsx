@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@/i18n/routing';
 import { useViewState } from '@/context/ViewStateContext';
+import type { HomepageSectionConfig, PageMotionConfig } from '@/lib/homepage-sections';
+import { toEnterMotionBinding, toWhileInViewBinding, useSectionMotion } from '@/lib/visual';
 import { supabase } from '@/lib/supabase';
 import { Instagram, Twitter, Hash, Facebook, Youtube } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -182,13 +184,17 @@ type PostWithEvent = MediaPost & { eventTitle: string };
 
 interface MediaTagsSectionProps {
   initialEvents?: MediaEvent[];
-  config?: { limit?: number; layout?: string; title?: string };
+  config?: Pick<HomepageSectionConfig, 'limit' | 'layout' | 'title' | 'motion'>;
+  pageMotion?: PageMotionConfig;
 }
 
-export function MediaTagsSection({ initialEvents, config }: MediaTagsSectionProps = {}) {
-  const { state, reducedMotion } = useViewState();
+export function MediaTagsSection({ initialEvents, config, pageMotion }: MediaTagsSectionProps = {}) {
+  const { state } = useViewState();
   const t = useTranslations();
   const styles = getMediaTagsStyles({ layout: config?.layout });
+  const sectionMotion = useSectionMotion(pageMotion, config?.motion);
+  const headerMotion = toWhileInViewBinding(sectionMotion);
+  const titleMotion = toWhileInViewBinding(sectionMotion, 1);
   const titleLines = resolveMediaTagsTitle(
     t('mediaTags.titleLine1'),
     t('mediaTags.titleLine2'),
@@ -242,19 +248,19 @@ export function MediaTagsSection({ initialEvents, config }: MediaTagsSectionProp
         <div className={styles.headerClass}>
           <div>
             <motion.p
-              initial={{ opacity: 0, y: 5 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: reducedMotion ? 0 : 0.4 }}
+              initial={headerMotion.initial}
+              whileInView={headerMotion.whileInView}
+              viewport={headerMotion.viewport}
+              transition={headerMotion.transition}
               className={styles.overlineClass}
             >
               {t('mediaTags.sub')}
             </motion.p>
             <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: reducedMotion ? 0 : 0.1, duration: reducedMotion ? 0 : 0.4 }}
+              initial={titleMotion.initial}
+              whileInView={titleMotion.whileInView}
+              viewport={titleMotion.viewport}
+              transition={titleMotion.transition}
               className={styles.titleClass}
             >
               {titleLines.map((line, index) => (
@@ -273,10 +279,10 @@ export function MediaTagsSection({ initialEvents, config }: MediaTagsSectionProp
         {!loading && multipleEvents && (
           <motion.div
             className={styles.eventTabsWrapperClass}
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: reducedMotion ? 0 : 0.4 }}
+            initial={headerMotion.initial}
+            whileInView={headerMotion.whileInView}
+            viewport={headerMotion.viewport}
+            transition={headerMotion.transition}
           >
             <button
               onClick={() => setSelectedEventId('all')}
@@ -314,14 +320,16 @@ export function MediaTagsSection({ initialEvents, config }: MediaTagsSectionProp
               </div>
             )}
             <AnimatePresence mode="popLayout">
-              {displayed.slice(0, limit).map((post, i) => (
+              {displayed.slice(0, limit).map((post, i) => {
+                const itemMotion = toEnterMotionBinding(sectionMotion, i);
+                return (
                 <motion.div
                   key={post.id}
-                  layout={!reducedMotion}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: reducedMotion ? 0 : i * 0.05 }}
+                  layout={!sectionMotion.disabled}
+                  initial={itemMotion.initial}
+                  animate={itemMotion.animate}
+                  exit={itemMotion.exit}
+                  transition={itemMotion.transition}
                 >
                   <PostCard
                     post={post}
@@ -330,7 +338,8 @@ export function MediaTagsSection({ initialEvents, config }: MediaTagsSectionProp
                     styles={styles}
                   />
                 </motion.div>
-              ))}
+                );
+              })}
             </AnimatePresence>
           </div>
 
@@ -343,13 +352,15 @@ export function MediaTagsSection({ initialEvents, config }: MediaTagsSectionProp
                 <p className={styles.hashtagsEmptyClass}>{t('mediaTags.noHashtags')}</p>
               )}
               <div className="flex flex-wrap gap-2.5">
-                {hashtags.map((tag, i) => (
+                {hashtags.map((tag, i) => {
+                  const tagMotion = toWhileInViewBinding(sectionMotion, i);
+                  return (
                   <motion.button
                     key={tag}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: reducedMotion ? 0 : i * 0.03 }}
+                    initial={tagMotion.initial}
+                    whileInView={tagMotion.whileInView}
+                    viewport={tagMotion.viewport}
+                    transition={tagMotion.transition}
                     onClick={() => navigator.clipboard?.writeText(tag)}
                     className={styles.hashtagButtonClass}
                     title={t('mediaTags.copyTag')}
@@ -357,7 +368,8 @@ export function MediaTagsSection({ initialEvents, config }: MediaTagsSectionProp
                     <span className="opacity-40 group-hover:opacity-100 transition-opacity">#</span>
                     {tag.startsWith('#') ? tag.slice(1) : tag}
                   </motion.button>
-                ))}
+                  );
+                })}
               </div>
               <div className={styles.communityNoteClass}>
                  <p className="text-xs font-bold text-muted uppercase tracking-[0.2em] mb-3">{t('mediaTags.communityNote')}</p>
