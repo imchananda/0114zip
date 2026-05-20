@@ -32,6 +32,7 @@ export const fetchCoreSettings = unstable_cache(
     return {
       homepageConfig: builderConfig.sections,
       pageMotion: builderConfig.pageMotion,
+      pageTheme: builderConfig.pageTheme,
       heroBannerConfig,
       brandSectionImages: (settings.brands_section_images as Record<string, string>) || {}
     };

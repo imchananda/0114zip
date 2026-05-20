@@ -67,6 +67,8 @@
   --color-text-secondary: #b0aea5; /* Warm Silver */
   --color-text-muted:   #87867f; /* Stone Gray */
   --color-accent:       #6cbfd0; /* Namtan Teal */
+  --color-cta-bg:       #6cbfd0; /* Primary CTA fill (dark mode) */
+  --color-cta-text:     #141413; /* Primary CTA label (dark mode) */
   --skeleton-from:      #424240;
   --skeleton-mid:       #4f4f4c;
   --skeleton-to:        #424240;
@@ -87,6 +89,8 @@
   --color-text-secondary: #5e5d59; /* Olive Gray */
   --color-text-muted:   #87867f; /* Stone Gray */
   --color-accent:       #4a9aab; /* Namtan Teal Dark (better contrast on light) */
+  --color-cta-bg:       #4a9aab; /* Primary CTA fill (light mode) */
+  --color-cta-text:     #faf9f5; /* Primary CTA label (light mode) */
   --skeleton-from:      #f0eee6;
   --skeleton-mid:       #e8e6dc;
   --skeleton-to:        #f0eee6;

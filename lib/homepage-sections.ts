@@ -8,8 +8,17 @@ import {
   type PageMotionConfig,
   type SectionMotionConfig,
 } from './visual/motion';
+import {
+  DEFAULT_PAGE_THEME,
+  extractPageThemeFromHomeSections,
+  normalizePageTheme,
+  normalizeSectionTheme,
+  type PageThemeConfig,
+  type SectionThemeConfig,
+} from './visual/theme';
 
 export type { PageMotionConfig, SectionMotionConfig } from './visual/motion';
+export type { PageThemeConfig, SectionThemeConfig } from './visual/theme';
 
 export type HomepageSectionConfig = {
   enabled: boolean;
@@ -20,6 +29,8 @@ export type HomepageSectionConfig = {
   title?: string;
   /** Phase 2 — section motion override (inherit | preset) */
   motion?: SectionMotionConfig;
+  /** Phase 3 — section theme token override (inherit | preset + partial tokens) */
+  themeTokens?: SectionThemeConfig;
 };
 
 export type HomepageSectionsConfig = Record<HomepageSectionId, HomepageSectionConfig>;
@@ -236,14 +247,29 @@ export function cloneDefaultPageMotion(): PageMotionConfig {
   return { ...DEFAULT_PAGE_MOTION };
 }
 
-/** Phase 2B — persist sections + `_page.motion` in homeSections JSONB */
+export function cloneDefaultPageTheme(): PageThemeConfig {
+  return { ...DEFAULT_PAGE_THEME };
+}
+
+export type HomepagePageConfig = {
+  motion: PageMotionConfig;
+  theme: PageThemeConfig;
+};
+
+/** Phase 2B/3A — persist sections + `_page.motion` + optional `_page.theme` */
 export function serializeHomepageBuilderConfig(
   sections: HomepageSectionsConfig,
   pageMotion: PageMotionConfig,
+  pageTheme?: PageThemeConfig,
 ): Record<string, unknown> {
   const normalizedPageMotion = normalizePageMotion(pageMotion);
+  const pagePayload: Record<string, unknown> = { motion: normalizedPageMotion };
+  if (pageTheme !== undefined) {
+    pagePayload.theme = normalizePageTheme(pageTheme);
+  }
+
   const payload: Record<string, unknown> = {
-    [HOMEPAGE_PAGE_CONFIG_KEY]: { motion: normalizedPageMotion },
+    [HOMEPAGE_PAGE_CONFIG_KEY]: pagePayload,
   };
 
   for (const [key, value] of Object.entries(normalizeHomepageSections(sections))) {
@@ -253,13 +279,15 @@ export function serializeHomepageBuilderConfig(
   return payload;
 }
 
-/** Phase 2 — page default + sections from raw homeSections JSONB */
+/** Phase 2/3 — page defaults + sections from raw homeSections JSONB */
 export function normalizeHomepageBuilderConfig(raw: unknown): {
   pageMotion: PageMotionConfig;
+  pageTheme: PageThemeConfig;
   sections: HomepageSectionsConfig;
 } {
   return {
     pageMotion: extractPageMotionFromHomeSections(raw),
+    pageTheme: extractPageThemeFromHomeSections(raw),
     sections: normalizeHomepageSections(raw),
   };
 }
@@ -307,6 +335,10 @@ export function normalizeHomepageSections(raw: unknown): HomepageSectionsConfig 
 
     if (value.motion !== undefined) {
       next.motion = normalizeSectionMotion(value.motion);
+    }
+
+    if (value.themeTokens !== undefined) {
+      next.themeTokens = normalizeSectionTheme(value.themeTokens);
     }
 
     result[key] = next;

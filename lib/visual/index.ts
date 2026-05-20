@@ -31,3 +31,38 @@ export {
 } from './motion';
 
 export { useSectionMotion, type UseSectionMotionOptions } from './useSectionMotion';
+
+export {
+  BASELINE_THEME_TOKENS,
+  DEFAULT_PAGE_THEME,
+  DEFAULT_SECTION_THEME,
+  SECTION_THEME_PRESET_OPTIONS,
+  THEME_PRESET_IDS,
+  THEME_PRESET_OPTIONS,
+  THEME_PRESET_OVERRIDES,
+  THEME_TOKEN_ADMIN_OPTIONS,
+  THEME_TOKEN_CSS_VARS,
+  THEME_TOKEN_KEYS,
+  collectThemeSaveValidation,
+  extractPageThemeFromHomeSections,
+  formatSectionThemeSummary,
+  getThemeTokenMappingTable,
+  isContrastAcceptable,
+  normalizePageTheme,
+  normalizeSectionTheme,
+  resolveSectionThemeTokens,
+  sanitizeThemeTokenOverrides,
+  themeTokensToCssVars,
+  themeTokensToStyle,
+  validateThemeToken,
+  type ColorMode,
+  type PageThemeConfig,
+  type PageThemePreset,
+  type ResolvedThemeTokens,
+  type SectionThemeConfig,
+  type SectionThemePreset,
+  type ThemePreset,
+  type ThemeTokenConfig,
+  type ThemeTokenKey,
+  type ThemeSaveValidation,
+} from './theme';
