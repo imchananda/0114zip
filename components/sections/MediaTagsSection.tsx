@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * Phase 4B pilot — cross-layer section:
+ * Admin config → normalize (homepage-sections) → props
+ *   • Visual/layout: getMediaTagsStyles (4A)
+ *   • Motion: useSectionMotion + toWhileInViewBinding / toEnterMotionBinding (Phase 2)
+ *   • Theme tokens: SectionThemeWrapper → CSS vars (Phase 3)
+ */
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from '@/i18n/routing';
@@ -321,7 +328,7 @@ export function MediaTagsSection({ initialEvents, config, pageMotion, pageTheme 
             )}
             {!loading && displayed.length === 0 && (
               <div className={styles.emptyStateClass}>
-                <p className="text-sm font-bold uppercase tracking-widest">{t('mediaTags.empty')}</p>
+                <p className={styles.emptyStateTextClass}>{t('mediaTags.empty')}</p>
                 <Link href="/engage/media" className={styles.emptyActionClass}>
                   {t('mediaTags.emptyAction')}
                 </Link>
