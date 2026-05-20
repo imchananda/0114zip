@@ -60,7 +60,6 @@ type SnapshotRow = { artist: string; platform: string; followers: number; record
 type BrandMediaItem = { type?: unknown; title?: unknown; url?: unknown };
 type ProfileImageRow = { photo_url?: string | null };
 type BrandsSectionConfig = { layout?: 'split' | 'full-grid'; theme?: 'dark' | 'light'; title?: string };
-type ScheduleSectionConfig = { layout?: 'cards' | 'list'; theme?: 'light' | 'dark'; limit?: number; title?: string };
 
 async function AboutServer() {
   const [stats, awardCount, settings] = await Promise.all([
@@ -162,10 +161,14 @@ async function BrandsServer() {
 
 async function ScheduleServer() {
   const [schedule, settings] = await Promise.all([fetchSchedule(), fetchCoreSettings()]);
-  return <SchedulePreview 
-    config={settings.homepageConfig.schedule as ScheduleSectionConfig}
-    initialEvents={normalizeScheduleEvents(schedule as unknown as HomeScheduleEvent[])} 
-  />;
+  return (
+    <SchedulePreview
+      config={settings.homepageConfig.schedule}
+      initialEvents={normalizeScheduleEvents(schedule as unknown as HomeScheduleEvent[])}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
+    />
+  );
 }
 
 async function ContentServer() {
