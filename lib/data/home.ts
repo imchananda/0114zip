@@ -4,6 +4,7 @@ import { Database } from '../database.types';
 import { HeroBannerConfig, HomeArtistProfile, HomeHeroSlide } from '../homepage-data';
 import { normalizeHomepageSections } from '../homepage-sections';
 import { aggregateSchedule } from '../schedule/aggregate';
+import { fetchScheduleSourceToggles } from '../schedule/settings';
 import { toPublicScheduleEvents } from '../schedule/public-dto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -103,15 +104,17 @@ export const fetchBrands = unstable_cache(
 
 export const fetchSchedule = unstable_cache(
   async () => {
+    const sources = await fetchScheduleSourceToggles(db);
     const items = await aggregateSchedule(db, {
       includeHidden: false,
+      sources,
       type: 'upcoming',
       limit: 10,
     });
     return toPublicScheduleEvents(items);
   },
   ['home-schedule'],
-  { revalidate: 60, tags: ['schedule', 'content_items', 'fashion_events', 'awards', 'media_events'] }
+  { revalidate: 60, tags: ['schedule', 'settings', 'content_items', 'fashion_events', 'awards', 'media_events'] }
 );
 
 export const fetchContent = unstable_cache(

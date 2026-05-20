@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getAdminClient, supabase } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
-
 type SiteSettingRow = { key: string; value: unknown };
 
 // Cache GET for 5 minutes — settings change infrequently
@@ -51,5 +51,9 @@ export async function PUT(req: NextRequest) {
     .upsert(rows, { onConflict: 'key' });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true });
-}
+
+  if ('scheduleSources' in body) {
+    revalidateTag('schedule');
+  }
+
+  return NextResponse.json({ success: true });}

@@ -5,6 +5,7 @@ import {
   type HomepageSectionsConfig,
 } from './homepage-sections';
 import { aggregateSchedule } from './schedule/aggregate';
+import { normalizeScheduleSourceToggles } from './schedule/settings';
 import { toPublicScheduleEvents } from './schedule/public-dto';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -208,6 +209,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
   }
 
   const homepageConfig = normalizeHomepageSections(settings.homeSections);
+  const scheduleSources = normalizeScheduleSourceToggles(settings.scheduleSources);
   const isEnabled = (section: keyof typeof homepageConfig) => homepageConfig[section]?.enabled !== false;
 
   const needAbout = isEnabled('about');
@@ -256,7 +258,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
     (needStats || needAbout) ? db.from('content_items').select('id', { count: 'exact', head: true }).eq('visible', true).eq('content_type', 'series').contains('actors', ['namtan']) : Promise.resolve({ count: null }),
     (needStats || needAbout) ? db.from('content_items').select('id', { count: 'exact', head: true }).eq('visible', true).eq('content_type', 'series').contains('actors', ['film']) : Promise.resolve({ count: null }),
     needSchedule
-      ? aggregateSchedule(db, { includeHidden: false, type: 'upcoming', limit: 10 })
+      ? aggregateSchedule(db, { includeHidden: false, sources: scheduleSources, type: 'upcoming', limit: 10 })
       : Promise.resolve([]),
     needMediaTags ? db.from('media_events').select('*, media_posts(*)').eq('is_active', true).order('start_date', { ascending: false, nullsFirst: true }) : Promise.resolve({ data: [] }),
     needChallenges ? db.from('challenges').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(3) : Promise.resolve({ data: [] }),

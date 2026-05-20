@@ -1,30 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Edit, Trash2, Plus, Eye, EyeOff, LayoutList, Grid3X3 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Calendar,
+  MapPin,
+  Edit,
+  Trash2,
+  Plus,
+  Eye,
+  EyeOff,
+  LayoutList,
+  Grid3X3,
+  ExternalLink,
+} from 'lucide-react';
 import Link from 'next/link';
+import type { AdminScheduleItem, ScheduleCategory, ScheduleTimeFilter } from '@/lib/schedule/types';
+import { SCHEDULE_SOURCE_LABELS } from '@/lib/schedule/settings';
 
-interface ScheduleEvent {
-  id: string;
-  title: string;
-  title_thai?: string;
-  date: string; // YYYY-MM-DD HH:mm
-  event_type: 'event' | 'fashion' | 'show' | 'concert' | 'fanmeet' | 'live' | 'release';
-  venue?: string;
-  link?: string;
-  actors: string[];
-  description?: string;
-  visible: boolean;
-  brand_collab_id?: number | null;
-  brand_collaborations?: { id: number; brand_name: string; brand_logo?: string | null } | null;
-}
+type ManualEventType = 'event' | 'show' | 'concert' | 'fanmeet' | 'live';
 
-type ScheduleEventType = ScheduleEvent['event_type'];
 interface ScheduleFormState {
   title: string;
   title_thai: string;
   date: string;
-  event_type: ScheduleEventType;
+  event_type: ManualEventType;
   venue: string;
   link: string;
   description: string;
@@ -41,57 +40,89 @@ const TYPE_CONFIG: Record<string, string> = {
   fanmeet: '💙 Fan Meet',
   live: '📱 Live',
   release: '🎬 Release',
+  award: '🏆 Award',
+  media: '📺 Media',
 };
 
+const FORM_EVENT_TYPES: ManualEventType[] = ['event', 'show', 'concert', 'fanmeet', 'live'];
+
+function isEditableManualEvent(item: AdminScheduleItem): boolean {
+  return item.editable && item.source === 'content_event';
+}
+
+function scheduledAtToInputValue(scheduledAt: string): string {
+  try {
+    const d = new Date(scheduledAt.replace(' ', 'T'));
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+  } catch {
+    return '';
+  }
+}
+
+function toManualEventType(category: ScheduleCategory): ManualEventType {
+  if (FORM_EVENT_TYPES.includes(category as ManualEventType)) {
+    return category as ManualEventType;
+  }
+  return 'event';
+}
+
 export default function AdminSchedulePage() {
-  const [items, setItems] = useState<ScheduleEvent[]>([]);
+  const [items, setItems] = useState<AdminScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<ScheduleEvent | null>(null);
+  const [editing, setEditing] = useState<AdminScheduleItem | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
   const [filterType, setFilterType] = useState('all');
+  const [timeFilter, setTimeFilter] = useState<ScheduleTimeFilter>('all');
 
-  async function fetchItems() {
+  const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/content?type=event');
+      const res = await fetch(`/api/admin/schedule?type=${timeFilter}`);
       const data = await res.json();
       if (Array.isArray(data)) {
-        // Sort descending by date
-        data.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
         setItems(data);
+      } else {
+        console.error(data?.error ?? 'Invalid schedule response');
+        setItems([]);
       }
     } catch (err) {
       console.error(err);
+      setItems([]);
     } finally {
       setLoading(false);
     }
-  }
+  }, [timeFilter]);
 
   useEffect(() => {
     const id = window.setTimeout(() => { void fetchItems(); }, 0);
     return () => window.clearTimeout(id);
-  }, []);
+  }, [fetchItems]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (item: AdminScheduleItem) => {
+    if (!isEditableManualEvent(item)) return;
     if (!confirm('ยืนยันการลบกิจกรรมนี้?')) return;
     try {
-      await fetch(`/api/admin/content?id=${id}`, { method: 'DELETE' });
+      await fetch(`/api/admin/content?id=${item.sourceId}`, { method: 'DELETE' });
       fetchItems();
     } catch {
       alert('ลบไม่สำเร็จ');
     }
   };
 
-  const handleToggleVisible = async (item: ScheduleEvent) => {
+  const handleToggleVisible = async (item: AdminScheduleItem) => {
+    if (!isEditableManualEvent(item)) return;
     try {
       const res = await fetch('/api/admin/content', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: item.id, visible: !item.visible }),
+        body: JSON.stringify({ id: item.sourceId, visible: !item.visible }),
       });
       if (res.ok) {
-        setItems(prev => prev.map(i => i.id === item.id ? { ...i, visible: !i.visible } : i));
+        setItems(prev =>
+          prev.map(i => (i.id === item.id ? { ...i, visible: !i.visible } : i)),
+        );
       } else {
         alert('เปลี่ยนสถานะไม่สำเร็จ');
       }
@@ -103,13 +134,18 @@ export default function AdminSchedulePage() {
   const formatDisplayDate = (dateStr?: string) => {
     if (!dateStr) return 'N/A';
     try {
-      return new Date(dateStr).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+      return new Date(dateStr.replace(' ', 'T')).toLocaleString('th-TH', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      });
     } catch {
       return dateStr;
     }
   };
 
-  const filtered = items.filter(item => filterType === 'all' || item.event_type === filterType);
+  const filtered = items.filter(
+    item => filterType === 'all' || item.category === filterType,
+  );
   const visibleCount = items.filter(i => i.visible).length;
 
   return (
@@ -127,10 +163,26 @@ export default function AdminSchedulePage() {
           <h1 className="font-display text-2xl font-normal text-[var(--color-text-primary)] flex items-center gap-2">
             <Calendar className="w-6 h-6 text-namtan-primary" /> ตารางงาน
           </h1>
-          <p className="text-sm text-[var(--color-text-muted)]">จัดการตารางงาน คิวออกงาน และกิจกรรมของน้ำตาลและฟิล์ม</p>
+          <p className="text-sm text-[var(--color-text-muted)]">
+            รวมคิวงานจากทุกแหล่ง — แก้ไขคิวที่เพิ่มด้วยมือได้ที่นี่ แหล่งอื่นไปที่หน้า admin ต้นทาง
+          </p>
+          <Link
+            href="/admin/settings"
+            className="text-xs text-namtan-primary hover:underline w-fit"
+          >
+            ⚙️ ตั้งค่าแหล่งข้อมูลตารางงาน
+          </Link>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {/* View Mode Toggle */}
+        <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+          <select
+            value={timeFilter}
+            onChange={e => setTimeFilter(e.target.value as ScheduleTimeFilter)}
+            className="bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-3 py-2 text-sm focus:border-namtan-primary focus:outline-none"
+          >
+            <option value="all">🕐 ทุกช่วงเวลา</option>
+            <option value="upcoming">⏭ กำลังจะมาถึง</option>
+            <option value="past">📦 ที่ผ่านมาแล้ว</option>
+          </select>
           <div className="flex bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-1">
             <button
               onClick={() => setViewMode('list')}
@@ -167,7 +219,7 @@ export default function AdminSchedulePage() {
       {/* Stats + Filter */}
       {!loading && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <div className="flex items-center gap-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-2">
               <span className="text-lg">📅</span>
               <div>
@@ -211,76 +263,23 @@ export default function AdminSchedulePage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-[var(--color-text-muted)] border border-dashed border-[var(--color-border)] rounded-2xl">
           <p className="text-4xl mb-2">📅</p>
-          <p>{items.length === 0 ? 'ยังไม่มีคิวงาน — กดปุ่ม "เพิ่มคิวงาน" ด้านบนได้เลย' : 'ไม่พบรายการตามตัวกรองที่เลือก'}</p>
+          <p>{items.length === 0 ? 'ยังไม่มีคิวงาน — กดปุ่ม "เพิ่มคิวงาน" หรือเปิดแหล่งข้อมูลใน Settings' : 'ไม่พบรายการตามตัวกรองที่เลือก'}</p>
         </div>
       ) : viewMode === 'list' ? (
-        // ── List View ──
         <div className="space-y-3">
           {filtered.map(item => (
-            <div
+            <ScheduleRow
               key={item.id}
-              className={`flex items-center gap-4 p-4 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] transition-colors ${
-                !item.visible ? 'opacity-60' : 'hover:border-[var(--color-text-muted)]/30'
-              }`}
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-panel)] text-[var(--color-text-secondary)]">
-                    {TYPE_CONFIG[item.event_type] ?? item.event_type}
-                  </span>
-                  {item.actors?.includes('both') || (item.actors?.includes('namtan') && item.actors?.includes('film')) ? (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-namtan-primary/20 to-[#fbdf74]/20 text-namtan-primary border border-namtan-primary/30">คู่กัน</span>
-                  ) : (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)]">{item.actors?.join(', ')}</span>
-                  )}
-                  {!item.visible && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-500/80">ซ่อนอยู่</span>
-                  )}
-                  {item.brand_collaborations && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/25">
-                      🏢 {item.brand_collaborations.brand_name}
-                    </span>
-                  )}
-                </div>
-                <h3 className="text-sm font-normal text-[var(--color-text-primary)] truncate">{item.title}</h3>
-                {item.title_thai && <p className="text-xs text-[var(--color-text-muted)] truncate">{item.title_thai}</p>}
-                <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-text-muted)]">
-                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDisplayDate(item.date)}</span>
-                  {item.venue && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {item.venue}</span>}
-                </div>
-              </div>
-              <div className="flex gap-1.5 shrink-0">
-                <button
-                  onClick={() => handleToggleVisible(item)}
-                  className={`p-2 rounded-lg border transition-colors ${
-                    item.visible
-                      ? 'text-green-400 border-green-500/20 bg-green-500/10 hover:bg-green-500/20'
-                      : 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)] hover:bg-[var(--color-border)]'
-                  }`}
-                  title={item.visible ? 'คลิกเพื่อซ่อน' : 'คลิกเพื่อแสดง'}
-                >
-                  {item.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => { setEditing(item); setShowForm(true); }}
-                  className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-panel)] hover:bg-[var(--color-border)] rounded-lg transition-colors border border-[var(--color-border)]"
-                  title="แก้ไข"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="p-2 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/10"
-                  title="ลบ"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+              item={item}
+              view="list"
+              formatDisplayDate={formatDisplayDate}
+              onToggleVisible={handleToggleVisible}
+              onEdit={() => { setEditing(item); setShowForm(true); }}
+              onDelete={() => handleDelete(item)}
+            />
           ))}
         </div>
       ) : (
-        // ── Table View ──
         <div className="overflow-x-auto rounded-xl border border-[var(--color-border)]">
           <table className="w-full text-sm">
             <thead>
@@ -288,92 +287,33 @@ export default function AdminSchedulePage() {
                 <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] text-xs uppercase tracking-wider whitespace-nowrap">วันที่/เวลา</th>
                 <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] text-xs uppercase tracking-wider">ชื่องาน</th>
                 <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] text-xs uppercase tracking-wider">ประเภท</th>
+                <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] text-xs uppercase tracking-wider">แหล่ง</th>
                 <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] text-xs uppercase tracking-wider">สถานที่</th>
                 <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] text-xs uppercase tracking-wider">ศิลปิน</th>
-                <th className="text-left px-4 py-3 font-medium text-[var(--color-text-muted)] text-xs uppercase tracking-wider">แบรนด์</th>
                 <th className="text-center px-4 py-3 font-medium text-[var(--color-text-muted)] text-xs uppercase tracking-wider">แสดงผล</th>
                 <th className="text-center px-4 py-3 font-medium text-[var(--color-text-muted)] text-xs uppercase tracking-wider">จัดการ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
               {filtered.map(item => (
-                <tr
+                <ScheduleRow
                   key={item.id}
-                  className={`bg-[var(--color-surface)] hover:bg-[var(--color-panel)] transition-colors ${
-                    !item.visible ? 'opacity-60' : ''
-                  }`}
-                >
-                  <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap text-xs">
-                    {formatDisplayDate(item.date)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-[var(--color-text-primary)] leading-snug">{item.title}</p>
-                    {item.title_thai && <p className="text-xs text-[var(--color-text-muted)]">{item.title_thai}</p>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-panel)] text-[var(--color-text-secondary)] whitespace-nowrap">
-                      {TYPE_CONFIG[item.event_type] ?? item.event_type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs">{item.venue || '—'}</td>
-                  <td className="px-4 py-3">
-                    {item.actors?.includes('both') || (item.actors?.includes('namtan') && item.actors?.includes('film')) ? (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-namtan-primary/20 to-[#fbdf74]/20 text-namtan-primary border border-namtan-primary/30">คู่กัน</span>
-                    ) : (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)]">{item.actors?.join(', ')}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {item.brand_collaborations ? (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/25 whitespace-nowrap">
-                        🏢 {item.brand_collaborations.brand_name}
-                      </span>
-                    ) : (
-                      <span className="text-[var(--color-text-muted)] text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleToggleVisible(item)}
-                      className={`p-1.5 rounded-lg border transition-colors ${
-                        item.visible
-                          ? 'text-green-400 border-green-500/20 bg-green-500/10 hover:bg-green-500/20'
-                          : 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)] hover:bg-[var(--color-border)]'
-                      }`}
-                      title={item.visible ? 'คลิกเพื่อซ่อน' : 'คลิกเพื่อแสดง'}
-                    >
-                      {item.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1.5 justify-center">
-                      <button
-                        onClick={() => { setEditing(item); setShowForm(true); }}
-                        className="p-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-panel)] hover:bg-[var(--color-border)] rounded-lg transition-colors border border-[var(--color-border)]"
-                        title="แก้ไข"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-1.5 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/10"
-                        title="ลบ"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                  item={item}
+                  view="table"
+                  formatDisplayDate={formatDisplayDate}
+                  onToggleVisible={handleToggleVisible}
+                  onEdit={() => { setEditing(item); setShowForm(true); }}
+                  onDelete={() => handleDelete(item)}
+                />
               ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Form Modal */}
       {showForm && (
-        <ScheduleFormModal 
-          item={editing} 
+        <ScheduleFormModal
+          item={editing}
           onClose={() => { setShowForm(false); setEditing(null); }}
           onSave={() => { setShowForm(false); setEditing(null); fetchItems(); }}
         />
@@ -382,57 +322,190 @@ export default function AdminSchedulePage() {
   );
 }
 
-// ── Schedule Form Modal ──
-function ScheduleFormModal({ item, onClose, onSave }: { item: ScheduleEvent | null; onClose: () => void; onSave: () => void }) {
-  const isEdit = !!item;
-  
-  // Format for datetime-local input: YYYY-MM-DDThh:mm
-  let initialDate = '';
-  if (item?.date) {
-    const d = new Date(item.date);
-    // adjust to local 
-    const offset = d.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(d.getTime() - offset)).toISOString().slice(0, 16);
-    initialDate = localISOTime;
+function ScheduleRow({
+  item,
+  view,
+  formatDisplayDate,
+  onToggleVisible,
+  onEdit,
+  onDelete,
+}: {
+  item: AdminScheduleItem;
+  view: 'list' | 'table';
+  formatDisplayDate: (dateStr?: string) => string;
+  onToggleVisible: (item: AdminScheduleItem) => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const editable = isEditableManualEvent(item);
+  const sourceLabel = SCHEDULE_SOURCE_LABELS[item.source]?.label ?? item.source;
+  const actorsBadge = item.actors?.includes('both') ||
+    (item.actors?.includes('namtan') && item.actors?.includes('film')) ? (
+      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gradient-to-r from-namtan-primary/20 to-[#fbdf74]/20 text-namtan-primary border border-namtan-primary/30">คู่กัน</span>
+    ) : (
+      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)]">{item.actors?.join(', ')}</span>
+    );
+
+  const actionButtons = (
+    <div className="flex gap-1.5 shrink-0 justify-center">
+      {editable ? (
+        <>
+          <button
+            onClick={() => onToggleVisible(item)}
+            className={`p-2 rounded-lg border transition-colors ${
+              item.visible
+                ? 'text-green-400 border-green-500/20 bg-green-500/10 hover:bg-green-500/20'
+                : 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)] hover:bg-[var(--color-border)]'
+            }`}
+            title={item.visible ? 'คลิกเพื่อซ่อน' : 'คลิกเพื่อแสดง'}
+          >
+            {item.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={onEdit}
+            className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-[var(--color-panel)] hover:bg-[var(--color-border)] rounded-lg transition-colors border border-[var(--color-border)]"
+            title="แก้ไข"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-2 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors border border-red-500/10"
+            title="ลบ"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </>
+      ) : item.adminEditPath ? (
+        <Link
+          href={item.adminEditPath}
+          className="p-2 text-namtan-primary hover:text-[var(--color-text-primary)] bg-namtan-primary/10 hover:bg-namtan-primary/20 rounded-lg transition-colors border border-namtan-primary/20 inline-flex items-center gap-1 text-xs px-3"
+          title="แก้ไขที่หน้าต้นทาง"
+        >
+          <ExternalLink className="w-4 h-4" /> ต้นทาง
+        </Link>
+      ) : null}
+    </div>
+  );
+
+  if (view === 'list') {
+    return (
+      <div
+        className={`flex items-center gap-4 p-4 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] transition-colors ${
+          !item.visible ? 'opacity-60' : 'hover:border-[var(--color-text-muted)]/30'
+        }`}
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-panel)] text-[var(--color-text-secondary)]">
+              {TYPE_CONFIG[item.category] ?? item.category}
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
+              {sourceLabel}
+            </span>
+            {actorsBadge}
+            {!item.visible && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-500/80">ซ่อนอยู่</span>
+            )}
+            {item.mergedSources && item.mergedSources.length > 1 && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded border border-blue-500/30 text-blue-400">รวม {item.mergedSources.length} แหล่ง</span>
+            )}
+          </div>
+          <h3 className="text-sm font-normal text-[var(--color-text-primary)] truncate">{item.title}</h3>
+          {item.titleThai && <p className="text-xs text-[var(--color-text-muted)] truncate">{item.titleThai}</p>}
+          <div className="flex items-center gap-3 mt-1 text-xs text-[var(--color-text-muted)]">
+            <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {formatDisplayDate(item.scheduledAt)}</span>
+            {item.venue && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {item.venue}</span>}
+          </div>
+        </div>
+        {actionButtons}
+      </div>
+    );
   }
 
-  const [form, setForm] = useState<ScheduleFormState>({
+  return (
+    <tr className={`bg-[var(--color-surface)] hover:bg-[var(--color-panel)] transition-colors ${!item.visible ? 'opacity-60' : ''}`}>
+      <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap text-xs">
+        {formatDisplayDate(item.scheduledAt)}
+      </td>
+      <td className="px-4 py-3">
+        <p className="font-semibold text-[var(--color-text-primary)] leading-snug">{item.title}</p>
+        {item.titleThai && <p className="text-xs text-[var(--color-text-muted)]">{item.titleThai}</p>}
+      </td>
+      <td className="px-4 py-3">
+        <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-panel)] text-[var(--color-text-secondary)] whitespace-nowrap">
+          {TYPE_CONFIG[item.category] ?? item.category}
+        </span>
+      </td>
+      <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] whitespace-nowrap">{sourceLabel}</td>
+      <td className="px-4 py-3 text-[var(--color-text-muted)] text-xs">{item.venue || '—'}</td>
+      <td className="px-4 py-3">{actorsBadge}</td>
+      <td className="px-4 py-3 text-center">
+        {editable ? (
+          <button
+            onClick={() => onToggleVisible(item)}
+            className={`p-1.5 rounded-lg border transition-colors ${
+              item.visible
+                ? 'text-green-400 border-green-500/20 bg-green-500/10 hover:bg-green-500/20'
+                : 'text-[var(--color-text-muted)] border-[var(--color-border)] bg-[var(--color-panel)] hover:bg-[var(--color-border)]'
+            }`}
+            title={item.visible ? 'คลิกเพื่อซ่อน' : 'คลิกเพื่อแสดง'}
+          >
+            {item.visible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+          </button>
+        ) : (
+          <span className="text-[var(--color-text-muted)] text-xs">—</span>
+        )}
+      </td>
+      <td className="px-4 py-3">{actionButtons}</td>
+    </tr>
+  );
+}
+
+function ScheduleFormModal({
+  item,
+  onClose,
+  onSave,
+}: {
+  item: AdminScheduleItem | null;
+  onClose: () => void;
+  onSave: () => void;
+}) {
+  const isEdit = !!item && isEditableManualEvent(item);
+
+  const [form, setForm] = useState<ScheduleFormState>(() => ({
     title: item?.title || '',
-    title_thai: item?.title_thai || '',
-    date: initialDate,
-    event_type: item?.event_type || 'event',
+    title_thai: item?.titleThai || '',
+    date: item?.scheduledAt ? scheduledAtToInputValue(item.scheduledAt) : '',
+    event_type: item ? toManualEventType(item.category) : 'event',
     venue: item?.venue || '',
     link: item?.link || '',
     description: item?.description || '',
-    actors: item?.actors?.join(', ') || 'both',
+    actors: item?.actors?.includes('both') ? 'both' : (item?.actors?.[0] || 'both'),
     visible: item?.visible ?? true,
-    content_type: 'event'
-  });
-  
+    content_type: 'event',
+  }));
+
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    
-    // Parse actors string to array
+
     let actorsArr = form.actors.split(',').map(s => s.trim()).filter(Boolean);
     if (actorsArr.includes('both')) {
-      actorsArr = ['namtan', 'film', 'both']; // Standardize 'both'
+      actorsArr = ['namtan', 'film', 'both'];
     }
 
-    // Format date string back to string without T
     const dateStr = form.date.replace('T', ' ');
-
-    // Must determine year from date for sorting stability if needed
     const year = form.date ? new Date(form.date).getFullYear() : new Date().getFullYear();
 
     const payload = {
       ...form,
       date: dateStr,
       actors: actorsArr,
-      year: year,
-      ...(isEdit ? { id: item!.id } : {}),
+      year,
+      ...(isEdit && item ? { id: item.sourceId } : {}),
     };
 
     try {
@@ -479,18 +552,18 @@ function ScheduleFormModal({ item, onClose, onSave }: { item: ScheduleEvent | nu
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="วันและเวลา*">
-              <input 
-                type="datetime-local" 
-                value={form.date} 
-                onChange={e => setForm(f => ({ ...f, date: e.target.value }))} 
-                className="w-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-2.5 focus:border-[var(--namtan-teal)] focus:ring-1 focus:ring-[var(--namtan-teal)] focus:outline-none transition-all text-sm" 
-                required 
+              <input
+                type="datetime-local"
+                value={form.date}
+                onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                className="w-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-2.5 focus:border-[var(--namtan-teal)] focus:ring-1 focus:ring-[var(--namtan-teal)] focus:outline-none transition-all text-sm"
+                required
               />
             </Field>
             <Field label="ประเภทงาน">
-              <select value={form.event_type} onChange={e => setForm(f => ({ ...f, event_type: e.target.value as ScheduleEventType }))} className="w-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-2.5 focus:border-[var(--namtan-teal)] focus:ring-1 focus:ring-[var(--namtan-teal)] focus:outline-none transition-all text-sm">
-                {Object.entries(TYPE_CONFIG).map(([val, label]) => (
-                  <option key={val} value={val}>{label}</option>
+              <select value={form.event_type} onChange={e => setForm(f => ({ ...f, event_type: e.target.value as ManualEventType }))} className="w-full bg-[var(--color-panel)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl px-4 py-2.5 focus:border-[var(--namtan-teal)] focus:ring-1 focus:ring-[var(--namtan-teal)] focus:outline-none transition-all text-sm">
+                {FORM_EVENT_TYPES.map(val => (
+                  <option key={val} value={val}>{TYPE_CONFIG[val]}</option>
                 ))}
               </select>
             </Field>
@@ -532,8 +605,6 @@ function ScheduleFormModal({ item, onClose, onSave }: { item: ScheduleEvent | nu
           </button>
         </div>
       </form>
-      
-      
     </div>
   );
 }

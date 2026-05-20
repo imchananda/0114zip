@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { aggregateSchedule } from '@/lib/schedule/aggregate';
+import { fetchScheduleSourceToggles } from '@/lib/schedule/settings';
 import { toPublicScheduleEvents } from '@/lib/schedule/public-dto';
 import type { ScheduleTimeFilter } from '@/lib/schedule/types';
 import { supabase } from '@/lib/supabase';
-
 export const revalidate = 60;
 
 function parseTimeFilter(value: string | null): ScheduleTimeFilter {
@@ -21,10 +21,10 @@ export async function GET(req: NextRequest) {
 
     const items = await aggregateSchedule(supabase, {
       includeHidden: false,
+      sources: await fetchScheduleSourceToggles(supabase),
       type,
       limit: Number.isFinite(limit) ? limit : undefined,
     });
-
     return NextResponse.json(toPublicScheduleEvents(items));
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal server error';

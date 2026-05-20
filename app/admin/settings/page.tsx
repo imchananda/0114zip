@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import {
+  DEFAULT_SCHEDULE_SOURCE_TOGGLES,
+  SCHEDULE_SOURCES,
+  type ScheduleSource,
+  type ScheduleSourceToggles,
+} from '@/lib/schedule/types';
+import { SCHEDULE_SOURCE_LABELS } from '@/lib/schedule/settings';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,6 +45,7 @@ interface SiteSettings {
   };
   maintenance: boolean;
   maintenanceMessage: string;
+  scheduleSources: ScheduleSourceToggles;
 }
 
 
@@ -65,6 +73,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   },
   maintenance: false,
   maintenanceMessage: 'เว็บไซต์กำลังปรับปรุง กรุณากลับมาใหม่ภายหลัง',
+  scheduleSources: { ...DEFAULT_SCHEDULE_SOURCE_TOGGLES },
 };
 
 export default function SettingsPage() {
@@ -85,6 +94,7 @@ export default function SettingsPage() {
           social:             { ...DEFAULT_SETTINGS.social,   ...data.social },
           maintenance:        data.maintenance?.enabled        ?? false,
           maintenanceMessage: data.maintenance?.message        ?? DEFAULT_SETTINGS.maintenanceMessage,
+          scheduleSources:    normalizeScheduleSourcesFromApi(data.scheduleSources),
         });
       })
       .catch(console.error);
@@ -99,6 +109,7 @@ export default function SettingsPage() {
         features:     settings.features,
         social:       settings.social,
         maintenance:  { enabled: settings.maintenance, message: settings.maintenanceMessage },
+        scheduleSources: settings.scheduleSources,
       };
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
@@ -116,6 +127,13 @@ export default function SettingsPage() {
 
   const toggleFeature = (key: keyof SiteSettings['features']) => {
     setSettings(s => ({ ...s, features: { ...s.features, [key]: !s.features[key] } }));
+  };
+
+  const toggleScheduleSource = (key: ScheduleSource) => {
+    setSettings(s => ({
+      ...s,
+      scheduleSources: { ...s.scheduleSources, [key]: !s.scheduleSources[key] },
+    }));
   };
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -193,6 +211,31 @@ export default function SettingsPage() {
             🏠 เปิด Homepage Builder <span>→</span>
           </Link>
         </div>
+
+        {/* ── Schedule Sources ───────────────────────────────────────────── */}
+        <Section
+          title="📅 แหล่งข้อมูลตารางงาน"
+          description="เลือกว่าตารางงาน (หน้าเว็บ + /admin/schedule) จะดึงจากแหล่งใดบ้าง"
+        >
+          <div className="grid grid-cols-1 gap-3">
+            {SCHEDULE_SOURCES.map((key) => (
+              <ToggleRow
+                key={key}
+                label={SCHEDULE_SOURCE_LABELS[key].label}
+                description={SCHEDULE_SOURCE_LABELS[key].description}
+                enabled={settings.scheduleSources[key]}
+                onToggle={() => toggleScheduleSource(key)}
+              />
+            ))}
+          </div>
+          <p className="text-[11px] text-[var(--color-text-muted)] pt-1">
+            คิวงานที่เพิ่มด้วยมือแก้ไขได้ที่{' '}
+            <Link href="/admin/schedule" className="text-[#6cbfd0] hover:underline">
+              /admin/schedule
+            </Link>
+            {' '}— แหล่งอื่นแก้ไขที่หน้า admin ต้นทาง
+          </p>
+        </Section>
 
         {/* ── Feature Flags ──────────────────────────────────────────────── */}
         <Section title="🎛️ เปิด/ปิดฟีเจอร์" description="ฟีเจอร์ทั่วทั้งเว็บไซต์">
@@ -274,6 +317,16 @@ const FEATURE_LABELS: Record<string, string> = {
   awards:     '🏆 Awards',
   stats:      '📊 Live Stats',
 };
+
+function normalizeScheduleSourcesFromApi(value: unknown): ScheduleSourceToggles {
+  const result = { ...DEFAULT_SCHEDULE_SOURCE_TOGGLES };
+  if (!value || typeof value !== 'object') return result;
+  for (const key of SCHEDULE_SOURCES) {
+    const enabled = (value as Record<string, unknown>)[key];
+    if (typeof enabled === 'boolean') result[key] = enabled;
+  }
+  return result;
+}
 
 // ── Shared UI components ─────────────────────────────────────────────────────
 

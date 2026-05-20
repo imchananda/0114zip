@@ -45,6 +45,13 @@ export { isLinkedContentItemMirror, mergeScheduleItems } from './merge';
 export { aggregateSchedule } from './aggregate';
 
 export {
+  fetchScheduleSourceToggles,
+  normalizeScheduleSourceToggles,
+  SCHEDULE_SOURCES_SETTINGS_KEY,
+  SCHEDULE_SOURCE_LABELS,
+} from './settings';
+
+export {
   toPublicScheduleEvent,
   toPublicScheduleEvents,
   type PublicScheduleEvent,
