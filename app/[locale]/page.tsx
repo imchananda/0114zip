@@ -272,6 +272,8 @@ async function ProfileServer() {
       flWorksCount={stats.flSeries}
       allContent={content as unknown as HomeContentItem[]}
       config={settings.homepageConfig.profile}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
     />
   );
 }

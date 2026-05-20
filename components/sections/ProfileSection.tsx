@@ -1,16 +1,33 @@
 'use client';
 
+/**
+ * Phase 6 — cross-layer section (pattern from Timeline/Awards pilots):
+ *   • Visual: getProfileStyles (profileSection.styles.ts)
+ *   • Motion: useSectionMotion + toWhileInViewBinding
+ *   • Theme: SectionThemeWrapper → CSS vars
+ */
 import { motion } from 'framer-motion';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import { useViewState } from '@/context/ViewStateContext';
 import { Link } from '@/i18n/routing';
+import type { HomepageSectionConfig, PageMotionConfig, PageThemeConfig } from '@/lib/homepage-sections';
+import { SectionThemeWrapper } from '@/components/ui/SectionThemeWrapper';
+import { toWhileInViewBinding, useSectionMotion } from '@/lib/visual';
 import {
   HomeArtistProfile,
   HomeEngData,
   HomeContentItem,
   HomeIgPost,
 } from '@/lib/homepage-data';
+import {
+  getArtistPanelContentClass,
+  getArtistPanelRadius,
+  getArtistPanelShellClass,
+  getProfileStyles,
+  getSplitGridClass,
+  PROFILE_ARTIST_ACCENTS,
+} from './profileSection.styles';
 
 /* ── Props ─────────────────────────────────────────────────────────── */
 
@@ -20,7 +37,9 @@ interface ProfileSectionProps {
   ntWorksCount?: number | null;
   flWorksCount?: number | null;
   allContent?: HomeContentItem[];
-  config?: { theme?: string; layout?: string };
+  config?: Pick<HomepageSectionConfig, 'theme' | 'layout' | 'motion' | 'themeTokens'>;
+  pageMotion?: PageMotionConfig;
+  pageTheme?: PageThemeConfig;
 }
 
 /* ── Helpers ───────────────────────────────────────────────────────── */
@@ -132,12 +151,7 @@ function ArtistSplitPanel({
   const id = side === 'left' ? 'namtan' : 'film';
   const textAlign = side === 'right' ? 'items-end text-right' : 'items-start text-left';
   const unopt = shouldUnoptimizedImage(profile?.photo_url);
-  const radius =
-    splitMode === 'single'
-      ? { tl: '1.25rem', tr: '1.25rem', bl: '1.25rem', br: '1.25rem' }
-      : side === 'left'
-        ? { tl: '1.25rem', tr: 0, bl: '1.25rem', br: 0 }
-        : { tl: 0, tr: '1.25rem', bl: 0, br: '1.25rem' };
+  const radius = getArtistPanelRadius(side, splitMode);
 
   const loc = (enK: keyof HomeArtistProfile, thK: keyof HomeArtistProfile) => {
     if (!profile) return '';
@@ -154,7 +168,7 @@ function ArtistSplitPanel({
 
   return (
     <div
-      className="relative min-h-[100svh] lg:min-h-[min(100svh,920px)] flex flex-col w-full overflow-hidden"
+      className={getArtistPanelShellClass()}
       style={{
         borderTopLeftRadius: radius.tl,
         borderBottomLeftRadius: radius.bl,
@@ -223,9 +237,7 @@ function ArtistSplitPanel({
       />
 
       {/* Foreground: content at bottom, mockup layout */}
-      <div
-        className={`relative z-10 flex flex-col flex-1 justify-end p-6 sm:p-8 md:p-10 lg:p-12 ${textAlign}`}
-      >
+      <div className={getArtistPanelContentClass(side)}>
         <div className="max-w-md w-full" style={side === 'right' ? { marginLeft: 'auto' } : undefined}>
           <h3
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold tracking-tight text-white leading-[0.95] drop-shadow-2xl"
@@ -366,10 +378,18 @@ export function ProfileSection({
   flWorksCount,
   allContent = [],
   config,
+  pageMotion,
+  pageTheme,
 }: ProfileSectionProps) {
   const { state } = useViewState();
   const t = useTranslations();
   const lang = useLocale();
+  const styles = getProfileStyles({ theme: config?.theme, layout: config?.layout });
+  const sectionMotion = useSectionMotion(pageMotion, config?.motion);
+  const headerKickerMotion = toWhileInViewBinding(sectionMotion);
+  const headerSubMotion = toWhileInViewBinding(sectionMotion, 1);
+  const headerTitleMotion = toWhileInViewBinding(sectionMotion, 2);
+  const togetherBarMotion = toWhileInViewBinding(sectionMotion, 3);
 
   const showNamtan = state === 'both' || state === 'namtan' || state === 'lunar';
   const showFilm = state === 'both' || state === 'film' || state === 'lunar';
@@ -393,43 +413,47 @@ export function ProfileSection({
   const emvTotal = emvNt + emvFl;
   const splitMode: 'pair' | 'single' = showNamtan && showFilm ? 'pair' : 'single';
 
-  const theme = config?.theme || 'cinematic';
-  const showTogetherBar = config?.layout !== 'hide';
-  
-  const sectionClasses = theme === 'clean' 
-    ? "relative z-0 scroll-mt-24 bg-[var(--color-bg)] text-primary"
-    : "relative z-0 scroll-mt-24 bg-[#03050c] text-white";
-    
-  const textPrimary = theme === 'clean' ? 'text-primary' : 'text-white';
-  const textMuted = theme === 'clean' ? 'text-muted' : 'text-white/50';
-  const textSub = theme === 'clean' ? 'text-accent' : 'text-cyan-300/80';
-  const kickerColor = theme === 'clean' ? 'text-muted/60' : 'text-white/40';
-
   return (
-    <section
+    <SectionThemeWrapper
+      as="section"
       id="profile"
-      className={sectionClasses}
+      className={styles.sectionClass}
+      pageTheme={pageTheme}
+      sectionTheme={config?.themeTokens}
     >
-      {/* full-bleed: break out of page container without fighting parent */}
-      <div className="w-full max-w-[100vw] overflow-x-hidden">
-        <div className="mx-auto max-w-[1800px] px-4 sm:px-6 md:px-8 pt-14 pb-4">
-          <p className={`text-[10px] uppercase tracking-[0.3em] ${kickerColor} mb-1`}>{t('profile.sectionKicker')}</p>
-          <p className={`text-[10px] sm:text-xs uppercase tracking-[0.2em] ${textSub} mb-2`}>
+      <div className={styles.outerWrapClass}>
+        <div className={styles.headerWrapClass}>
+          <motion.p
+            initial={headerKickerMotion.initial}
+            whileInView={headerKickerMotion.whileInView}
+            viewport={headerKickerMotion.viewport}
+            transition={headerKickerMotion.transition}
+            className={styles.kickerClass}
+          >
+            {t('profile.sectionKicker')}
+          </motion.p>
+          <motion.p
+            initial={headerSubMotion.initial}
+            whileInView={headerSubMotion.whileInView}
+            viewport={headerSubMotion.viewport}
+            transition={headerSubMotion.transition}
+            className={styles.sublineClass}
+          >
             {t('profile.sub')}
-          </p>
-          <h2 className={`font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-tight ${textPrimary}`}>
+          </motion.p>
+          <motion.h2
+            initial={headerTitleMotion.initial}
+            whileInView={headerTitleMotion.whileInView}
+            viewport={headerTitleMotion.viewport}
+            transition={headerTitleMotion.transition}
+            className={styles.titleClass}
+          >
             {t('profile.title')}
-          </h2>
-          <p className={`text-sm ${textMuted} mt-1 font-thai max-w-2xl`}>{t('profile.subThai')}</p>
+          </motion.h2>
+          <p className={styles.subThaiClass}>{t('profile.subThai')}</p>
         </div>
 
-        {/* Split: 2 columns — น้ำตาล | ฟิล์ม */}
-        <div
-          className={`
-            grid w-full
-            ${showNamtan && showFilm ? 'lg:grid-cols-2 gap-0' : 'grid-cols-1'}
-          `}
-        >
+        <div className={getSplitGridClass(showNamtan && showFilm)}>
           {showNamtan && (
             <ArtistSplitPanel
               side="left"
@@ -437,7 +461,7 @@ export function ProfileSection({
               snap={ntSnap}
               works={ntWorksCount ?? null}
               latestWorks={ntLatest}
-              accentHex="#69bcdc"
+              accentHex={PROFILE_ARTIST_ACCENTS.namtan}
               orbitLabel="BLUE"
               getTypeLabel={contentLabel}
               lang={lang}
@@ -453,7 +477,7 @@ export function ProfileSection({
               snap={flSnap}
               works={flWorksCount ?? null}
               latestWorks={flLatest}
-              accentHex="#f8e85f"
+              accentHex={PROFILE_ARTIST_ACCENTS.film}
               orbitLabel="YELLOW"
               getTypeLabel={contentLabel}
               lang={lang}
@@ -463,79 +487,61 @@ export function ProfileSection({
           )}
         </div>
 
-        {/* Mobile: thin divider between when stacked */}
-        {showNamtan && showFilm && <div className={`lg:hidden h-px w-full ${theme === 'clean' ? 'bg-theme/40' : 'bg-white/10'}`} />}
+        {showNamtan && showFilm && <div className={styles.mobileDividerClass} />}
 
-        {/* Together bar */}
-        {showNamtan && showFilm && showTogetherBar && (
+        {showNamtan && showFilm && styles.showTogetherBar && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className={`mx-4 sm:mx-6 md:mx-8 max-w-[1800px] md:mx-auto mt-2 mb-12 rounded-2xl border p-5 sm:p-6 md:p-8 backdrop-blur-md
-              ${theme === 'clean' 
-                ? 'border-theme/40 bg-surface shadow-sm' 
-                : 'border-white/10 bg-[#060912]/95 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]'}`}
+            initial={togetherBarMotion.initial}
+            whileInView={togetherBarMotion.whileInView}
+            viewport={togetherBarMotion.viewport}
+            transition={togetherBarMotion.transition}
+            className={styles.togetherBarClass}
           >
-            <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
-              <div className={`shrink-0 md:border-r md:pr-8 ${theme === 'clean' ? 'md:border-theme/40' : 'md:border-white/10'}`}>
-                <h4 className={`font-display text-xl sm:text-2xl font-bold uppercase tracking-tight ${textPrimary}`}>
-                  {t('profile.together')}
-                </h4>
-                <p className={`text-xs mt-0.5 ${theme === 'clean' ? 'text-muted' : 'text-white/45'}`}>{t('profile.togetherSub')}</p>
+            <div className={styles.togetherRowClass}>
+              <div className={styles.togetherHeadingWrapClass}>
+                <h4 className={styles.togetherTitleClass}>{t('profile.together')}</h4>
+                <p className={styles.togetherSubClass}>{t('profile.togetherSub')}</p>
               </div>
-              <div className="grid flex-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <div className={styles.statsGridClass}>
                 {combinedFollowers > 0 && (
-                  <div className={`flex items-center gap-2 sm:gap-3 rounded-xl p-2.5 sm:p-3 ring-1 ${theme === 'clean' ? 'bg-panel ring-theme/40' : 'bg-white/[0.04] ring-white/5'}`}>
+                  <div className={styles.statCardClass}>
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-500 dark:text-cyan-300">
                       <UsersIcon className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className={`text-base sm:text-lg font-display font-semibold tabular-nums ${textPrimary}`}>
-                        {fmt(combinedFollowers)}
-                      </div>
-                      <div className={`text-[8px] uppercase tracking-wider leading-tight ${theme === 'clean' ? 'text-muted' : 'text-white/40'}`}>
-                        {t('profile.totalFollowers')}
-                      </div>
+                      <div className={styles.statValueClass}>{fmt(combinedFollowers)}</div>
+                      <div className={styles.statLabelClass}>{t('profile.totalFollowers')}</div>
                     </div>
                   </div>
                 )}
                 {emvTotal > 0 && (
-                  <div className={`flex items-center gap-2 sm:gap-3 rounded-xl p-2.5 sm:p-3 ring-1 ${theme === 'clean' ? 'bg-panel ring-theme/40' : 'bg-white/[0.04] ring-white/5'}`}>
-                    <div className="h-9 w-9 shrink-0 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300/90 flex items-center justify-center text-[10px] font-bold">E</div>
+                  <div className={styles.statCardClass}>
+                    <div className="h-9 w-9 shrink-0 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300/90 flex items-center justify-center text-[10px] font-bold">
+                      E
+                    </div>
                     <div>
-                      <div className={`text-base sm:text-lg font-display font-semibold tabular-nums ${textPrimary}`}>
-                        {fmtDollar(emvTotal)}
-                      </div>
-                      <div className={`text-[8px] uppercase tracking-wider leading-tight line-clamp-2 ${theme === 'clean' ? 'text-muted' : 'text-white/40'}`}>
-                        {t('profile.emv')}
-                      </div>
+                      <div className={styles.statValueClass}>{fmtDollar(emvTotal)}</div>
+                      <div className={styles.statLabelClampClass}>{t('profile.emv')}</div>
                     </div>
                   </div>
                 )}
                 {(ntWorksCount ?? 0) + (flWorksCount ?? 0) > 0 && (
-                  <div className={`flex items-center gap-2 sm:gap-3 rounded-xl p-2.5 sm:p-3 ring-1 ${theme === 'clean' ? 'bg-panel ring-theme/40' : 'bg-white/[0.04] ring-white/5'}`}>
+                  <div className={styles.statCardClass}>
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-yellow-500/10 text-yellow-600 dark:text-yellow-200">
                       <FilmIcon className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className={`text-base sm:text-lg font-display font-semibold tabular-nums ${textPrimary}`}>
-                        {(ntWorksCount ?? 0) + (flWorksCount ?? 0)}
-                      </div>
-                      <div className={`text-[8px] uppercase tracking-wider leading-tight ${theme === 'clean' ? 'text-muted' : 'text-white/40'}`}>
-                        {t('profile.totalWorks')}
-                      </div>
+                      <div className={styles.statValueClass}>{(ntWorksCount ?? 0) + (flWorksCount ?? 0)}</div>
+                      <div className={styles.statLabelClass}>{t('profile.totalWorks')}</div>
                     </div>
                   </div>
                 )}
               </div>
             </div>
-            <p className={`text-center text-[9px] uppercase tracking-[0.2em] mt-4 ${theme === 'clean' ? 'text-muted/50' : 'text-white/30'}`}>
-              {t('profile.dataRange')}
-            </p>
+            <p className={styles.dataRangeClass}>{t('profile.dataRange')}</p>
           </motion.div>
         )}
       </div>
-    </section>
+    </SectionThemeWrapper>
   );
 }
