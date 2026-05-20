@@ -73,6 +73,8 @@ async function AboutServer() {
       flWorks={stats.flSeries || 0}
       totalAwards={awardCount}
       config={settings.homepageConfig.about}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
     />
   );
 }
