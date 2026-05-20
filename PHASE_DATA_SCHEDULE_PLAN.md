@@ -1,7 +1,7 @@
 # Phase Data — Admin Schedule Aggregation
 
 Branch: `feat/admin-schedule-aggregation`  
-Status: PR1 (types + mappers skeleton) — **no runtime behavior change**
+Status: PR3 (legacy data migration script) — **SQL only, run manually in Supabase**
 
 ## Goal
 
@@ -43,7 +43,7 @@ See `lib/schedule/types.ts` — `AdminScheduleItem`, `ScheduleSource`, `Schedule
 |---|---|
 | **PR1** ✅ | `lib/schedule/*` types, normalize, mappers, merge skeleton + this doc |
 | **PR2** ✅ | Schema: `awards.ceremony_date`, `awards.show_on_schedule`; fashion `magazine` category; content date field in admin form |
-| **PR3** | Data migration: legacy magazine/award content_items → new tables |
+| **PR3** ✅ | Data migration SQL + runbook: legacy magazine/award → fashion_events/awards |
 | **PR4** | `GET /api/admin/schedule` + public `/api/schedule` aggregator |
 | **PR5** | Wire `/admin/schedule` UI + source toggles in settings |
 | **PR6** | Deprecate legacy content_types in schedule paths |
