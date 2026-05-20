@@ -253,7 +253,14 @@ async function ChallengesServer() {
 
 async function PrizesServer() {
   const [prizes, settings] = await Promise.all([fetchPrizes(), fetchCoreSettings()]);
-  return <PrizeSection initialPrizes={normalizePrizes(prizes)} config={settings.homepageConfig.prizes} />;
+  return (
+    <PrizeSection
+      initialPrizes={normalizePrizes(prizes)}
+      config={settings.homepageConfig.prizes}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
+    />
+  );
 }
 
 async function ProfileServer() {
