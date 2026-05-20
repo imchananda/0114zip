@@ -194,6 +194,8 @@ async function AwardsServer() {
     <AwardsPreview
       initialAwards={normalizeHomeAwards(awards)}
       config={settings.homepageConfig.awards}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
     />
   );
 }
