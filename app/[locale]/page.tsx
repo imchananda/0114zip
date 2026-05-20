@@ -228,7 +228,14 @@ async function MediaTagsServer() {
 
 async function ChallengesServer() {
   const [challenges, settings] = await Promise.all([fetchChallenges(), fetchCoreSettings()]);
-  return <ChallengesSection initialChallenges={normalizeChallenges(challenges)} config={settings.homepageConfig.challenges} />;
+  return (
+    <ChallengesSection
+      initialChallenges={normalizeChallenges(challenges)}
+      config={settings.homepageConfig.challenges}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
+    />
+  );
 }
 
 async function PrizesServer() {
