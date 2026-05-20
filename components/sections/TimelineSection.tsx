@@ -1,5 +1,12 @@
 'use client';
 
+/**
+ * Phase 4B pilot — cross-layer section:
+ * Admin config → normalize (homepage-sections) → props
+ *   • Visual/layout: getTimelineStyles (4A)
+ *   • Motion: useSectionMotion + toWhileInViewBinding (Phase 2)
+ *   • Theme tokens: SectionThemeWrapper → CSS vars (Phase 3)
+ */
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useViewState } from '@/context/ViewStateContext';
@@ -79,7 +86,7 @@ export function TimelineSection({
                     transition={headerMotion.transition}
                     className={styles.headerClass}
                 >
-                    <p className="text-overline text-accent font-bold mb-4 uppercase tracking-[0.4em]">
+                    <p className={styles.sublineClass}>
                         {t('timeline.sub')}
                     </p>
                     <h2 className={styles.titleClass}>
@@ -96,8 +103,8 @@ export function TimelineSection({
                     <div className={styles.centerLineClass} />
 
                     {years.length === 0 ? (
-                        <div className="text-center py-20 opacity-30">
-                            <p className="text-sm font-bold uppercase tracking-widest">{t('timeline.empty')}</p>
+                        <div className={styles.emptyStateClass}>
+                            <p className={styles.emptyStateTextClass}>{t('timeline.empty')}</p>
                         </div>
                     ) : (
                         years.map((year) => {
@@ -143,7 +150,7 @@ export function TimelineSection({
                                                             </span>
                                                         </div>
 
-                                                        <h3 className="text-primary text-xl md:text-2xl font-display font-normal mb-3 leading-snug group-hover:text-accent transition-colors">
+                                                        <h3 className={styles.eventTitleClass}>
                                                             {language === 'th' ? event.title_thai : event.title}
                                                         </h3>
 
