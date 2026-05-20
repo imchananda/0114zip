@@ -1,8 +1,23 @@
 'use client';
 
+/**
+ * Phase 6 — cross-layer section (pattern from Schedule/About pilots):
+ *   • Visual: getBrandsStyles (brandsSection.styles.ts)
+ *   • Motion: useSectionMotion + toWhileInViewBinding
+ *   • Theme: SectionThemeWrapper → CSS vars
+ */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { X, ExternalLink, Calendar, Tag } from 'lucide-react';
+import type { HomepageSectionConfig, PageMotionConfig, PageThemeConfig } from '@/lib/homepage-sections';
+import { SectionThemeWrapper } from '@/components/ui/SectionThemeWrapper';
+import { toWhileInViewBinding, useSectionMotion, type WhileInViewMotionBinding } from '@/lib/visual';
+import {
+  getBrandsStyles,
+  getPortraitFadeStyle,
+  resolveBrandsTitle,
+} from './brandsSection.styles';
 
 const PROXY_HOSTS = ['upload.wikimedia.org', 'commons.wikimedia.org', 'encrypted-tbn0.gstatic.com'];
 function logoSrc(url: string): string {
@@ -12,7 +27,6 @@ function logoSrc(url: string): string {
   } catch { /* ignore */ }
   return url.replace(/^http:\/\//, 'https://');
 }
-import { X, ExternalLink, Calendar, Tag } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MediaItem { type: string; title: string; url?: string; }
@@ -62,35 +76,49 @@ function fmtDate(d: string) {
 }
 
 // ─── BrandLogoItem ────────────────────────────────────────────────────────────
-function BrandLogoItem({ brand, index, onClick }: {
-  brand: Brand; index: number; onClick: () => void;
+function BrandLogoItem({
+  brand,
+  cardMotion,
+  onClick,
+  itemClass,
+  imageWrapClass,
+  imageClass,
+  fallbackClass,
+}: {
+  brand: Brand;
+  cardMotion: WhileInViewMotionBinding;
+  onClick: () => void;
+  itemClass: string;
+  imageWrapClass: string;
+  imageClass: string;
+  fallbackClass: string;
 }) {
   const [logoErr, setLogoErr] = useState(false);
   return (
     <motion.button
       layout
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ delay: index * 0.02, duration: 0.3 }}
+      initial={cardMotion.initial}
+      whileInView={cardMotion.whileInView}
+      viewport={cardMotion.viewport}
+      transition={cardMotion.transition}
       whileHover={{ y: -4, scale: 1.05 }}
       onClick={onClick}
-      className="group relative flex flex-col items-center justify-center p-3 rounded-xl bg-surface border border-theme/40 hover:border-accent/40 shadow-sm transition-all duration-300 w-20 h-16 md:w-24 md:h-20"
+      className={itemClass}
     >
-      {/* Logo */}
-      <div className="w-full h-full flex items-center justify-center overflow-hidden p-2">
-        {brand.brand_logo && !logoErr
-          ? <Image
-              src={logoSrc(brand.brand_logo)}
-              alt={brand.brand_name}
-              width={64} height={48}
-              className="object-contain w-full h-full opacity-80 group-hover:opacity-100 transition-opacity"
-              onError={() => setLogoErr(true)}
-              unoptimized
-            />
-          : <span className="text-2xl opacity-40">🏷️</span>
-        }
+      <div className={imageWrapClass}>
+        {brand.brand_logo && !logoErr ? (
+          <Image
+            src={logoSrc(brand.brand_logo)}
+            alt={brand.brand_name}
+            width={64}
+            height={48}
+            className={imageClass}
+            onError={() => setLogoErr(true)}
+            unoptimized
+          />
+        ) : (
+          <span className={fallbackClass}>🏷️</span>
+        )}
       </div>
     </motion.button>
   );
@@ -242,13 +270,23 @@ export function BrandsSection({
   initialSectionImages,
   initialProfileImages,
   config,
+  pageMotion,
+  pageTheme,
 }: {
-  initialBrands?:        Brand[];
-  initialYears?:         number[];
+  initialBrands?: Brand[];
+  initialYears?: number[];
   initialSectionImages?: { both?: string; namtan?: string; film?: string };
   initialProfileImages?: { namtan?: string; film?: string };
-  config?:               { layout?: 'split' | 'full-grid'; theme?: 'dark' | 'light'; title?: string };
+  config?: Pick<HomepageSectionConfig, 'layout' | 'theme' | 'title' | 'motion' | 'themeTokens'>;
+  pageMotion?: PageMotionConfig;
+  pageTheme?: PageThemeConfig;
 } = {}) {
+  const styles = getBrandsStyles({ layout: config?.layout, theme: config?.theme });
+  const sectionMotion = useSectionMotion(pageMotion, config?.motion);
+  const headerSubMotion = toWhileInViewBinding(sectionMotion);
+  const headerTitleMotion = toWhileInViewBinding(sectionMotion, 1);
+  const displayTitle = resolveBrandsTitle('Brand Partnerships', config?.title);
+
   const [artistFilter, setArtistFilter] = useState<ArtistFilter>('both');
   const [allBrands,    setAllBrands]    = useState<Brand[]>(initialBrands ?? []);
   const [years,        setYears]        = useState<number[]>(initialYears ?? []);
@@ -319,24 +357,20 @@ export function BrandsSection({
     ? (sectionImages.both ?? sectionImages.namtan ?? profileImages.namtan)
     : (sectionImages[portraitKey] ?? profileImages[portraitKey]);
 
-  const isDark = config?.theme !== 'light';
-  const isFullGrid = config?.layout === 'full-grid';
-  const displayTitle = config?.title || 'Brand Partnerships';
-  
-  const bgClass = isDark ? 'bg-[var(--color-brands-bg)]' : 'bg-surface text-deep-dark';
-
   return (
-    <section
-      className={`relative w-full overflow-hidden ${bgClass} border-t border-theme`}
+    <SectionThemeWrapper
+      as="section"
+      id="brands"
+      className={styles.sectionClass}
+      pageTheme={pageTheme}
+      sectionTheme={config?.themeTokens}
     >
-      <div className="max-w-screen-2xl mx-auto flex flex-col md:flex-row min-h-[600px]">
-
-        {/* ── Left: Artist photo (Only show if not full-grid) ──────────────── */}
-        {!isFullGrid && (
+      <div className={styles.shellClass}>
+        {!styles.isFullGrid && (
           <AnimatePresence mode="wait">
             <motion.div
               key={portraitKey}
-              className="relative w-full md:w-[45%] lg:w-[40%] flex-shrink-0 flex items-center justify-center bg-panel/30"
+              className={styles.portraitPanelClass}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
@@ -347,55 +381,50 @@ export function BrandsSection({
                 <img
                   src={portraitUrl}
                   alt={portraitKey === 'film' ? 'ฟิล์ม' : 'น้ำตาล'}
-                  className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700"
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  className={styles.portraitImageClass}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-panel">
-                  <span className="text-8xl opacity-10">👤</span>
+                <div className={styles.portraitPlaceholderClass}>
+                  <span className={styles.portraitPlaceholderIconClass}>👤</span>
                 </div>
               )}
-              {/* Right-edge fade */}
               <div
-                className="absolute inset-y-0 right-0 w-32 hidden md:block pointer-events-none"
-                style={{ background: isDark ? 'linear-gradient(to right, transparent, var(--color-brands-bg))' : 'linear-gradient(to right, transparent, var(--color-surface))' }}
+                className={styles.portraitFadeRightClass}
+                style={{ background: getPortraitFadeStyle(styles.isDark, 'right') }}
               />
-              {/* Bottom fade for mobile */}
               <div
-                className="absolute bottom-0 left-0 right-0 h-32 md:hidden pointer-events-none"
-                style={{ background: isDark ? 'linear-gradient(to bottom, transparent, var(--color-brands-bg))' : 'linear-gradient(to bottom, transparent, var(--color-surface))' }}
+                className={styles.portraitFadeBottomClass}
+                style={{ background: getPortraitFadeStyle(styles.isDark, 'bottom') }}
               />
             </motion.div>
           </AnimatePresence>
         )}
 
-        {/* ── Right: Content ─────────────────────────────────────────────── */}
-        <div className={`flex-1 px-8 md:px-16 lg:px-24 py-20 md:py-28 flex flex-col justify-center relative ${isFullGrid ? 'items-center text-center' : ''}`}>
-          
-          <div className="relative z-10">
-            {/* Overline */}
+        <div className={styles.contentColumnClass}>
+          <div className={styles.contentInnerClass}>
             <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-overline text-accent font-bold mb-4 uppercase"
+              initial={headerSubMotion.initial}
+              whileInView={headerSubMotion.whileInView}
+              viewport={headerSubMotion.viewport}
+              transition={headerSubMotion.transition}
+              className={styles.sublineClass}
             >
               Collaborations
             </motion.p>
 
-            {/* Title */}
             <motion.h2
-              className={`text-display-sm md:text-section font-display text-primary mb-12 leading-[1.1] ${isFullGrid ? 'whitespace-pre-line' : ''}`}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
+              className={styles.titleClass}
+              initial={headerTitleMotion.initial}
+              whileInView={headerTitleMotion.whileInView}
+              viewport={headerTitleMotion.viewport}
+              transition={headerTitleMotion.transition}
             >
               {displayTitle.includes('\\n') ? (
-                displayTitle.split('\\n').map((line, i) => (
-                  <React.Fragment key={i}>
+                displayTitle.split('\\n').map((line, i, lines) => (
+                  <React.Fragment key={`${line}-${i}`}>
                     {line}
-                    {i < displayTitle.split('\\n').length - 1 && <br className="hidden lg:block" />}
+                    {i < lines.length - 1 ? <br className="hidden lg:block" /> : null}
                   </React.Fragment>
                 ))
               ) : (
@@ -403,46 +432,39 @@ export function BrandsSection({
               )}
             </motion.h2>
 
-            {/* Filters */}
-            <div className={`flex flex-col gap-6 mb-16 ${isFullGrid ? 'items-center' : ''}`}>
-              {/* Artist tabs */}
-              <div className="flex items-center gap-2">
+            <div className={styles.filtersWrapClass}>
+              <div className={styles.artistTabsRowClass}>
                 {ARTIST_TABS.map((tab, i) => (
                   <React.Fragment key={tab.value}>
                     <button
+                      type="button"
                       onClick={() => setArtistFilter(tab.value)}
-                      className={`text-xs md:text-sm font-bold uppercase tracking-[0.2em] transition-all duration-300 py-1
-                        ${artistFilter === tab.value ? 'text-primary' : 'text-muted hover:text-primary'}`}
+                      className={styles.artistTabClass(artistFilter === tab.value)}
                     >
                       {tab.label}
                     </button>
-                    {i < ARTIST_TABS.length - 1 && (
-                      <span className="text-theme mx-2 opacity-50">/</span>
-                    )}
+                    {i < ARTIST_TABS.length - 1 ? (
+                      <span className={styles.artistTabDividerClass}>/</span>
+                    ) : null}
                   </React.Fragment>
                 ))}
               </div>
 
-              {/* Year pills */}
               {years.length > 0 && (
-                <div className="flex gap-3 flex-wrap">
+                <div className={styles.yearPillsRowClass}>
                   <button
+                    type="button"
                     onClick={() => setYearFilter(null)}
-                    className={`px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 border
-                      ${!yearFilter 
-                        ? 'bg-primary text-deep-dark border-primary shadow-md' 
-                        : 'bg-transparent text-muted border-theme hover:border-accent hover:text-accent'}`}
+                    className={styles.yearPillClass(!yearFilter)}
                   >
                     All Years
                   </button>
-                  {years.map(y => (
+                  {years.map((y) => (
                     <button
                       key={y}
+                      type="button"
                       onClick={() => setYearFilter(y)}
-                      className={`px-5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all duration-300 border
-                        ${yearFilter === y 
-                          ? 'bg-primary text-deep-dark border-primary shadow-md' 
-                          : 'bg-transparent text-muted border-theme hover:border-accent hover:text-accent'}`}
+                      className={styles.yearPillClass(yearFilter === y)}
                     >
                       {y}
                     </button>
@@ -451,39 +473,39 @@ export function BrandsSection({
               )}
             </div>
 
-            {/* Brand Logo Grid */}
-            <div className="min-h-[160px]">
+            <div className={styles.gridWrapClass}>
               {loading ? (
-                <div className="flex flex-wrap gap-4">
+                <div className={styles.skeletonRowClass}>
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="w-20 h-16 md:w-24 md:h-20 rounded-xl skeleton" />
+                    <div key={i} className={styles.skeletonItemClass} />
                   ))}
                 </div>
               ) : filtered.length === 0 ? (
                 <motion.div
-                  className="flex flex-col items-start justify-center h-32 gap-3 opacity-40"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className={styles.emptyStateClass}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                 >
-                  <span className="text-4xl">🏷️</span>
-                  <p className="text-muted text-sm font-thai tracking-wide">ไม่พบข้อมูลแบรนด์ในปีนี้</p>
+                  <span className={styles.emptyStateIconClass}>🏷️</span>
+                  <p className={styles.emptyStateTextClass}>ไม่พบข้อมูลแบรนด์ในปีนี้</p>
                 </motion.div>
               ) : (
                 <AnimatePresence mode="popLayout">
                   <motion.div
                     key={`${artistFilter}-${yearFilter}`}
                     layout
-                    className={`grid gap-3 md:gap-4 ${
-                      isFullGrid
-                        ? 'grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 justify-items-center'
-                        : 'grid-cols-4 sm:grid-cols-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-                    }`}
+                    className={styles.logoGridClass}
                   >
                     {filtered.map((brand, i) => (
                       <BrandLogoItem
                         key={brand.id}
                         brand={brand}
-                        index={i}
+                        cardMotion={toWhileInViewBinding(sectionMotion, i + 2)}
                         onClick={() => setSelected(brand)}
+                        itemClass={styles.logoItemClass}
+                        imageWrapClass={styles.logoImageWrapClass}
+                        imageClass={styles.logoImageClass}
+                        fallbackClass={styles.logoFallbackClass}
                       />
                     ))}
                   </motion.div>
@@ -492,29 +514,25 @@ export function BrandsSection({
             </div>
 
             {!loading && filtered.length > 0 && (
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.5 }}
-                className="mt-8 text-[10px] uppercase tracking-[0.2em] text-muted font-bold"
+                className={styles.countLineClass}
               >
                 {filtered.length} Partnerships {yearFilter ? `· ${yearFilter}` : ''}
               </motion.p>
             )}
           </div>
 
-          {/* Background decoration */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] opacity-[0.03] pointer-events-none select-none font-display text-[20vw] whitespace-nowrap overflow-hidden">
-             NAMTAN FILM LUNA COLLAB
-          </div>
+          <div className={styles.bgDecorationClass}>NAMTAN FILM LUNA COLLAB</div>
         </div>
       </div>
 
-      {/* Detail modal */}
       <AnimatePresence>
-        {selected && (
+        {selected ? (
           <BrandModal brand={selected} accent={accent} onClose={() => setSelected(null)} />
-        )}
+        ) : null}
       </AnimatePresence>
-    </section>
+    </SectionThemeWrapper>
   );
 }

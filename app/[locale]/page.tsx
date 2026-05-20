@@ -59,7 +59,6 @@ import type { ContentDbItem, FanCountry } from '@/components/dashboard/LiveDashb
 type SnapshotRow = { artist: string; platform: string; followers: number; recorded_date: string };
 type BrandMediaItem = { type?: unknown; title?: unknown; url?: unknown };
 type ProfileImageRow = { photo_url?: string | null };
-type BrandsSectionConfig = { layout?: 'split' | 'full-grid'; theme?: 'dark' | 'light'; title?: string };
 
 async function AboutServer() {
   const [stats, awardCount, settings] = await Promise.all([
@@ -152,11 +151,13 @@ async function BrandsServer() {
 
   return (
     <BrandsSection
-      config={settings.homepageConfig.brands as BrandsSectionConfig}
+      config={settings.homepageConfig.brands}
       initialBrands={normalizedBrands}
       initialYears={brandYears}
       initialSectionImages={settings.brandSectionImages}
       initialProfileImages={profileImages}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
     />
   );
 }
