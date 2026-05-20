@@ -30,6 +30,7 @@ const CATEGORY_ICONS: Record<FashionCategoryId, string> = {
   red_carpet: '⭐',
   casual: '☀️',
   accessories: '💎',
+  magazine: '📰',
 };
 
 type HighlightTab = 'all' | 'namtan' | 'film' | 'together';

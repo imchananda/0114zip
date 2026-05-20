@@ -102,10 +102,12 @@ export type Database = {
         Row: {
           artist: string
           category: string
+          ceremony_date: string | null
           created_at: string | null
           id: string
           result: string
           show: string
+          show_on_schedule: boolean
           title: string
           title_thai: string | null
           year: number
@@ -113,10 +115,12 @@ export type Database = {
         Insert: {
           artist?: string
           category: string
+          ceremony_date?: string | null
           created_at?: string | null
           id?: string
           result?: string
           show: string
+          show_on_schedule?: boolean
           title: string
           title_thai?: string | null
           year: number
@@ -124,10 +128,12 @@ export type Database = {
         Update: {
           artist?: string
           category?: string
+          ceremony_date?: string | null
           created_at?: string | null
           id?: string
           result?: string
           show?: string
+          show_on_schedule?: boolean
           title?: string
           title_thai?: string | null
           year?: number

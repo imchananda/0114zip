@@ -22,6 +22,7 @@ interface ContentItem {
   title: string;
   title_thai?: string;
   year: number;
+  date?: string | null;
   actors: string[];
   image?: string;
   visible: boolean;
@@ -29,6 +30,17 @@ interface ContentItem {
   show_on_live_dashboard?: boolean;
   role?: string;
   links?: PlatformLink[];
+}
+
+function contentDateInputValue(date?: string | null): string {
+  if (!date?.trim()) return '';
+  return date.trim().slice(0, 10);
+}
+
+function serializeContentDate(dateInput: string): string | null {
+  const trimmed = dateInput.trim();
+  if (!trimmed) return null;
+  return `${trimmed} 12:00:00`;
 }
 
 const TYPE_LABELS: Record<ContentType, string> = {
@@ -241,6 +253,7 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
     title:        item?.title        || '',
     title_thai:   item?.title_thai   || '',
     year:         item?.year         || new Date().getFullYear(),
+    date:         contentDateInputValue(item?.date),
     actors:       item?.actors?.join(', ') || 'namtan, film',
     role:         item?.role         || '',
     image:        item?.image        || '',
@@ -283,6 +296,7 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
       ...form,
       actors: form.actors.split(',').map(s => s.trim()).filter(Boolean),
       year:   Number(form.year),
+      date:   serializeContentDate(form.date),
       role:   form.role.trim() || null,
       links:  links.length > 0 ? links : null,
       show_on_live_dashboard: form.show_on_live_dashboard,
@@ -373,6 +387,20 @@ function ContentFormModal({ item, onClose, onSave }: { item: ContentItem | null;
           <Field label="ปี">
             <input type="number" value={form.year} onChange={e => setForm(f => ({ ...f, year: Number(e.target.value) }))} className={inputCls} />
           </Field>
+
+          {showLinksEditor && (
+            <Field label="วันออกอากาศ / วันที่งาน (Schedule)">
+              <input
+                type="date"
+                value={form.date}
+                onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                className={inputCls}
+              />
+              <p className="text-[10px] text-[var(--color-text-muted)] mt-1">
+                ถ้าไม่ระบุ ระบบจะใช้ {form.year || new Date().getFullYear()}-01-01 ในตารางงาน
+              </p>
+            </Field>
+          )}
 
           <Field label="ศิลปิน (คั่นด้วย ,)">
             <input value={form.actors} onChange={e => setForm(f => ({ ...f, actors: e.target.value }))} className={inputCls} placeholder="namtan, film" />

@@ -13,6 +13,8 @@ interface Award {
   category: string;
   artist: 'namtan' | 'film' | 'both';
   result: 'won' | 'nominated';
+  ceremony_date: string | null;
+  show_on_schedule: boolean;
 }
 
 const EMPTY_FORM: Partial<Award> = {
@@ -23,6 +25,8 @@ const EMPTY_FORM: Partial<Award> = {
   category: '',
   artist: 'both',
   result: 'won',
+  ceremony_date: null,
+  show_on_schedule: false,
 };
 
 const ARTIST_LABELS: Record<string, string> = {
@@ -71,7 +75,11 @@ export default function AdminAwardsPage() {
 
   const openEdit = (award: Award) => {
     setEditingId(award.id);
-    setForm({ ...award });
+    setForm({
+      ...award,
+      ceremony_date: award.ceremony_date ?? null,
+      show_on_schedule: award.show_on_schedule ?? false,
+    });
     setError('');
     setShowModal(true);
   };
@@ -87,6 +95,10 @@ export default function AdminAwardsPage() {
     setError('');
     if (!form.title || !form.show || !form.year || !form.category) {
       setError('กรุณากรอกชื่อรางวัล งานประกาศรางวัล ปีที่ได้รับ และหมวดหมู่รางวัล');
+      return;
+    }
+    if (form.show_on_schedule && !form.ceremony_date) {
+      setError('กรุณาระบุวันพิธีประกาศรางวัลเมื่อเปิดแสดงในตารางงาน');
       return;
     }
     const method = editingId ? 'PUT' : 'POST';
@@ -233,9 +245,15 @@ export default function AdminAwardsPage() {
                         </p>
                         <p className="text-xs text-[var(--color-text-muted)]">
                           {award.show} · {award.category} · {ARTIST_LABELS[award.artist]}
+                          {award.ceremony_date ? ` · ${award.ceremony_date.slice(0, 10)}` : ''}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
+                        {award.show_on_schedule && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#6cbfd0]/15 text-[#6cbfd0] border border-[#6cbfd0]/25">
+                            📅 Schedule
+                          </span>
+                        )}
                         <span
                           className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium border ${
                             award.result === 'won'
@@ -323,6 +341,17 @@ export default function AdminAwardsPage() {
                 />
               </AwardField>
 
+              <AwardField label="วันพิธีประกาศรางวัล">
+                <input
+                  type="date"
+                  className={inputCls}
+                  value={form.ceremony_date ? form.ceremony_date.slice(0, 10) : ''}
+                  onChange={e =>
+                    setForm({ ...form, ceremony_date: e.target.value ? e.target.value : null })
+                  }
+                />
+              </AwardField>
+
               <AwardField label="หมวดหมู่รางวัล *">
                 <input
                   className={inputCls}
@@ -356,6 +385,23 @@ export default function AdminAwardsPage() {
                   <option value="film">💛 ฟิล์ม</option>
                 </select>
               </AwardField>
+
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-3 p-3 bg-[var(--color-panel)] rounded-xl border border-[var(--color-border)] cursor-pointer hover:border-[#6cbfd0]/40 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={form.show_on_schedule ?? false}
+                    onChange={e => setForm({ ...form, show_on_schedule: e.target.checked })}
+                    className="w-4 h-4 accent-[#6cbfd0]"
+                  />
+                  <div>
+                    <div className="text-sm font-medium">แสดงในตารางงาน (Schedule)</div>
+                    <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+                      ต้องระบุวันพิธีประกาศรางวัล — ใช้สำหรับ admin/public schedule
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
 
             {error && <p className="text-red-400 text-sm mt-3">{error}</p>}

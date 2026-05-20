@@ -42,7 +42,7 @@ See `lib/schedule/types.ts` — `AdminScheduleItem`, `ScheduleSource`, `Schedule
 | PR | Scope |
 |---|---|
 | **PR1** ✅ | `lib/schedule/*` types, normalize, mappers, merge skeleton + this doc |
-| **PR2** | Schema: `awards.ceremony_date`, `awards.show_on_schedule`; fashion `magazine` category; content date field in admin form |
+| **PR2** ✅ | Schema: `awards.ceremony_date`, `awards.show_on_schedule`; fashion `magazine` category; content date field in admin form |
 | **PR3** | Data migration: legacy magazine/award content_items → new tables |
 | **PR4** | `GET /api/admin/schedule` + public `/api/schedule` aggregator |
 | **PR5** | Wire `/admin/schedule` UI + source toggles in settings |

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { FASHION_CATEGORY_IDS, type FashionCategoryId } from '@/lib/fashion-constants';
+import { FASHION_CATEGORY_IDS, FASHION_CATEGORY_LABELS, type FashionCategoryId } from '@/lib/fashion-constants';
 
 type FashionEventRow = {
   id: string;
@@ -280,7 +280,7 @@ export default function AdminFashionPage() {
               >
                 {FASHION_CATEGORY_IDS.map((id) => (
                   <option key={id} value={id}>
-                    {id}
+                    {FASHION_CATEGORY_LABELS[id]}
                   </option>
                 ))}
               </select>

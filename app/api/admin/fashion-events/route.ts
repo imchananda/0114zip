@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminClient } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
+import { FASHION_CATEGORY_IDS } from '@/lib/fashion-constants';
 
 const TABLE = 'fashion_events';
 
-const FASHION_CATEGORIES = new Set([
-  'evening_look',
-  'street_style',
-  'runway',
-  'red_carpet',
-  'casual',
-  'accessories',
-]);
+const FASHION_CATEGORIES = new Set<string>(FASHION_CATEGORY_IDS);
 
 const ACTOR_SET = new Set(['namtan', 'film', 'both']);
 

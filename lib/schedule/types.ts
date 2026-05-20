@@ -111,10 +111,10 @@ export interface AwardScheduleRow {
   category: string;
   artist: string;
   result: string;
-  /** PR2 migration — ceremony date for schedule sort/display */
-  ceremony_date?: string | null;
-  /** PR2 migration — admin toggle in /admin/awards */
-  show_on_schedule?: boolean | null;
+  /** PR2 — ceremony date for schedule sort/display */
+  ceremony_date: string | null;
+  /** PR2 — admin toggle in /admin/awards */
+  show_on_schedule: boolean;
 }
 
 export interface MediaEventScheduleRow {
