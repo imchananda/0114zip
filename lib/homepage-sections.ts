@@ -254,7 +254,7 @@ export const VISUAL_CONFIGS: Record<string, VisualConfigDef> = {
 
 export const DEFAULT_SECTIONS: HomepageSectionsConfig = {
   about:      { enabled: true, order: 0, layout: 'all', theme: 'default' },
-  stats:      { enabled: true, order: 1, ...HEAVY_SECTION_MOTION_DEFAULTS.stats },
+  stats:      { enabled: true, order: 1, motion: { ...HEAVY_SECTION_MOTION_DEFAULTS.stats! } },
   brands:     { enabled: true, order: 2, layout: 'split', theme: 'dark' },
   profile:    { enabled: true, order: 3, theme: 'cinematic', layout: 'show' },
   schedule:   { enabled: true, order: 4, layout: 'cards', theme: 'light', limit: 4 },
@@ -262,7 +262,7 @@ export const DEFAULT_SECTIONS: HomepageSectionsConfig = {
   fashion:    { enabled: true, order: 6, limit: 6 },
   awards:     { enabled: true, order: 7, limit: 6 },
   timeline:   { enabled: true, order: 8, layout: 'alternating', theme: 'default', limit: 5 },
-  mediaTags:  { enabled: true, order: 9, layout: 'split', limit: 6, ...HEAVY_SECTION_MOTION_DEFAULTS.mediaTags },
+  mediaTags:  { enabled: true, order: 9, layout: 'split', limit: 6, motion: { ...HEAVY_SECTION_MOTION_DEFAULTS.mediaTags! } },
   challenges: { enabled: true, order: 10, layout: 'grid', limit: 3 },
   prizes:     { enabled: true, order: 11, theme: 'default', limit: 3 },
   floatingArtistSelector: { enabled: true, order: 99 },
@@ -452,7 +452,7 @@ export function serializeHomepageBuilderConfig(
   };
 
   for (const [key, value] of Object.entries(normalizeHomepageSections(sections))) {
-    payload[key] = value;
+    payload[key] = serializeSectionConfig(value);
   }
 
   return payload;
@@ -524,6 +524,40 @@ function readFiniteNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
+function extractSectionMotionFromRaw(value: Record<string, unknown>): SectionMotionConfig | undefined {
+  const hasRootMotion =
+    value.preset !== undefined ||
+    value.intensity !== undefined ||
+    value.stagger !== undefined;
+
+  if (!hasRootMotion && value.motion === undefined) return undefined;
+
+  const rawMotion: Record<string, unknown> = isRecord(value.motion) ? { ...value.motion } : {};
+  if (value.preset !== undefined && rawMotion.preset === undefined) rawMotion.preset = value.preset;
+  if (value.intensity !== undefined && rawMotion.intensity === undefined) {
+    rawMotion.intensity = value.intensity;
+  }
+  if (value.stagger !== undefined && rawMotion.stagger === undefined) rawMotion.stagger = value.stagger;
+
+  return normalizeSectionMotion(rawMotion);
+}
+
+function serializeSectionConfig(config: HomepageSectionConfig): Record<string, unknown> {
+  const payload: Record<string, unknown> = {
+    enabled: config.enabled,
+    order: config.order,
+  };
+
+  if (config.layout != null) payload.layout = config.layout;
+  if (config.theme != null) payload.theme = config.theme;
+  if (config.limit != null) payload.limit = config.limit;
+  if (config.title != null && config.title.trim().length > 0) payload.title = config.title;
+  if (config.motion != null) payload.motion = normalizeSectionMotion(config.motion);
+  if (config.themeTokens != null) payload.themeTokens = normalizeSectionTheme(config.themeTokens);
+
+  return payload;
+}
+
 export function normalizeHomepageSections(raw: unknown): HomepageSectionsConfig {
   const result = cloneDefaultHomepageSections();
   if (!isRecord(raw)) return result;
@@ -553,8 +587,17 @@ export function normalizeHomepageSections(raw: unknown): HomepageSectionsConfig 
 
     if (typeof value.title === 'string') next.title = value.title;
 
-    if (value.motion !== undefined) {
-      next.motion = normalizeSectionMotion(value.motion);
+    const motion = extractSectionMotionFromRaw(value);
+    const hasMotionInput =
+      value.preset !== undefined ||
+      value.intensity !== undefined ||
+      value.stagger !== undefined ||
+      value.motion !== undefined;
+
+    if (hasMotionInput && motion !== undefined) {
+      next.motion = motion;
+    } else if (hasMotionInput) {
+      delete next.motion;
     }
 
     if (value.themeTokens !== undefined) {

@@ -123,6 +123,51 @@ function hoistNestedSections(record: Record<string, unknown>, warnings: string[]
   return next;
 }
 
+function migrateSectionLegacyRootMotion(
+  record: Record<string, unknown>,
+  warnings: string[],
+): Record<string, unknown> {
+  const next = cloneRecord(record);
+
+  for (const [key, value] of Object.entries(next)) {
+    if (key === HOMEPAGE_PAGE_CONFIG_KEY || key === HOMEPAGE_CONFIG_VERSION_KEY) continue;
+    if (!MIGRATABLE_SECTION_IDS.has(key)) continue;
+    if (typeof value === 'boolean') continue;
+    if (!isRecord(value)) continue;
+
+    const hasRootMotion =
+      value.preset !== undefined ||
+      value.intensity !== undefined ||
+      value.stagger !== undefined;
+    if (!hasRootMotion) continue;
+
+    const sectionNext = { ...value };
+    const motion: Record<string, unknown> = isRecord(sectionNext.motion)
+      ? { ...sectionNext.motion }
+      : {};
+
+    if (sectionNext.preset !== undefined && motion.preset === undefined) {
+      motion.preset = sectionNext.preset;
+    }
+    if (sectionNext.intensity !== undefined && motion.intensity === undefined) {
+      motion.intensity = sectionNext.intensity;
+    }
+    if (sectionNext.stagger !== undefined && motion.stagger === undefined) {
+      motion.stagger = sectionNext.stagger;
+    }
+
+    delete sectionNext.preset;
+    delete sectionNext.intensity;
+    delete sectionNext.stagger;
+    sectionNext.motion = motion;
+
+    warnings.push(`${key}: migrated legacy root motion fields → motion object`);
+    next[key] = sectionNext;
+  }
+
+  return next;
+}
+
 function migrateSectionVisualAliases(
   record: Record<string, unknown>,
   warnings: string[],
@@ -184,6 +229,7 @@ function migrateV0ToV1(raw: unknown, warnings: string[]): Record<string, unknown
   record = hoistNestedSections(record, warnings);
   record = ensurePageBucket(record, warnings);
   record = migrateSectionVisualAliases(record, warnings);
+  record = migrateSectionLegacyRootMotion(record, warnings);
   record[HOMEPAGE_CONFIG_VERSION_KEY] = 1;
   return record;
 }
