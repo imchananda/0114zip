@@ -1,11 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-const db = createClient(supabaseUrl, supabaseKey);
-
 export type FloatingDock = 'top' | 'bottom' | 'left' | 'right';
 export type FloatingAlign = 'start' | 'center' | 'end';
 
@@ -90,14 +82,6 @@ export function normalizeFloatingArtistSelectorConfig(raw: unknown): FloatingArt
       artistPages: vis.artistPages !== false,
     },
   };
-}
-
-export async function fetchFloatingArtistSelectorConfig(): Promise<FloatingArtistSelectorConfig> {
-  const { data, error } = await db.from('site_settings').select('value').eq('key', 'floatingArtistSelector').maybeSingle();
-  if (error || data?.value === undefined || data?.value === null) {
-    return DEFAULT_FLOATING_ARTIST_CONFIG;
-  }
-  return normalizeFloatingArtistSelectorConfig(data.value);
 }
 
 /** Extra padding on `<main>` so fixed dock does not cover content */

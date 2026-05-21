@@ -5,6 +5,11 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig = {
   images: {
+    qualities: [75, 90, 95, 100],
+    localPatterns: [
+      { pathname: '/**' },
+      { pathname: '/api/proxy-image' },
+    ],
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'via.placeholder.com' },

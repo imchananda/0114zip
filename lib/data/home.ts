@@ -2,6 +2,7 @@ import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../database.types';
 import { HeroBannerConfig, HomeArtistProfile, HomeAwardItem, HomeHeroSlide } from '../homepage-data';
+import { resolveImageSrc } from '../resolve-image-src';
 import { normalizeHomepageConfig } from '../homepage-sections';
 import { LEGACY_CONTENT_TYPES } from '../content-constants';
 import { aggregateSchedule } from '../schedule/aggregate';
@@ -53,7 +54,10 @@ export const fetchSeoSettings = unstable_cache(
 export const fetchHeroSlides = unstable_cache(
   async () => {
     const { data } = await db.from('hero_slides').select('*').eq('enabled', true).order('sort_order');
-    return (data as HomeHeroSlide[]) ?? [];
+    return ((data as HomeHeroSlide[]) ?? []).map((slide) => ({
+      ...slide,
+      image: slide.image ? resolveImageSrc(slide.image) : slide.image,
+    }));
   },
   ['home-hero-slides'],
   { revalidate: REVALIDATE_TIME, tags: ['hero_slides'] }

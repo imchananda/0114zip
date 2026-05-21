@@ -10,6 +10,7 @@ import { aggregateSchedule } from './schedule/aggregate';
 import { normalizeScheduleSourceToggles } from './schedule/settings';
 import { toPublicScheduleEvents } from './schedule/public-dto';
 import { normalizeHomeAwards } from './awards-preview';
+import { resolveImageSrc } from './resolve-image-src';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -319,7 +320,11 @@ export async function fetchHomeData(): Promise<HomePageData> {
       : Promise.resolve({ data: [] }),
   ]);
 
-  const heroSlides = heroSlidesRes.status === 'fulfilled' ? (heroSlidesRes.value.data as HomeHeroSlide[] ?? []) : [];
+  const heroSlidesRaw = heroSlidesRes.status === 'fulfilled' ? (heroSlidesRes.value.data as HomeHeroSlide[] ?? []) : [];
+  const heroSlides = heroSlidesRaw.map((slide) => ({
+    ...slide,
+    image: slide.image ? resolveImageSrc(slide.image) : slide.image,
+  }));
   
   // Engagement
   const allSnapshots: SnapshotRow[] = snapshotsResMaybe.status === 'fulfilled' ? (snapshotsResMaybe.value.data as SnapshotRow[] ?? []) : [];

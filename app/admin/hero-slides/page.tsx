@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { HeroSlide } from '@/components/hero/HeroSlider';
 import type { HeroBannerConfig } from '@/lib/homepage-data';
+import { isFacebookCdnUrl, resolveImageSrc } from '@/lib/resolve-image-src';
 
 const BLANK: Omit<HeroSlide, 'id'> = {
   title: '',
@@ -448,7 +449,7 @@ export default function HeroSlidesAdminPage() {
                 {/* Thumbnail */}
                 <div className="relative w-20 h-12 rounded-lg overflow-hidden shrink-0 bg-[var(--color-panel)]">
                   {slide.image && (
-                    <Image src={slide.image} alt={slide.title ?? ''} fill className="object-cover" sizes="80px" unoptimized />
+                    <Image src={resolveImageSrc(slide.image)} alt={slide.title ?? ''} fill className="object-cover" sizes="80px" unoptimized />
                   )}
                 </div>
                 {/* Info */}
@@ -555,6 +556,11 @@ export default function HeroSlidesAdminPage() {
                   </button>
                   <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden" onChange={handleFilePick} />
                 </div>
+                {isFacebookCdnUrl(editing.image) && (
+                  <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
+                    ลิงก์ Facebook CDN มักโหลดไม่ได้บนเว็บ — กด &quot;เลือกไฟล์&quot; เพื่ออัปโหลดไป Supabase แทน
+                  </p>
+                )}
               </div>
 
               {/* Titles */}

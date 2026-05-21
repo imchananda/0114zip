@@ -2,7 +2,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/i18n/routing';
 import { notFound } from 'next/navigation';
-import { fetchFloatingArtistSelectorConfig } from '@/lib/floating-artist-config';
+import { fetchFloatingArtistSelectorConfig } from '@/lib/floating-artist-config.server';
 import { FloatingArtistSelectorProvider } from '@/components/navigation/FloatingArtistSelectorProvider';
 
 /** Align with `/api/admin/settings` — pick up Floating Artist config changes without a full redeploy */

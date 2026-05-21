@@ -8,6 +8,7 @@ import { useLocale } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { HeroBanner } from './HeroBanner';
 import { useViewState } from '@/context/ViewStateContext';
+import { resolveImageSrc } from '@/lib/resolve-image-src';
 
 export interface HeroSlide {
   id: string;
@@ -138,7 +139,7 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
           transition={{ duration: 0.7 }}
         >
           <Image
-            src={slide.image}
+            src={resolveImageSrc(slide.image)}
             alt={slide.title ?? ''}
             fill
             priority={current === 0}

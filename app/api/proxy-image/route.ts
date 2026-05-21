@@ -9,6 +9,11 @@ const ALLOWED_HOSTS = [
   'images.unsplash.com',
 ];
 
+function isAllowedHost(hostname: string): boolean {
+  if (ALLOWED_HOSTS.includes(hostname)) return true;
+  return hostname === 'fbcdn.net' || hostname.endsWith('.fbcdn.net');
+}
+
 export async function GET(req: NextRequest) {
   const url = req.nextUrl.searchParams.get('url');
   if (!url) return NextResponse.json({ error: 'missing url' }, { status: 400 });
@@ -20,17 +25,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'invalid url' }, { status: 400 });
   }
 
-  // Only allow specific trusted hosts
-  if (!ALLOWED_HOSTS.includes(parsed.hostname)) {
+  if (!isAllowedHost(parsed.hostname)) {
     return NextResponse.json({ error: 'host not allowed' }, { status: 403 });
   }
+
+  const referer = parsed.hostname.includes('wikimedia')
+    ? 'https://en.wikipedia.org/'
+    : parsed.hostname.includes('fbcdn')
+      ? 'https://www.facebook.com/'
+      : '';
 
   try {
     const res = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; NamtanFilmFansite/1.0)',
-        'Referer': parsed.hostname.includes('wikimedia') ? 'https://en.wikipedia.org/' : '',
-        'Accept': 'image/*,*/*',
+        Referer: referer,
+        Accept: 'image/*,*/*',
       },
       next: { revalidate: 86400 }, // cache 24h
     });

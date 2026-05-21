@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform, useSpring, AnimatePresence, useMotionV
 import { HomeHeroSlide, HomeArtistProfile, HeroBannerConfig } from '@/lib/homepage-data';
 import { useTranslations } from 'next-intl';
 import { useSafeReducedMotion } from '@/lib/useSafeReducedMotion';
+import { resolveImageSrc } from '@/lib/resolve-image-src';
 
 interface CinematicHeroProps {
   slides: HomeHeroSlide[];
@@ -122,7 +123,7 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
                 className="absolute inset-0"
               >
                 <Image 
-                  src={slide.image}
+                  src={resolveImageSrc(slide.image)}
                   alt={slide.title || 'Slide'}
                   fill
                   priority={idx === 0}
@@ -196,7 +197,7 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
   }
 
   if (type === 'image') {
-    const imageUrl = config?.imageUrl || mainSlide?.image || '/images/banners/banner.png';
+    const imageUrl = resolveImageSrc(config?.imageUrl || mainSlide?.image || '/images/banners/banner.png');
     return (
       <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
         <Image 
@@ -231,7 +232,7 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
         className="absolute inset-0 z-0"
       >
         <Image
-          src={mainSlide?.image || '/images/banners/banner.png'}
+          src={resolveImageSrc(mainSlide?.image || '/images/banners/banner.png')}
           alt="NamtanFilm Atmosphere"
           fill
           priority
