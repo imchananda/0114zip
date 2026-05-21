@@ -102,16 +102,16 @@ export interface SlotDef {
 }
 
 export const SLOT_DEFS: SlotDef[] = [
-  { id: 'A', label: 'Row 1, Col 1',   defaultWidget: 'ig_followers',     delay: 0,    gridClass: 'col-start-1 row-start-1 md:col-start-1 md:row-start-1' },
-  { id: 'B', label: 'Row 1, Col 2',   defaultWidget: 'x_followers',      delay: 0.07, gridClass: 'col-start-2 row-start-1 md:col-start-2 md:row-start-1' },
-  { id: 'C', label: 'Col 4, Tall (1–2)', defaultWidget: 'fan_audience',   delay: 0.1,  gridClass: 'col-start-1 row-start-3 md:col-start-4 md:row-start-1 md:row-span-2' },
-  { id: 'D', label: 'Col 3, Tall (1–2)', defaultWidget: 'namtan_portrait',  delay: 0.14, gridClass: 'col-start-1 row-start-2 md:col-start-3 md:row-start-1 md:row-span-2' },
-  { id: 'E', label: 'Row 2, Col 1',   defaultWidget: 'film_emv',         delay: 0.19, gridClass: 'col-start-1 row-start-2 md:col-start-1 md:row-start-2' },
-  { id: 'F', label: 'Row 2, Col 2',   defaultWidget: 'emv_split',        delay: 0.23, gridClass: 'col-start-2 row-start-2 md:col-start-2 md:row-start-2' },
-  { id: 'H', label: 'Row 3, Col 1',   defaultWidget: 'film_portrait',    delay: 0.31, gridClass: 'col-start-2 row-start-5 row-span-2 md:col-start-1 md:row-start-3 md:row-span-1' },
-  { id: 'I', label: 'Row 3, Col 2',   defaultWidget: 'tiktok_followers', delay: 0.35, gridClass: 'col-start-1 row-start-5 md:col-start-2 md:row-start-3' },
-  { id: 'J', label: 'Row 3, Col 3',   defaultWidget: 'weibo_followers',  delay: 0.39, gridClass: 'col-start-1 row-start-6 md:col-start-3 md:row-start-3' },
-  { id: 'K', label: 'Row 3, Col 4',   defaultWidget: 'series_count',     delay: 0.43, gridClass: 'col-start-2 row-start-6 md:col-start-4 md:row-start-3' },
+  { id: 'A', label: 'Row 1, Col 1',   defaultWidget: 'ig_followers',     delay: 0,    gridClass: 'md:col-start-1 md:row-start-1' },
+  { id: 'B', label: 'Row 1, Col 2',   defaultWidget: 'x_followers',      delay: 0.07, gridClass: 'md:col-start-2 md:row-start-1' },
+  { id: 'C', label: 'Col 4, Tall (1–2)', defaultWidget: 'fan_audience',   delay: 0.1,  gridClass: 'min-h-[180px] md:col-start-4 md:row-start-1 md:row-span-2' },
+  { id: 'D', label: 'Col 3, Tall (1–2)', defaultWidget: 'namtan_portrait',  delay: 0.14, gridClass: 'min-h-[220px] sm:col-span-2 md:col-span-1 md:col-start-3 md:row-start-1 md:row-span-2' },
+  { id: 'E', label: 'Row 2, Col 1',   defaultWidget: 'film_emv',         delay: 0.19, gridClass: 'md:col-start-1 md:row-start-2' },
+  { id: 'F', label: 'Row 2, Col 2',   defaultWidget: 'emv_split',        delay: 0.23, gridClass: 'md:col-start-2 md:row-start-2' },
+  { id: 'H', label: 'Row 3, Col 1',   defaultWidget: 'film_portrait',    delay: 0.31, gridClass: 'min-h-[220px] sm:col-span-2 md:col-span-1 md:col-start-1 md:row-start-3 md:row-span-1' },
+  { id: 'I', label: 'Row 3, Col 2',   defaultWidget: 'tiktok_followers', delay: 0.35, gridClass: 'md:col-start-2 md:row-start-3' },
+  { id: 'J', label: 'Row 3, Col 3',   defaultWidget: 'weibo_followers',  delay: 0.39, gridClass: 'md:col-start-3 md:row-start-3' },
+  { id: 'K', label: 'Row 3, Col 4',   defaultWidget: 'series_count',     delay: 0.43, gridClass: 'md:col-start-4 md:row-start-3' },
 ];
 
 export const DEFAULT_BENTO: Record<string, WidgetType> = Object.fromEntries(

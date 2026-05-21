@@ -80,20 +80,23 @@ export function getMediaTagsStyles({ layout }: MediaTagsStyleOptions) {
   return {
     resolvedLayout,
     sectionClass: cn(
-      'py-24 md:py-32 transition-colors duration-500 relative',
+      'py-24 md:py-32 transition-colors duration-500 relative overflow-x-clip',
       'bg-[var(--color-bg)] text-primary',
     ),
+    containerClass: cn(
+      'container mx-auto min-w-0 max-w-6xl px-4 sm:px-6 md:px-12',
+    ),
     headerClass: cn(
-      'flex flex-col md:flex-row items-baseline justify-between mb-12 md:mb-16 pb-6 border-b border-theme/40',
+      'flex flex-col md:flex-row items-start md:items-baseline justify-between gap-4 mb-12 md:mb-16 pb-6 border-b border-theme/40',
     ),
     overlineClass: cn(
       'text-overline text-[var(--color-accent)] font-bold mb-4 uppercase tracking-[0.4em]',
     ),
     titleClass: cn(
-      'font-display text-4xl md:text-section text-primary leading-tight font-light',
+      'font-display text-3xl sm:text-4xl md:text-section text-primary leading-tight font-light',
     ),
     exploreLinkClass: cn(
-      'text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-[var(--color-accent)] transition-colors flex items-center gap-2 group mt-6 md:mt-0',
+      'text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-[var(--color-accent)] transition-colors flex items-center gap-2 group shrink-0',
     ),
     eventTabsWrapperClass: cn('flex flex-wrap gap-2 mb-10'),
     eventFilterTabClass: (isActive: boolean) =>
@@ -103,9 +106,13 @@ export function getMediaTagsStyles({ layout }: MediaTagsStyleOptions) {
           ? 'bg-[var(--color-accent)] text-[var(--color-cta-text)] border-[var(--color-accent)] shadow-md'
           : 'border-theme/60 text-muted hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]',
       ),
-    gridClass: cn('grid gap-12', isStacked ? 'grid-cols-1' : 'md:grid-cols-5'),
+    gridClass: cn(
+      'grid min-w-0 gap-8 md:gap-12',
+      isStacked ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-5',
+    ),
     mediaListClass: cn(
-      isStacked ? 'grid md:grid-cols-2 gap-4' : 'md:col-span-3 space-y-4',
+      'min-w-0',
+      isStacked ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'md:col-span-3 space-y-4',
     ),
     loadingWrapperClass: cn(isStacked ? 'contents' : 'space-y-4'),
     skeletonClass: cn('h-24 rounded-2xl bg-surface border border-theme/40 animate-pulse'),
@@ -117,9 +124,10 @@ export function getMediaTagsStyles({ layout }: MediaTagsStyleOptions) {
       'inline-flex mt-5 text-xs tracking-[0.2em] font-bold uppercase text-muted hover:text-[var(--color-accent)] transition-colors',
     ),
     hashtagsColumnClass: cn(
+      'min-w-0',
       isStacked ? 'border-t border-theme/40 pt-10' : 'md:col-span-2',
     ),
-    hashtagsInnerClass: cn(isStacked ? '' : 'sticky top-32'),
+    hashtagsInnerClass: cn(isStacked ? '' : 'md:sticky md:top-32'),
     hashtagsHeadingClass: cn(
       'text-xs font-bold text-muted uppercase tracking-[0.2em] mb-6 border-b border-theme/40 pb-2',
     ),
@@ -130,8 +138,11 @@ export function getMediaTagsStyles({ layout }: MediaTagsStyleOptions) {
     communityNoteClass: cn(
       'mt-12 p-8 rounded-3xl border border-theme/40 bg-panel/30 hidden md:block',
     ),
+    metricsRowClass: cn(
+      'grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap gap-3 sm:gap-4 pt-1',
+    ),
     postCardClass: cn(
-      'group flex gap-5 p-5 rounded-2xl border border-theme/60 bg-surface hover:border-[var(--color-accent)]/40 hover:shadow-lg transition-all duration-500 relative overflow-hidden',
+      'group flex flex-col sm:flex-row gap-4 sm:gap-5 p-4 sm:p-5 min-w-0 rounded-2xl border border-theme/60 bg-surface hover:border-[var(--color-accent)]/40 hover:shadow-lg transition-all duration-500 relative overflow-hidden',
     ),
     postCardAccentClass: cn(
       'absolute top-0 left-0 w-1 h-full opacity-10 group-hover:opacity-100 transition-opacity',
@@ -149,7 +160,7 @@ export function getMediaTagsStyles({ layout }: MediaTagsStyleOptions) {
       'text-[10px] font-bold uppercase tracking-widest text-muted/40 truncate ml-auto',
     ),
     postTitleClass: cn(
-      'text-sm font-display text-primary leading-snug group-hover:text-[var(--color-accent)] transition-colors truncate',
+      'text-sm font-display text-primary leading-snug group-hover:text-[var(--color-accent)] transition-colors line-clamp-2 sm:line-clamp-3',
     ),
     metricLabelClass: cn('text-muted'),
     metricValueDoneClass: cn('text-green-500'),

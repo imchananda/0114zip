@@ -138,7 +138,7 @@ function PostCard({
       </div>
 
       <div className="flex-1 min-w-0 space-y-3">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <span className={styles.platformBadgeClass} style={getPlatformBadgeStyle(pm.color)}>
             {pm.label}
           </span>
@@ -161,7 +161,7 @@ function PostCard({
         )}
 
         {shownMetrics.length > 0 && (
-          <div className="flex gap-4 pt-1">
+          <div className={styles.metricsRowClass}>
             {shownMetrics.map(m => (
               <MetricBar
                 key={m.key}
@@ -258,7 +258,7 @@ export function MediaTagsSection({ initialEvents, config, pageMotion, pageTheme 
       pageTheme={pageTheme}
       sectionTheme={config?.themeTokens}
     >
-      <div className="container mx-auto px-6 md:px-12 max-w-6xl">
+      <div className={styles.containerClass}>
 
         <div className={styles.headerClass}>
           <div>

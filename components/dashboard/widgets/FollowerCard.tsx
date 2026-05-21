@@ -39,7 +39,7 @@ export function FollowerCard({
   showFl: boolean;
 }) {
   return (
-    <div className="p-5 flex flex-col h-full">
+    <div className="p-4 sm:p-5 flex flex-col h-full min-w-0">
       <p className="text-[10px] tracking-[0.3em] uppercase font-semibold text-[var(--color-text-muted)] mb-3">{title}</p>
       {cfg.showFollowerSection && cfg.showPlatforms.includes(platformKey) ? (
         <div className="flex-1 flex flex-col justify-center gap-4">

@@ -106,7 +106,7 @@ function WidgetContent({ widget, d }: { widget: WidgetType; d: WidgetData }) {
               .map(({ label, val, color }) => (
                 <div key={label} className="flex items-baseline justify-between">
                   <span className="text-[11px] font-medium text-[var(--color-text-secondary)]">{label}</span>
-                  <span className="font-display text-[2rem] leading-none tabular-nums font-bold" style={{ color }}>
+                  <span className="font-display text-[1.5rem] sm:text-[2rem] leading-none tabular-nums font-bold" style={{ color }}>
                     {mounted ? (val > 0 ? fmtFol(val) : '0') : '—'}
                   </span>
                 </div>
@@ -121,7 +121,7 @@ function WidgetContent({ widget, d }: { widget: WidgetType; d: WidgetData }) {
       <div className="p-5 flex flex-col justify-between h-full">
         <p className="text-[10px] tracking-[0.3em] uppercase font-semibold text-[var(--color-text-muted)]">น้ำตาล · EMV</p>
         <div>
-          <div className="font-display text-[2.8rem] md:text-[3.2rem] leading-none tabular-nums font-bold" style={{ color: NT }}>{mounted ? fmtEMV(ntEMV) : '฿—'}</div>
+          <div className="font-display text-[1.75rem] sm:text-[2.4rem] md:text-[3.2rem] leading-none tabular-nums font-bold" style={{ color: NT }}>{mounted ? fmtEMV(ntEMV) : '฿—'}</div>
           <p className="text-[9px] text-[var(--color-text-muted)] mt-1.5 tracking-[0.2em] uppercase font-medium">Latest Post · Instagram</p>
         </div>
       </div>
@@ -131,7 +131,7 @@ function WidgetContent({ widget, d }: { widget: WidgetType; d: WidgetData }) {
       <div className="p-5 flex flex-col justify-between h-full">
         <p className="text-[10px] tracking-[0.3em] uppercase font-semibold text-[var(--color-text-muted)]">ฟิล์ม · EMV</p>
         <div>
-          <div className="font-display text-[2.8rem] md:text-[3.2rem] leading-none tabular-nums font-bold" style={{ color: FL }}>{mounted ? fmtEMV(flEMV) : '฿—'}</div>
+          <div className="font-display text-[1.75rem] sm:text-[2.4rem] md:text-[3.2rem] leading-none tabular-nums font-bold" style={{ color: FL }}>{mounted ? fmtEMV(flEMV) : '฿—'}</div>
           <p className="text-[9px] text-[var(--color-text-muted)] mt-1.5 tracking-[0.2em] uppercase font-medium">Latest Post · Instagram</p>
         </div>
       </div>
@@ -183,7 +183,7 @@ function WidgetContent({ widget, d }: { widget: WidgetType; d: WidgetData }) {
             .filter(r => cfg.showArtists.includes(r.key))
             .map(({ count, label, color }) => (
               <div key={label} className="text-center">
-                <div className="font-display text-[3.8rem] leading-none font-bold" style={{ color }}>{count}</div>
+                <div className="font-display text-[2.25rem] sm:text-[3rem] md:text-[3.8rem] leading-none font-bold" style={{ color }}>{count}</div>
                 <div className="text-[10px] font-semibold text-[var(--color-text-muted)] mt-1">{label}</div>
               </div>
             ))}
@@ -201,7 +201,7 @@ function WidgetContent({ widget, d }: { widget: WidgetType; d: WidgetData }) {
             .map(({ count, label, color }) => (
               <div key={label} className="flex items-baseline justify-between">
                 <span className="text-[11px] font-semibold text-[var(--color-text-secondary)]">{label}</span>
-                <span className="font-display text-[2rem] leading-none tabular-nums font-bold" style={{ color }}>{count > 0 ? count : '—'}</span>
+                <span className="font-display text-[1.5rem] sm:text-[2rem] leading-none tabular-nums font-bold" style={{ color }}>{count > 0 ? count : '—'}</span>
               </div>
             ))}
         </div>
@@ -218,7 +218,7 @@ function WidgetContent({ widget, d }: { widget: WidgetType; d: WidgetData }) {
             .map(({ count, label, color }) => (
               <div key={label} className="flex items-baseline justify-between">
                 <span className="text-[11px] font-semibold text-[var(--color-text-secondary)]">{label}</span>
-                <span className="font-display text-[2rem] leading-none tabular-nums font-bold" style={{ color }}>{count}</span>
+                <span className="font-display text-[1.5rem] sm:text-[2rem] leading-none tabular-nums font-bold" style={{ color }}>{count}</span>
               </div>
             ))}
         </div>
@@ -236,7 +236,7 @@ function WidgetContent({ widget, d }: { widget: WidgetType; d: WidgetData }) {
         <div className="p-5 h-full flex flex-col justify-between">
           <p className="text-[10px] tracking-[0.3em] uppercase font-semibold text-[var(--color-text-muted)]">Brands — {label}</p>
           <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="font-display text-[4.5rem] leading-none tabular-nums font-black" style={{ color }}>
+            <div className="font-display text-[2.5rem] sm:text-[3.5rem] md:text-[4.5rem] leading-none tabular-nums font-black" style={{ color }}>
               {count > 0 ? count : '—'}
             </div>
             <div className="text-[11px] font-semibold text-[var(--color-text-secondary)] mt-1.5">แบรนด์</div>
@@ -691,7 +691,7 @@ export function LiveDashboard({
             if (widget === 'namtan_portrait' || widget === 'film_portrait') {
               const isNt = widget === 'namtan_portrait';
               return (
-                <div key={slot.id} className={`relative group ${slot.gridClass}`}>
+                <div key={slot.id} className={`relative group min-w-0 min-h-[220px] ${slot.gridClass}`}>
                   <PortraitCard
                     label={isNt ? 'Namtan Tipnaree' : 'Film Rachanun'}
                     labelShort={isNt ? 'Namtan' : 'Film'}
@@ -711,7 +711,7 @@ export function LiveDashboard({
             // Featured cards have dark editorial styling + cover image
             if (widget === 'featured_series' || widget === 'featured_music') {
               return (
-                <div key={slot.id} className={`relative group ${slot.gridClass}`}>
+                <div key={slot.id} className={`relative group min-w-0 min-h-[220px] ${slot.gridClass}`}>
                   <FeaturedCard
                     work={widget === 'featured_series' ? featuredSeries : featuredMusic}
                     label={widget === 'featured_series' ? t('stats.featuredSeries') : t('stats.latestMusic')}
@@ -728,7 +728,7 @@ export function LiveDashboard({
             return (
               <motion.div
                 key={slot.id}
-                className={`${styles.bentoCardClass} ${slot.gridClass}`}
+                className={`${styles.bentoCardClass} min-w-0 ${slot.gridClass}`}
                 initial={cardMotion.initial}
                 whileInView={cardMotion.whileInView}
                 viewport={cardMotion.viewport}

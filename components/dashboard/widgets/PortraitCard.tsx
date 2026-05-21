@@ -38,11 +38,11 @@ export function PortraitCard({
       </div>
 
       {/* Bottom info */}
-      <div className="absolute bottom-0 left-0 right-0 p-6">
+      <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
         <p className="text-[9px] tracking-[0.3em] uppercase font-bold mb-1.5 opacity-60" style={{ color }}>
           {labelShort} · Latest EMV
         </p>
-        <div className="font-display text-3xl md:text-4xl text-white leading-none tabular-nums font-light">
+        <div className="font-display text-2xl sm:text-3xl md:text-4xl text-white leading-none tabular-nums font-light break-words">
           {mounted ? fmtEMV(emv) : '฿—'}
         </div>
         <p className="text-[10px] mt-2 tracking-widest text-white/30 uppercase font-medium">{label}</p>
