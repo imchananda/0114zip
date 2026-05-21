@@ -215,12 +215,63 @@ Tier A          Tier B
 
 ---
 
-## 6. Recommended Section Order
+## 6. Console & Image Hygiene (คู่กับ Redesign)
+
+จาก browser console baseline (Phase 8 QA) — แยกงานเป็น 2 กลุ่ม: **แก้ก่อน redesign** (infra / data) กับ **แก้คู่กับ section ที่กำลังแตะ** (ไม่ทำซ้ำ)
+
+### 6.1 แก้ก่อนเริ่ม Redesign (ไม่รอ section)
+
+ทำคู่ขนานกับ kickoff ได้ — **ไม่ชน visual work** และไม่ควรเลื่อนจน redesign เสร็จ
+
+| รายการ | ไฟล์ / จุด | งาน |
+|--------|------------|-----|
+| Multiple GoTrueClient | `lib/floating-artist-config.ts` | ใช้ `createSupabaseBrowser()` singleton จาก `lib/supabase.ts` แทน `createClient()` ใหม่ |
+| Next.js image config | `next.config.mjs` | เพิ่ม `images.qualities` (เช่น `[75, 90, 95, 100]`) และ `images.localPatterns` สำหรับ `/api/proxy-image` |
+| Hero slide FB CDN 403 | Admin → hero slides (data) | อัปโหลดรูปไป Supabase Storage แทน hotlink `scontent.*.fbcdn.net` |
+| `user_notifications` 404 | `NotificationBell`, notifications pages | รัน migration สร้างตาราง **หรือ** ปิด fetch ชั่วคราวจน feature พร้อม |
+
+ข้อความที่ **ไม่ต้องแก้ใน repo:** Edge `[Intervention] lazy images`, framer-motion reduced-motion info, browser extension (`content-script.js` / AdUnit)
+
+### 6.2 แก้คู่กับ Redesign แต่ละ Section
+
+**หลักการ:** ถ้า section นั้นจะถูกแก้ markup / Image อยู่แล้ว — เก็บ console warning ใน section เดียวกัน ไม่แก้ล่วงหน้าแล้วมาแก้ซ้ำหลัง Figma
+
+| Section (ลำดับ redesign) | Console / Image issue | ทำเมื่อ redesign section นี้ |
+|--------------------------|----------------------|------------------------------|
+| **Hero** (ก่อน About — above-the-fold) | `quality` 95 / 90 / 100 ไม่อยู่ใน `images.qualities` | ปรับ `quality` ให้ตรง config หรือ standardize (เช่น 75/90) ใน `CinematicHero.tsx`, `HeroSlider.tsx` |
+| **Hero** | รูป slide hotlink Facebook CDN → 403 | ตรวจ slide URLs; ใช้ Supabase / `/api/proxy-image` ถ้ายังเป็น external |
+| **About** | — | ไม่มี console item จาก baseline — ทำ visual ตาม Tier ปกติ |
+| **Timeline** | — | ไม่มี console item จาก baseline |
+| **MediaTags** | — | ไม่มี console item จาก baseline (responsive layout แยก PR แล้ว) |
+| **Schedule** | — | ไม่มี console item จาก baseline |
+| **Content** | external images ผ่าน proxy (admin content) | ถ้าแตะ card image — ตรวจ `fill` + `sizes`, proxy URL กับ `localPatterns` |
+| **Profile, Brands, Fashion** | `/api/proxy-image?url=...` → `localPatterns` warning | เมื่อแตะ brand/fashion logo: ยืนยัน config ใน §6.1 แล้วทดสอบ `BrandsSection`, `FashionSection` |
+| **Fashion** | Next Image aspect ratio (logo ปรับ CSS อย่างเดียว) | เพิ่ม `style={{ width: 'auto' }}` หรือ `height: 'auto'` คู่กับ `width`/`height` ใน brand rank logos |
+| **Live Dashboard** | proxy helper ใน `LiveDashboardTypes.ts` | เมื่อแตะ widget portrait — ตรวจ `sizes` บน `PortraitCard` ให้สอดคล้อง grid ใหม่ |
+| **FloatingArtistSelector, ScrollToTop, Header** | `UserMenu` avatar: `fill` ไม่มี `sizes` | เพิ่ม `sizes="36px"` (หรือขนาดจริง) เมื่อแตะ Header / nav chrome |
+| **Header** | `NotificationBell` → `user_notifications` 404 | ถ้ายังไม่ทำ §6.1 — แก้ migration หรือ guard fetch ก่อนปิดงาน nav |
+
+**Hero ไม่อยู่ใน inventory §10** แต่เป็น above-the-fold — แนะนำทำ visual/console hygiene ของ Hero **ก่อนหรือคู่กับ About** (section แรกในลำดับ)
+
+### 6.3 Checklist ต่อ Section (ใส่ใน PR / Handoff)
+
+เมื่อ implement section ใด section หนึ่ง ให้เช็คเฉพาะแถวที่เกี่ยวใน §6.2:
+
+- [ ] `next/image` `quality` ที่ใช้อยู่ใน `images.qualities` (หลัง §6.1)
+- [ ] `fill` มี `sizes` ที่สมเหตุสมผลกับ layout ใหม่
+- [ ] external / proxy URLs โหลดได้ (ไม่ 403) — ไม่ hotlink CDN ที่ block embed
+- [ ] ถ้า CSS เปลี่ยน width หรือ height อย่างเดียว → อีกด้านเป็น `auto`
+- [ ] Console ไม่มี warning ใหม่จาก section ที่แตะ (dev tools หลัง refresh)
+
+---
+
+## 7. Recommended Section Order
 
 เรียงจาก **impact สูง + pattern copy ได้** → **ซับซ้อน**
 
 | ลำดับ | Section | เหตุผล |
 |-------|---------|--------|
+| 0 | **Hero** (CinematicHero / slides) | above-the-fold — console image hygiene §6.2; ทำก่อนหรือคู่ About |
 | 1 | **About** | จุดแรกที่เห็น — กำหนด tone ทั้งหน้า |
 | 2 | **Timeline** | มี preset system ครบ — pilot redesign ได้เร็ว |
 | 3 | **MediaTags** | layout split / stacked มีแล้ว |
@@ -229,11 +280,11 @@ Tier A          Tier B
 | 6 | **Profile, Brands, Fashion** | media-heavy |
 | 7 | **Awards, Challenges, Prizes** | card grid patterns คล้ายกัน |
 | 8 | **Live Dashboard (stats)** | charts / stats — motion ต้องเบา |
-| 9 | **FloatingArtistSelector, ScrollToTop** | fixed UI — ท้ายสุด |
+| 9 | **FloatingArtistSelector, ScrollToTop, Header** | fixed UI + UserMenu / NotificationBell §6.2 — ท้ายสุด |
 
 ---
 
-## 7. Section Handoff Template
+## 8. Section Handoff Template
 
 Copy ใช้ต่อ section:
 
@@ -277,17 +328,24 @@ Screenshots: [desktop / mobile]
 ### ห้ามเปลี่ยน
 - Data source, limit logic, links, i18n keys: ...
 
+### Console / Image (§6 — เฉพาะแถวที่เกี่ยวกับ section นี้)
+- [ ] `quality` อยู่ใน `images.qualities`
+- [ ] `fill` + `sizes` ครบ
+- [ ] proxy / external URLs โหลดได้ (ไม่ 403)
+- [ ] aspect ratio CSS: width หรือ height ที่เหลือเป็น `auto` ถ้าจำเป็น
+
 ### Accept criteria
 - [ ] ตรง Figma desktop
 - [ ] ตรง Figma mobile
 - [ ] Builder preset ทำงาน (ถ้ามี)
 - [ ] `npx tsc --noEmit` + `npm run build` ผ่าน
 - [ ] ไม่มี hydration warning จาก motion
+- [ ] ไม่มี console warning ใหม่จาก section นี้ (§6.3)
 ```
 
 ---
 
-## 8. Non-Negotiable Rules (จากระบบเดิม)
+## 9. Non-Negotiable Rules (จากระบบเดิม)
 
 | ทำได้ | ห้าม |
 |-------|------|
@@ -299,7 +357,7 @@ Screenshots: [desktop / mobile]
 
 ---
 
-## 9. Current Section Inventory (baseline)
+## 10. Current Section Inventory (baseline)
 
 สถานะ architecture ปัจจุบัน (Phase 6 complete):
 
@@ -322,7 +380,7 @@ Screenshots: [desktop / mobile]
 
 ---
 
-## 10. Gaps & Future Enhancements (ถ้า Figma ต้องการ)
+## 11. Gaps & Future Enhancements (ถ้า Figma ต้องการ)
 
 | ความต้องการ | ทางเลือก |
 |-------------|----------|
@@ -333,7 +391,7 @@ Screenshots: [desktop / mobile]
 
 ---
 
-## 11. Definition of Done (ต่อ section redesign)
+## 12. Definition of Done (ต่อ section redesign)
 
 1. Visual Spec approve แล้ว
 2. Implement ตาม Tier ที่เลือก
@@ -342,7 +400,8 @@ Screenshots: [desktop / mobile]
 5. ถ้า Tier B: Builder แสดงและ save preset ได้
 6. Screenshot before / after แนบใน PR
 7. ไม่มี regression logic / data / i18n
-8. Commit แยก scope — **ห้าม** commit `public/sw.js`, `tsconfig.tsbuildinfo`
+8. Console / Image hygiene ตาม §6.2–6.3 สำหรับ section ที่แตะ (ไม่ทิ้ง warning ที่แก้ได้ใน scope เดียวกัน)
+9. Commit แยก scope — **ห้าม** commit `public/sw.js`, `tsconfig.tsbuildinfo`
 
 คำสั่งตรวจขั้นต่ำ:
 
@@ -360,7 +419,7 @@ Visual review artifact:
 
 ---
 
-## 12. Git / PR Policy
+## 13. Git / PR Policy
 
 - **1 section = 1 PR** (หรือ Tier C page tokens = 1 PR แยก)
 - Commit message ตัวอย่าง:
@@ -379,6 +438,8 @@ Logic ไม่เปลี่ยน → *.styles.ts เปลี่ยน
 Admin ต้องเลือกแบบ → VISUAL_CONFIGS + styles
 ทั้งหน้าเปลี่ยน mood → lib/visual/theme.ts (Tier C)
 ต้องข้อมูลใหม่ → Tier D แยก PR
+Infra / config ก่อน redesign → §6.1
+Console / Image ต่อ section → §6.2–6.3 (แก้คู่ redesign ไม่แก้ซ้ำ)
 ```
 
 **เริ่มต้นแนะนำ:** ส่ง Figma ทั้งหน้า หรือ section **About** / **Timeline** เป็น section แรก
