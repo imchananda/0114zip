@@ -6,7 +6,7 @@ import React, {
   useState,
   useCallback,
   useMemo,
-  useEffect
+  useSyncExternalStore,
 } from 'react';
 import { ViewState } from '@/types';
 import { announceToScreenReader } from '@/lib/utils';
@@ -23,6 +23,20 @@ interface ViewStateContextType {
 }
 
 export const ViewStateContext = createContext<ViewStateContextType | null>(null);
+
+function subscribeReducedMotion(onStoreChange: () => void): () => void {
+  const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  mediaQuery.addEventListener('change', onStoreChange);
+  return () => mediaQuery.removeEventListener('change', onStoreChange);
+}
+
+function getReducedMotionSnapshot(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function getReducedMotionServerSnapshot(): boolean {
+  return false;
+}
 
 const announcements: Record<ViewState, string> = {
   both: `กำลังแสดงผลงานคู่ของ ${actors.namtan.nameThai} และ ${actors.film.nameThai}`,
@@ -41,18 +55,11 @@ export function ViewStateProvider({
   const [state, setStateInternal] = useState<ViewState>(initialState);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hoveredActor, setHoveredActor] = useState<'namtan' | 'film' | null>(null);
-  // Always start false on SSR/initial client render, then sync after mount to
-  // avoid hydration mismatches with prefers-reduced-motion.
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mediaQuery.matches);
-    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot,
+  );
 
   const transitionTo = useCallback((newState: ViewState) => {
     if (state === newState || isTransitioning) return;

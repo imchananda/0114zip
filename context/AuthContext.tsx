@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { createSupabaseBrowser } from '@/lib/supabase';
-import type { User } from '@supabase/supabase-js';
+import type { AuthChangeEvent, Session, Subscription, User } from '@supabase/supabase-js';
 
 interface UserProfile {
   id: string;
@@ -64,19 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       if (data) setProfile(data as UserProfile);
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (retries > 0) {
         console.warn(`[AuthContext] Exception fetching profile. Retrying in ${delay}ms... (${retries} retries left).`, err);
         await new Promise(resolve => setTimeout(resolve, delay));
         return fetchProfile(userId, retries - 1, delay * 1.5);
       }
-      console.error('Failed to fetch user profile:', err);
+      console.error('Failed to fetch user profile:', err instanceof Error ? err.message : err);
     }
   };
 
   useEffect(() => {
     let isMounted = true;
-    let subscription: any = null;
+    let subscription: Subscription | null = null;
 
     const initialize = async () => {
       try {
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (isMounted) setLoading(false);
 
         // Subscribe only AFTER initial fetch to prevent concurrent lock stealing
-        const { data } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
+        const { data } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
           if (!isMounted || event === 'INITIAL_SESSION') return;
           
           setUser(session?.user ?? null);

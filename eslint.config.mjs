@@ -8,6 +8,7 @@ const config = [
       'public/swe-worker-*.js',
       'public/workbox-*.js',
       'namtanfilm-fansite.jsx',
+      'scripts/**/*.js',
     ],
   },
   ...nextVitals,

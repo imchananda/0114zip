@@ -8,7 +8,6 @@
  */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import { Link } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import { useSafeReducedMotion } from '@/lib/useSafeReducedMotion';
@@ -22,11 +21,11 @@ import { FollowerCard } from './widgets/FollowerCard';
 import { PortraitCard } from './widgets/PortraitCard';
 import { FeaturedCard } from './widgets/FeaturedCard';
 import {
-  Artist, WidgetType, StatsTileType, STATS_TILE_OPTIONS, StatsStripDef, STATS_STRIP_DEFS,
-  DEFAULT_STATS_STRIP, WIDGET_OPTIONS, SlotDef, SLOT_DEFS, DEFAULT_BENTO, BentoSlotLink,
-  isDualWidget, LiveDashboardConfig, CFG_DEFAULT, IgPost, BrandCollab, EngData,
+  WidgetType, StatsTileType, STATS_STRIP_DEFS,
+  DEFAULT_STATS_STRIP, SLOT_DEFS, DEFAULT_BENTO, BentoSlotLink,
+  isDualWidget, LiveDashboardConfig, CFG_DEFAULT, EngData,
   ArtistProfile, FanCountry, ContentDbItem, StaticWorkItem, StaticAwardItem,
-  PLATFORM_META, NT, FL, fmtEMV, fmtFol, imgSrc, PROXY_HOSTS
+  NT, FL, fmtEMV, fmtFol,
 } from './LiveDashboardTypes';
 
 
