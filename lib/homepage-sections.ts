@@ -18,6 +18,27 @@ import {
   type SectionThemeConfig,
   type ThemeSaveValidation,
 } from './visual/theme';
+import {
+  HOMEPAGE_CONFIG_CURRENT_VERSION,
+  HOMEPAGE_CONFIG_VERSION_KEY,
+  migrateLegacyHomepageConfig,
+} from './homepage-config-migrate';
+
+export type NormalizedHomepageConfig = {
+  version: number;
+  pageMotion: PageMotionConfig;
+  pageTheme: PageThemeConfig;
+  sections: HomepageSectionsConfig;
+  warnings: string[];
+};
+
+export {
+  HOMEPAGE_CONFIG_CURRENT_VERSION,
+  HOMEPAGE_CONFIG_VERSION_KEY,
+  LEGACY_HOMEPAGE_CONFIG_VERSION,
+  migrateLegacyHomepageConfig,
+} from './homepage-config-migrate';
+export type { HomepageConfigMigrationResult } from './homepage-config-migrate';
 
 export type { PageMotionConfig, SectionMotionConfig } from './visual/motion';
 export type { PageThemeConfig, SectionThemeConfig } from './visual/theme';
@@ -426,6 +447,7 @@ export function serializeHomepageBuilderConfig(
   }
 
   const payload: Record<string, unknown> = {
+    [HOMEPAGE_CONFIG_VERSION_KEY]: HOMEPAGE_CONFIG_CURRENT_VERSION,
     [HOMEPAGE_PAGE_CONFIG_KEY]: pagePayload,
   };
 
@@ -461,10 +483,32 @@ export function normalizeHomepageBuilderConfig(raw: unknown): {
   pageTheme: PageThemeConfig;
   sections: HomepageSectionsConfig;
 } {
+  const normalized = normalizeHomepageConfig(raw);
   return {
-    pageMotion: extractPageMotionFromHomeSections(raw),
-    pageTheme: extractPageThemeFromHomeSections(raw),
-    sections: normalizeHomepageSections(raw),
+    pageMotion: normalized.pageMotion,
+    pageTheme: normalized.pageTheme,
+    sections: normalized.sections,
+  };
+}
+
+function dedupeConfigWarnings(warnings: string[]): string[] {
+  return [...new Set(warnings.filter((w) => w.trim().length > 0))];
+}
+
+/** Phase 7 — single entry: raw Supabase JSONB → migrated + sanitized config */
+export function normalizeHomepageConfig(raw: unknown): NormalizedHomepageConfig {
+  const { raw: migrated, warnings: migrationWarnings } = migrateLegacyHomepageConfig(raw);
+  const sections = normalizeHomepageSections(migrated);
+  const pageMotion = extractPageMotionFromHomeSections(migrated);
+  const pageTheme = extractPageThemeFromHomeSections(migrated);
+  const visualWarnings = collectVisualConfigWarnings(sections);
+
+  return {
+    version: HOMEPAGE_CONFIG_CURRENT_VERSION,
+    pageMotion,
+    pageTheme,
+    sections,
+    warnings: dedupeConfigWarnings([...migrationWarnings, ...visualWarnings]),
   };
 }
 

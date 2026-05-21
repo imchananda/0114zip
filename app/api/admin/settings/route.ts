@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { getAdminClient, supabase } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
-import { normalizeHomepageBuilderConfig, serializeHomepageBuilderConfig } from '@/lib/homepage-sections';
+import { normalizeHomepageConfig, serializeHomepageBuilderConfig } from '@/lib/homepage-sections';
 
 type SiteSettingRow = { key: string; value: unknown };
 
@@ -10,10 +10,10 @@ export const revalidate = 300;
 
 const HOME_SECTIONS_KEY = 'homeSections';
 
-/** Re-normalize raw JSONB before persist (Phase 5 PR2). */
+/** Re-normalize raw JSONB before persist (Phase 7 — unified normalize + version bump). */
 function normalizeHomeSectionsForStorage(value: unknown): unknown {
-  const builder = normalizeHomepageBuilderConfig(value);
-  return serializeHomepageBuilderConfig(builder.sections, builder.pageMotion, builder.pageTheme);
+  const normalized = normalizeHomepageConfig(value);
+  return serializeHomepageBuilderConfig(normalized.sections, normalized.pageMotion, normalized.pageTheme);
 }
 
 function normalizeSettingValue(key: string, value: unknown): unknown {

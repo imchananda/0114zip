@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from './database.types';
 import {
-  normalizeHomepageBuilderConfig,
+  normalizeHomepageConfig,
   type HomepageSectionsConfig,
 } from './homepage-sections';
 import type { PageMotionConfig } from './visual/motion';
@@ -232,7 +232,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
     (siteSettingsRes.data as SiteSettingRow[]).forEach((r) => { settings[r.key] = r.value; });
   }
 
-  const builderConfig = normalizeHomepageBuilderConfig(settings.homeSections);
+  const builderConfig = normalizeHomepageConfig(settings.homeSections);
   const homepageConfig = builderConfig.sections;
   const pageMotion = builderConfig.pageMotion;
   const pageTheme = builderConfig.pageTheme;

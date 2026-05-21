@@ -2,7 +2,7 @@ import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../database.types';
 import { HeroBannerConfig, HomeArtistProfile, HomeAwardItem, HomeHeroSlide } from '../homepage-data';
-import { normalizeHomepageBuilderConfig } from '../homepage-sections';
+import { normalizeHomepageConfig } from '../homepage-sections';
 import { LEGACY_CONTENT_TYPES } from '../content-constants';
 import { aggregateSchedule } from '../schedule/aggregate';
 import { fetchScheduleSourceToggles } from '../schedule/settings';
@@ -27,7 +27,7 @@ export const fetchCoreSettings = unstable_cache(
     const defaultHeroConfig: HeroBannerConfig = { type: 'cinematic', showScrollHint: true };
     const heroBannerConfig = (settings.heroBanner as HeroBannerConfig) || defaultHeroConfig;
     
-    const builderConfig = normalizeHomepageBuilderConfig(settings.homeSections);
+    const builderConfig = normalizeHomepageConfig(settings.homeSections);
 
     return {
       homepageConfig: builderConfig.sections,

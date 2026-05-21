@@ -11,7 +11,7 @@ import {
   buildHomepageBuilderSnapshot,
   collectHomepageBuilderValidation,
   isHomepageBuilderDirty,
-  normalizeHomepageBuilderConfig,
+  normalizeHomepageConfig,
   resetSectionDesignToDefaults,
   serializeHomepageBuilderConfig,
   SECTION_META,
@@ -53,6 +53,7 @@ export default function HomepageBuilderPage() {
   const [expandedSection, setExpandedSection] = useState<HomepageSectionId | null>(null);
   const [showDevRef, setShowDevRef] = useState(false);
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(null);
+  const [loadWarnings, setLoadWarnings] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -60,14 +61,16 @@ export default function HomepageBuilderPage() {
       .then(r => r.json())
       .then(data => {
         if (data.homeSections) {
-          const builder = normalizeHomepageBuilderConfig(data.homeSections);
+          const builder = normalizeHomepageConfig(data.homeSections);
           setSections(builder.sections);
           setPageMotion(builder.pageMotion);
           setPageTheme(builder.pageTheme);
+          setLoadWarnings(builder.warnings);
           setSavedSnapshot(
             buildHomepageBuilderSnapshot(builder.sections, builder.pageMotion, builder.pageTheme),
           );
         } else {
+          setLoadWarnings([]);
           setSavedSnapshot(
             buildHomepageBuilderSnapshot(sections, pageMotion, pageTheme),
           );
@@ -82,6 +85,10 @@ export default function HomepageBuilderPage() {
   const builderValidation = useMemo(
     () => collectHomepageBuilderValidation(pageTheme, sections),
     [pageTheme, sections],
+  );
+  const displayWarnings = useMemo(
+    () => [...new Set([...loadWarnings, ...builderValidation.warnings])],
+    [loadWarnings, builderValidation.warnings],
   );
   const hasSaveBlockingErrors =
     builderValidation.errors.length > 0 || hasPendingInvalidThemeDraft(pageTheme, sections);
@@ -115,7 +122,7 @@ export default function HomepageBuilderPage() {
     }
 
     const payload = serializeHomepageBuilderConfig(sections, pageMotion, pageTheme);
-    const normalized = normalizeHomepageBuilderConfig(payload);
+    const normalized = normalizeHomepageConfig(payload);
 
     setSaving(true);
     try {
@@ -129,6 +136,7 @@ export default function HomepageBuilderPage() {
         setSections(normalized.sections);
         setPageMotion(normalized.pageMotion);
         setPageTheme(normalized.pageTheme);
+        setLoadWarnings(normalized.warnings);
         setSavedSnapshot(
           buildHomepageBuilderSnapshot(normalized.sections, normalized.pageMotion, normalized.pageTheme),
         );
@@ -269,7 +277,7 @@ export default function HomepageBuilderPage() {
 
       <BuilderValidationBanner
         errors={builderValidation.errors}
-        warnings={builderValidation.warnings}
+        warnings={displayWarnings}
       />
 
       {saveMsg && (
