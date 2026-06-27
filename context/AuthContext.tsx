@@ -44,10 +44,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         // Handle transient connection errors (e.g., Supabase instance waking up or proxy timeouts)
+        // "Lock broken by another request with the 'steal' option" is a benign IndexedDB lock
+        // race condition from concurrent Supabase clients — it resolves automatically on retry.
         const isTransientError = 
           error.message.includes('upstream connect error') || 
           error.message.includes('timeout') || 
-          error.message.includes('stole it') ||
+          error.message.includes('steal') ||         // "Lock broken by another request with the 'steal' option"
+          error.message.includes('Lock broken') ||   // same Supabase IndexedDB lock race
+          error.message.includes('AbortError') ||
           error.code === '503' ||
           error.code === '502' ||
           error.code === '504';
@@ -58,10 +62,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Exponential backoff
           return fetchProfile(userId, retries - 1, delay * 1.5);
         }
+
+        // Lock-related errors are noisy but non-fatal — demote to warn when retries exhausted
+        if (isTransientError) {
+          console.warn('[AuthContext] Transient error exhausted retries (non-fatal):', error.message);
+          return;
+        }
         
         console.error('Failed to fetch user profile:', error.message);
         return;
       }
+
       
       if (data) setProfile(data as UserProfile);
     } catch (err: unknown) {
