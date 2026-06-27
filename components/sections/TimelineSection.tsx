@@ -111,20 +111,20 @@ export function TimelineSection({
                             const yearMotion = toWhileInViewBinding(sectionMotion);
 
                             return (
-                            <div key={year} className="mb-20">
+                            <div key={year} className={styles.yearSectionClass}>
                                 <motion.div
                                     initial={yearMotion.initial}
                                     whileInView={yearMotion.whileInView}
                                     viewport={yearMotion.viewport}
                                     transition={yearMotion.transition}
-                                    className="flex justify-center mb-12"
+                                    className={styles.yearHeaderClass}
                                 >
                                     <span className={styles.yearPillClass}>
                                         {year}
                                     </span>
                                 </motion.div>
 
-                                <div className="space-y-12">
+                                <div className={styles.eventsContainerClass}>
                                     {eventsByYear[year].map((event: TimelineEvent, index: number) => {
                                         const isLeft = index % 2 === 0;
                                         const style = getTimelineCategoryStyle(event.category);

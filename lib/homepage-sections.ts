@@ -194,6 +194,7 @@ export const VISUAL_CONFIGS: Record<string, VisualConfigDef> = {
       options: [
         { value: 'alternating', label: 'Alternating (สลับซ้าย-ขวา)', icon: '↔️' },
         { value: 'stacked', label: 'Stacked (เรียงเดียว)', icon: '📚' },
+        { value: 'magazine-rail', label: 'Magazine Rail (ดีไซน์นิตยสารแบบราง)', icon: '🛤️' },
       ],
     },
     theme: {
