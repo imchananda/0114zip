@@ -80,9 +80,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initialize = async () => {
       try {
-        const { data: { user: verifiedUser } } = await supabase.auth.getUser();
+        const { data: { user: verifiedUser }, error: getUserError } = await supabase.auth.getUser();
         if (!isMounted) return;
-        
+
+        // Handle stale/revoked refresh token gracefully — clear session and treat as logged-out
+        if (getUserError) {
+          const isStaleToken =
+            getUserError.message?.includes('Refresh Token Not Found') ||
+            getUserError.message?.includes('Invalid Refresh Token') ||
+            getUserError.message?.includes('refresh_token_not_found') ||
+            getUserError.status === 400 ||
+            getUserError.status === 401;
+
+          if (isStaleToken) {
+            console.warn('[AuthContext] Stale session detected — clearing and signing out.');
+            await supabase.auth.signOut();
+            if (isMounted) {
+              setUser(null);
+              setProfile(null);
+              setLoading(false);
+            }
+            return;
+          }
+          // Non-stale error — log and continue as anonymous
+          console.error('[AuthContext] getUser error:', getUserError.message);
+        }
+
         setUser(verifiedUser ?? null);
         if (verifiedUser) {
           await fetchProfile(verifiedUser.id);
@@ -92,7 +115,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Subscribe only AFTER initial fetch to prevent concurrent lock stealing
         const { data } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
           if (!isMounted || event === 'INITIAL_SESSION') return;
-          
+
+          // TOKEN_REFRESH_FAILED and SIGNED_OUT → clear state
+          if (event === 'TOKEN_REFRESHED' && !session) {
+            console.warn('[AuthContext] Token refresh returned no session — clearing state.');
+            await supabase.auth.signOut();
+            if (isMounted) { setUser(null); setProfile(null); }
+            return;
+          }
+
+          if (event === 'SIGNED_OUT') {
+            if (isMounted) { setUser(null); setProfile(null); }
+            return;
+          }
+
           setUser(session?.user ?? null);
           if (session?.user) {
             await fetchProfile(session.user.id);
@@ -102,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         subscription = data.subscription;
       } catch (err) {
-        console.error('Auth initialization error:', err);
+        console.error('[AuthContext] Initialization error:', err);
         if (isMounted) setLoading(false);
       }
     };

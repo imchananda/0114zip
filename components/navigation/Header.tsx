@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Globe, Sun, Moon } from 'lucide-react';
+import { Globe, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
 import { useTranslations, useLocale } from 'next-intl';
@@ -15,12 +15,22 @@ type Language = typeof LANGUAGES[number];
 
 const LANG_LABELS: Record<Language, string> = { th: 'TH', en: 'EN' };
 
+const formatDate = (date: Date, lang: string) => {
+  if (lang === 'th') {
+    return date.toLocaleDateString('th-TH', { month: 'long', day: 'numeric' });
+  }
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+const formatTime = (date: Date) => {
+  return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+
 export function Header() {
-  const [isScrolled, setIsScrolled]           = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // next-themes resolves the theme on the client only; gate any theme-aware
-  // rendering behind `mounted` to avoid hydration mismatches.
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [time, setTime] = useState<Date | null>(null);
 
   const { resolvedTheme, setTheme } = useTheme();
   const locale = useLocale();
@@ -29,9 +39,17 @@ export function Header() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration gate
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    setTime(new Date());
+    const timer = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [mounted]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -39,165 +57,281 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Lock body scroll when overlay menu is active
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
+
   const navItems = [
+    { name: t('nav.about') || 'Home', href: '/' },
     { name: t('nav.works'), href: '/works' },
     { name: t('nav.timeline'), href: '/timeline' },
     { name: t('nav.schedule'), href: '/schedule' },
     { name: t('nav.stats'), href: '/stats' },
   ];
 
-  // Cycle through TH ↔ EN
   const cycleLanguage = () => {
-    const idx  = LANGUAGES.indexOf(locale as Language);
+    const idx = LANGUAGES.indexOf(locale as Language);
     const nextLocale = LANGUAGES[(idx + 1) % LANGUAGES.length];
     
     document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000`;
-    
-    // Use next-intl router — pathname already excludes locale prefix
     router.replace(pathname, { locale: nextLocale });
   };
 
-  // Only used after mount; before mount we render a neutral placeholder so the
-  // server/client first paint is identical.
   const isDark = mounted && resolvedTheme === 'dark';
 
   return (
     <header
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-        isScrolled
-          ? 'backdrop-blur-xl py-3 border-b border-[var(--color-border)]/60 shadow-sm'
-          : 'py-6',
-        // CSS-driven theme styles via Tailwind `dark:` variant — relies on the
-        // `.dark` class that next-themes injects on <html> before hydration.
-        isScrolled
-          ? 'bg-[var(--color-bg)]/70'
-          : 'bg-transparent dark:bg-gradient-to-b dark:from-black/60 dark:to-transparent',
+        isMenuOpen
+          ? 'bg-transparent py-6 text-white'
+          : isScrolled
+            ? 'backdrop-blur-xl py-3 shadow-sm bg-[var(--color-bg)]/70'
+            : 'py-6 bg-transparent dark:bg-gradient-to-b dark:from-black/60 dark:to-transparent'
       )}
     >
       <nav className="container mx-auto px-6 md:px-12 flex items-center justify-between">
-
+        
         {/* ── Logo / Brand ─────────────────────────── */}
-        <Link href="/" className="flex items-center gap-2 select-none group" aria-label="NamtanFilm home">
-          <span className="nf-gradient-text font-display font-bold text-2xl tracking-tight transition-transform group-hover:scale-105 active:scale-95 duration-300">
-            NamtanFilm
+        <Link 
+          href="/" 
+          onClick={() => setIsMenuOpen(false)} 
+          className="flex items-center gap-2 select-none group" 
+          aria-label="NamtanFilm home"
+        >
+          <span className={cn(
+            "font-display font-medium text-2xl tracking-tight transition-all duration-300 select-none",
+            isMenuOpen 
+              ? "text-white" 
+              : "text-[var(--color-text-primary)] hover:text-namtan-primary"
+          )}>
+            NamtanFilm®
           </span>
         </Link>
 
-        {/* ── Desktop nav links ─────────────────────── */}
-        <div className="hidden md:flex items-center gap-10">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'text-sm tracking-[0.15em] uppercase transition-all duration-300 relative group',
-                pathname === item.href || pathname.startsWith(item.href)
-                  ? 'text-[var(--color-text-primary)] font-medium'
-                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'
-              )}
-            >
-              {item.name}
-              <span className={cn(
-                'absolute -bottom-1 left-0 w-0 h-px bg-namtan-primary transition-all duration-300 group-hover:w-full',
-                (pathname === item.href || pathname.startsWith(item.href)) && 'w-full'
-              )} />
-            </Link>
-          ))}
+        {/* ── Desktop Metadata Columns ──────────────── */}
+        <div className={cn(
+          "hidden md:flex items-center gap-12 transition-all duration-500",
+          isMenuOpen ? "text-white opacity-100" : "opacity-100"
+        )}>
+          <div className="flex flex-col select-none">
+            <span className={cn(
+              "text-[9px] uppercase tracking-[0.25em] font-body",
+              isMenuOpen ? "text-white/40" : "text-[var(--color-text-muted)]"
+            )}>
+              {t('header.officialSite')}
+            </span>
+            <span className={cn(
+              "text-[13px] font-medium font-body mt-0.5",
+              isMenuOpen ? "text-white/90" : "text-[var(--color-text-primary)]"
+            )}>
+              {t('header.officialSiteVal')}
+            </span>
+          </div>
+
+          <div className="flex flex-col select-none">
+            <span className={cn(
+              "text-[9px] uppercase tracking-[0.25em] font-body",
+              isMenuOpen ? "text-white/40" : "text-[var(--color-text-muted)]"
+            )}>
+              {t('header.onScreen')}
+            </span>
+            <span className={cn(
+              "text-[13px] font-medium font-body mt-0.5",
+              isMenuOpen ? "text-white/90" : "text-[var(--color-text-primary)]"
+            )}>
+              {t('header.onScreenVal')}
+            </span>
+          </div>
+
+          <div className="flex flex-col select-none">
+            <span className={cn(
+              "text-[9px] uppercase tracking-[0.25em] font-body",
+              isMenuOpen ? "text-white/40" : "text-[var(--color-text-muted)]"
+            )}>
+              {t('header.location')}
+            </span>
+            <span className={cn(
+              "text-[13px] font-medium font-body mt-0.5",
+              isMenuOpen ? "text-white/90" : "text-[var(--color-text-primary)]"
+            )}>
+              {t('header.locationVal')}
+            </span>
+          </div>
         </div>
 
-        {/* ── Right controls ────────────────────────── */}
-        <div className="flex items-center gap-2">
-
-          {/* Language cycle button */}
+        {/* ── Menu Action Trigger ──────────────────── */}
+        <div className="flex items-center gap-4">
           <button
-            onClick={cycleLanguage}
-            title="Change language"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5',
-              'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
-              'bg-[var(--color-surface)]/40 hover:bg-[var(--color-surface)]',
-              'rounded-full border border-[var(--color-border)] hover:border-namtan-primary/40',
-              'transition-all duration-300 text-[10px] tracking-[0.2em] font-medium uppercase',
+              "relative flex flex-col items-end justify-center w-8 h-8 gap-1.5 focus:outline-none z-50 group transition-colors duration-300",
+              isMenuOpen ? "text-white/80 hover:text-white" : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
             )}
+            aria-label={isMenuOpen ? t('header.close') : t('header.menu')}
           >
-            <Globe className="w-3.5 h-3.5 shrink-0" />
-            <span>{LANG_LABELS[locale as Language] ?? 'TH'}</span>
-          </button>
-
-          {/* Theme toggle — render theme-dependent content only after mount to
-              prevent next-themes hydration mismatches. */}
-          <button
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            title={mounted ? (isDark ? 'Switch to light mode' : 'Switch to dark mode') : 'Toggle theme'}
-            aria-label="Toggle theme"
-            suppressHydrationWarning
-            className={cn(
-              'p-2 rounded-full touch-target flex items-center justify-center',
-              'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]',
-              'bg-[var(--color-surface)]/40 hover:bg-[var(--color-surface)]',
-              'border border-[var(--color-border)] hover:border-namtan-primary/40',
-              'transition-all duration-300',
-            )}
-          >
-            <span suppressHydrationWarning className="inline-flex w-4 h-4 items-center justify-center">
-              {mounted ? (isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />) : null}
-            </span>
-          </button>
-
-          {/* Notification bell */}
-          <NotificationBell />
-
-          {/* User menu */}
-          <UserMenu />
-
-          {/* Mobile menu toggle */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={cn(
-              'md:hidden p-3 touch-target flex items-center justify-center',
-              'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]',
-              'transition-colors focus:outline-none focus-visible:ring-2',
-              'focus-visible:ring-namtan-primary/40 rounded-lg',
-            )}
-            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            <span
+              className={cn(
+                "h-[1.5px] bg-current transition-all duration-300 ease-in-out",
+                isMenuOpen ? "w-8 rotate-45 translate-y-[4px]" : "w-8 group-hover:w-6"
+              )}
+            />
+            <span
+              className={cn(
+                "h-[1.5px] bg-current transition-all duration-300 ease-in-out",
+                isMenuOpen ? "w-8 -rotate-45 -translate-y-[4px]" : "w-5 group-hover:w-8"
+              )}
+            />
           </button>
         </div>
       </nav>
 
-      {/* ── Mobile drawer ────────────────────────────── */}
+      {/* ── Full-Screen Editorial Menu Overlay ─────── */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {isMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="md:hidden overflow-hidden bg-[var(--color-bg)]/95 backdrop-blur-lg border-b border-[var(--color-border)]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+            className="fixed inset-0 z-40 bg-[#070707] text-white flex flex-col justify-between pt-32 pb-12 px-6 md:px-12 select-none overflow-y-auto"
           >
-            <div className="container mx-auto px-6 py-8 flex flex-col gap-6">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    'text-lg tracking-[0.1em] font-display transition-colors',
-                    pathname === item.href || pathname.startsWith(item.href)
-                      ? 'text-namtan-primary'
-                      : 'text-[var(--color-text-primary)]'
-                  )}
-                >
-                  {item.name}
-                </Link>
-              ))}
+            <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 h-full items-center max-w-7xl w-full">
+              
+              {/* Left Column: Branding, Clock & Controls */}
+              <div className="flex flex-col justify-between h-full py-8 md:py-16">
+                <div>
+                  <span className="font-display font-medium text-4xl md:text-5xl tracking-tight block text-white/95 select-none">
+                    NamtanFilm®
+                  </span>
+                  
+                  {/* Live Clock Section */}
+                  <div className="mt-8 md:mt-12 select-none">
+                    <span className="text-sm font-body uppercase tracking-[0.2em] text-white/40 block">
+                      {time ? formatDate(time, locale) : '--- --'}
+                    </span>
+                    <span className="text-4xl md:text-5xl font-display font-medium text-white/90 block mt-2 tabular-nums">
+                      {time ? formatTime(time) : '--:--:--'}
+                    </span>
+                  </div>
+
+                  {/* Settings Control Panel */}
+                  <div className="flex items-center gap-4 py-5 border-y border-white/10 mt-8 md:mt-12 max-w-sm">
+                    {/* Language cycler */}
+                    <button
+                      onClick={cycleLanguage}
+                      title="Change language"
+                      className="flex items-center gap-1.5 px-3.5 py-2 text-white/60 hover:text-white bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all duration-300 text-[10px] tracking-[0.2em] font-medium uppercase font-body"
+                    >
+                      <Globe className="w-3.5 h-3.5 shrink-0" />
+                      <span>{LANG_LABELS[locale as Language] ?? 'TH'}</span>
+                    </button>
+
+                    {/* Theme switcher */}
+                    <button
+                      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                      className="p-2.5 rounded-full flex items-center justify-center text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-300"
+                    >
+                      <span className="inline-flex w-4 h-4 items-center justify-center">
+                        {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                      </span>
+                    </button>
+
+                    {/* Notifications center */}
+                    <div className="p-1 border border-white/10 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-300 flex items-center justify-center">
+                      <NotificationBell />
+                    </div>
+
+                    {/* User profile portal */}
+                    <div className="p-1 border border-white/10 rounded-full bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all duration-300 flex items-center justify-center">
+                      <UserMenu />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social media connections */}
+                <div className="flex items-center gap-6 text-[12px] tracking-wider uppercase font-body text-white/40 mt-8">
+                  <a
+                    href="https://x.com/NamtanTipnaree"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors duration-300 flex items-center gap-0.5"
+                  >
+                    X.com ↗
+                  </a>
+                  <a
+                    href="https://instagram.com/namtan.tipnaree"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors duration-300 flex items-center gap-0.5"
+                  >
+                    Instagram ↗
+                  </a>
+                  <a
+                    href="https://youtube.com/@gmmtv"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors duration-300 flex items-center gap-0.5"
+                  >
+                    YouTube ↗
+                  </a>
+                </div>
+              </div>
+
+              {/* Right Column: Giant Menu Navigation Links */}
+              <motion.div 
+                variants={{
+                  hidden: { opacity: 0 },
+                  show: {
+                    opacity: 1,
+                    transition: {
+                      staggerChildren: 0.08,
+                      delayChildren: 0.15
+                    }
+                  }
+                }}
+                initial="hidden"
+                animate="show"
+                className="flex flex-col items-end gap-6 md:gap-8 py-8 md:py-16 text-right justify-center h-full"
+              >
+                {navItems.map((item) => (
+                  <motion.div
+                    key={item.href}
+                    variants={{
+                      hidden: { opacity: 0, x: 40 },
+                      show: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 100, damping: 15 } }
+                    }}
+                  >
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={cn(
+                        "font-display text-4xl md:text-6xl font-medium block relative select-none tracking-tight transition-all duration-300 flex items-center gap-2 outline-none",
+                        pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+                          ? "text-namtan-primary italic hover:text-white"
+                          : "text-white/80 hover:text-namtan-primary hover:translate-x-[-10px]"
+                      )}
+                    >
+                      <span>{item.name}</span>
+                      <span className="text-2xl md:text-3xl font-light opacity-55">↗</span>
+                    </Link>
+                  </motion.div>
+                ))}
+              </motion.div>
+
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </header>
   );
-
 }

@@ -9,7 +9,7 @@ export function getLiveDashboardStyles() {
     sectionClass: cn(
       'py-24 md:py-32 bg-[var(--color-bg)] transition-colors duration-500 overflow-x-clip',
     ),
-    containerClass: cn('container mx-auto min-w-0 max-w-7xl px-4 sm:px-6 md:px-12'),
+    containerClass: cn('w-full max-w-[1600px] mx-auto min-w-0 px-4 sm:px-6 md:px-12'),
     headerClass: cn(
       'flex flex-col lg:flex-row items-start lg:items-baseline justify-between gap-6 mb-12 pb-6 border-b border-theme/40',
     ),

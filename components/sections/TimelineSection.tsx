@@ -78,7 +78,7 @@ export function TimelineSection({
             pageTheme={pageTheme}
             sectionTheme={config?.themeTokens}
         >
-            <div className="container mx-auto px-6 md:px-12 lg:px-20 max-w-6xl">
+            <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20">
                 <motion.div
                     initial={headerMotion.initial}
                     whileInView={headerMotion.whileInView}

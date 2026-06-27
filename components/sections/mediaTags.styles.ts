@@ -84,7 +84,7 @@ export function getMediaTagsStyles({ layout }: MediaTagsStyleOptions) {
       'bg-[var(--color-bg)] text-primary',
     ),
     containerClass: cn(
-      'container mx-auto min-w-0 max-w-6xl px-4 sm:px-6 md:px-12',
+      'w-full max-w-[1600px] mx-auto min-w-0 px-4 sm:px-6 md:px-12',
     ),
     headerClass: cn(
       'flex flex-col md:flex-row items-start md:items-baseline justify-between gap-4 mb-12 md:mb-16 pb-6 border-b border-theme/40',

@@ -81,6 +81,7 @@ export default function LoginPage() {
                    type="email"
                    value={email}
                    onChange={(e) => setEmail(e.target.value)}
+                   data-testid="auth-email-input"
                    className="w-full bg-panel border border-theme/40 rounded-2xl py-4 pl-12 pr-6 text-primary focus:outline-none focus:border-accent/40 transition-all font-body text-sm"
                    placeholder={t('emailPlaceholder')}
                    required
@@ -97,6 +98,7 @@ export default function LoginPage() {
                    type="password"
                    value={password}
                    onChange={(e) => setPassword(e.target.value)}
+                   data-testid="auth-password-input"
                    className="w-full bg-panel border border-theme/40 rounded-2xl py-4 pl-12 pr-6 text-primary focus:outline-none focus:border-accent/40 transition-all font-body text-sm"
                    placeholder="••••••••"
                    required
@@ -113,6 +115,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
+              data-testid="auth-submit-button"
               className="w-full py-5 bg-deep-dark text-white rounded-[2rem] font-bold uppercase text-[10px] tracking-[0.3em] hover:bg-accent hover:text-deep-dark transition-all duration-500 shadow-xl flex items-center justify-center gap-3 group/btn"
             >
               {loading ? (

@@ -88,7 +88,8 @@
     "titleLine2": "ร่วมสนุก",
     "viewAll": "ดูเกมทั้งหมด",
     "joined": "เข้าร่วม",
-    "daysLeft": "วันคงเหลือ"
+    "daysLeft": "วันคงเหลือ",
+    "empty": "ยังไม่มีชาเลนจ์ให้ร่วมสนุกในขณะนี้"
   },
   "schedule": {
     "noEvents": "ยังไม่มีตารางงานในขณะนี้"
@@ -187,7 +188,7 @@
     }
   },
   "profile": {
-    "title": "Profile Split",
+    "title": "ประวัติ",
     "sub": "รู้จักดาราของเรา",
     "subThai": "ทำความรู้จักกับน้ำตาลและฟิล์ม",
     "viewProfile": "ดูโปรไฟล์ทั้งหมด",
@@ -197,7 +198,7 @@
     "followers": "ผู้ติดตาม",
     "works": "ผลงาน",
     "artist": "ศิลปิน",
-    "orbit": "Orbit",
+    "orbit": "สีประจำตัว",
     "igFollowers": "ผู้ติดตาม Instagram",
     "xFollowers": "ผู้ติดตาม X",
     "totalWorks": "ผลงานทั้งหมด",
@@ -221,7 +222,17 @@
     "fans": "แฟนคลับ",
     "description": "เว็บไซต์นี้สร้างขึ้นด้วยความรักและความชื่นชมจากแฟนคลับ เพื่อรวบรวมผลงานและเรื่องราวความประทับใจของคู่จิ้น น้ำตาล ทิพนารี และ ฟิล์ม รชานันท์",
     "disclaimer": "🎬 เว็บไซต์นี้สร้างโดยแฟนคลับ ไม่ได้เกี่ยวข้องกับต้นสังกัดอย่างเป็นทางการ",
-    "imageRights": "All images belong to their respective owners"
+    "imageRights": "All images belong to their respective owners",
+    "masthead_label": "ก่อตั้งเมื่อปี 2024",
+    "masthead_sub": "แฟนไซต์น้ำตาลฟิล์ม",
+    "statement": "เราบันทึกทุกห้วงอารมณ์ที่แท้จริง ช่วงเวลาที่แสนละเอียดอ่อน และเรื่องราวเบื้องหลังที่ทำให้การเดินทางของพวกเขางดงามเหลือเกิน",
+    "stats_works_desc": "ซีรีส์คู่ ผลงานวาไรตี้ และเพลงร่วมกัน",
+    "stats_awards_desc": "ถ้วยรางวัล เกียรติยศ และการยอมรับ",
+    "stats_fans_desc": "ความเชื่อมโยงแฟนคลับ Orbit ทั่วโลก",
+    "card_badge": "โปรเจกต์แฟนคลับทางการ",
+    "card_title": "พร้อมจะร่วมย้อนดูการเดินทางทั้งหมดหรือยัง?",
+    "card_sub": "เข้าสำรวจคลังรวบรวมผลงานทุกชิ้นที่นี่",
+    "cta": "เปิดคลังผลงานทั้งหมด"
   },
   "preview": {
     "engage": {
@@ -303,5 +314,15 @@
     "welcomeHomeHighlight": "กลับบ้าน",
     "membershipEstablished": "สมัครสมาชิกสำเร็จแล้ว คุณเป็นส่วนหนึ่งของครอบครัว NamtanFilm แล้ว",
     "redirecting": "กำลังเข้าสู่หน้าหลัก..."
+  },
+  "header": {
+    "officialSite": "เว็บไซต์หลัก",
+    "onScreen": "กำลังฉาย",
+    "location": "ที่ตั้ง",
+    "officialSiteVal": "namtanfilm.com",
+    "onScreenVal": "ซีรีส์ PLUTO",
+    "locationVal": "กรุงเทพฯ, ไทย",
+    "menu": "เมนู",
+    "close": "ปิด"
   }
 }

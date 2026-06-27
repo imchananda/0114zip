@@ -14,7 +14,7 @@ import {
 
 /**
  * Hydration-safe color mode for theme token resolution.
- * First paint uses `dark` to match ThemeProvider defaultTheme + SSR.
+ * First paint uses `light` to match ThemeProvider defaultTheme + SSR.
  */
 export function useThemeColorMode(): ColorMode {
   const { resolvedTheme } = useTheme();
@@ -25,8 +25,8 @@ export function useThemeColorMode(): ColorMode {
     setMounted(true);
   }, []);
 
-  if (!mounted) return 'dark';
-  return resolvedTheme === 'light' ? 'light' : 'dark';
+  if (!mounted) return 'light';
+  return resolvedTheme === 'dark' ? 'dark' : 'light';
 }
 
 /** True when admin config differs from bare globals.css inheritance */

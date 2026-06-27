@@ -11,6 +11,21 @@ import { normalizeScheduleSourceToggles } from './schedule/settings';
 import { toPublicScheduleEvents } from './schedule/public-dto';
 import { normalizeHomeAwards } from './awards-preview';
 import { resolveImageSrc } from './resolve-image-src';
+import {
+  normalizeHeroBannerConfig,
+  type HeroBannerConfig as HeroBannerConfigType,
+} from './hero-banner';
+
+export type {
+  HeroBannerType,
+  HeroImageSourceType,
+  HeroImageAssetId,
+  CinematicHeroConfig,
+  SlideHeroConfig,
+  VideoHeroConfig,
+  ImageHeroConfig,
+  HeroBannerConfig,
+} from './hero-banner';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey =
@@ -22,16 +37,6 @@ const ARTISTS = ['namtan', 'film', 'luna'] as const;
 type Artist = (typeof ARTISTS)[number];
 
 // ── Exported types for component initial props ─────────────────────────────────
-
-export type HeroBannerType = 'cinematic' | 'video' | 'image' | 'slide';
-
-export interface HeroBannerConfig {
-  type: HeroBannerType;
-  videoUrl?: string;
-  imageUrl?: string;
-  clickUrl?: string;
-  showScrollHint?: boolean;
-}
 
 export interface HomeHeroSlide {
   id: string;
@@ -221,7 +226,7 @@ export interface HomePageData {
   homepageConfig:     HomepageSectionsConfig;
   pageMotion:         PageMotionConfig;
   pageTheme:          PageThemeConfig;
-  heroBannerConfig:   HeroBannerConfig;
+  heroBannerConfig:   HeroBannerConfigType;
 }
 
 // ── Server-side data fetch for the homepage ────────────────────────────────────
@@ -388,8 +393,7 @@ export async function fetchHomeData(): Promise<HomePageData> {
     ? (awardsResMaybe.value.data as HomeAwardItem[] ?? [])
     : [];
   const awardsItems = normalizeHomeAwards(awardsRows).slice(0, 6);
-  const defaultHeroConfig: HeroBannerConfig = { type: 'cinematic', showScrollHint: true };
-  const heroBannerConfig = (settings.heroBanner as HeroBannerConfig) || defaultHeroConfig;
+  const heroBannerConfig = normalizeHeroBannerConfig(settings.heroBanner);
 
   return {
     heroSlides,

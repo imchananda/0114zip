@@ -1,13 +1,13 @@
 'use client';
 
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState, useMemo, type ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useMotionValue } from 'framer-motion';
 import { HomeHeroSlide, HomeArtistProfile, HeroBannerConfig } from '@/lib/homepage-data';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useSafeReducedMotion } from '@/lib/useSafeReducedMotion';
-import { resolveImageSrc } from '@/lib/resolve-image-src';
+import { resolveHeroRenderState } from '@/lib/hero-renderer';
 
 interface CinematicHeroProps {
   slides: HomeHeroSlide[];
@@ -38,14 +38,21 @@ function ScrollHint() {
   );
 }
 
-export function CinematicHero({ slides = [], profiles = {}, config }: CinematicHeroProps) {
+export function CinematicHero(props: CinematicHeroProps) {
+  const { slides = [], config } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const reducedMotion = useSafeReducedMotion();
 
-  const type = config?.type || 'cinematic';
+  const renderState = useMemo(
+    () => resolveHeroRenderState(config, slides),
+    [config, slides],
+  );
+  const normalizedConfig = renderState.config;
+  const type = renderState.mode;
+  const slideConfig = normalizedConfig.type === 'slide' ? normalizedConfig : undefined;
   const t = useTranslations();
 
   useEffect(() => {
@@ -65,53 +72,146 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
   }, [mouseX, mouseY, reducedMotion, type]);
 
   useEffect(() => {
-    if (type !== 'slide' || slides.length <= 1) return;
+    if (type !== 'slide' || renderState.enabledSlides.length <= 1) return;
     const interval = setInterval(() => {
-      setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
-    }, 5000);
+      setCurrentSlideIndex((prev) => (prev + 1) % renderState.enabledSlides.length);
+    }, slideConfig?.autoplayMs ?? 5000);
     return () => clearInterval(interval);
-  }, [type, slides.length]);
+  }, [type, renderState.enabledSlides.length, slideConfig?.autoplayMs]);
 
   // ── Scroll & Mouse Hooks (Always call at top level) ───────────────────────
   const { scrollY } = useScroll();
   
   // Parallax calculations
   const yText = useTransform(scrollY, [0, 500], [0, 200]);
-  const scaleBg = useTransform(scrollY, [0, 1000], [1, 1.15]);
-  const opacityText = useTransform(scrollY, [0, 300], [1, 0]);
+  // scaleBg: raw value first, then spring-smoothed to prevent scroll jitter
+  const scaleBgRaw = useTransform(scrollY, [0, 1000], [1.06, 1.18]);
+  const scaleBg = useSpring(scaleBgRaw, { stiffness: 260, damping: 50, mass: 0.8 });
+  // Extended to 500px so text doesn't vanish too quickly on short mobile viewports
+  const opacityText = useTransform(scrollY, [0, 500], [1, 0]);
 
-  // Mouse spring values
-  const springX = useSpring(mouseX, { stiffness: 50, damping: 30 });
-  const springY = useSpring(mouseY, { stiffness: 50, damping: 30 });
+  // Single spring per axis — avoids double-spring latency from chaining
+  const smoothMouseX = useSpring(mouseX, { stiffness: 60, damping: 25 });
+  const smoothMouseY = useSpring(mouseY, { stiffness: 60, damping: 25 });
 
-  // Combined values for specific layers
-  const bgX = useTransform(springX, (v) => v * -0.5);
-  const bgYRaw = useTransform(scrollY, (v) => v * 0.2);
-  const bgYCombined = useTransform([bgYRaw, springY], (values: number[]) => {
-    const sc = values[0] ?? 0;
-    const ms = values[1] ?? 0;
-    return sc + (ms * -0.5);
-  });
-  
-  const filmX = useTransform(springX, (v) => v * 1.5);
-  const filmY = useTransform(springY, (v) => v * 0.8);
-
-  const springBgX = useSpring(bgX, { stiffness: 50, damping: 30 });
-  const springBgY = useSpring(bgYCombined, { stiffness: 50, damping: 30 });
-  const springFilmX = useSpring(filmX, { stiffness: 50, damping: 30 });
-  const springFilmY = useSpring(filmY, { stiffness: 50, damping: 30 });
+  // Combine scroll-parallax + mouse-parallax for background layer
+  // bgYRaw is spring-smoothed before combining to prevent Y-axis jitter during scroll
+  const bgX = useTransform(smoothMouseX, (v) => v * -0.5);
+  const bgYScrollRaw = useTransform(scrollY, (v) => v * 0.2);
+  const bgYSmooth = useSpring(bgYScrollRaw, { stiffness: 260, damping: 50, mass: 0.8 });
+  const bgYCombined = useTransform(
+    [bgYSmooth, smoothMouseY],
+    (values: number[]) => (values[0] ?? 0) + (values[1] ?? 0) * -0.5
+  );
 
   // ── Data mapping ───────────────────────────────────────────────────────────
-  const mainSlide = useMemo(() => slides.find(s => s.view_state === 'both') || slides[0], [slides]);
-  const ntPhoto   = profiles.namtan?.photo_url || '/images/banners/nt.png';
-  const flPhoto   = profiles.film?.photo_url   || '/images/banners/f.png';
-  const primaryCtaHref = mainSlide?.link || '/works';
+  const activeSlides = renderState.enabledSlides;
+  const mainSlide = renderState.primarySlide;
+  const cinematicImageUrl = renderState.cinematicImageUrl;
+  
+  const locale = useLocale();
+  const isCinematicMode = config?.type === 'cinematic';
+  const cinematicConfig = isCinematicMode ? config : null;
+
+  // Title resolution
+  const configuredTitle = locale === 'th'
+    ? (cinematicConfig?.title_thai || cinematicConfig?.title)
+    : (cinematicConfig?.title || cinematicConfig?.title_thai);
+  const displayTitle = configuredTitle || mainSlide?.title || 'Namtan Film';
+  const titleWords = displayTitle.split(' ').filter(Boolean);
+  const leftHeadline = titleWords[0] || 'Namtan';
+  const rightHeadline = titleWords.slice(1).join(' ') || 'Film';
+
+  // Subtitle resolution
+  const configuredSubtitle = locale === 'th'
+    ? (cinematicConfig?.subtitle_thai || cinematicConfig?.subtitle)
+    : (cinematicConfig?.subtitle || cinematicConfig?.subtitle_thai);
+  const supportingCopy = configuredSubtitle || mainSlide?.subtitle || 'We craft memorable moments and stories with precision, style, and impact.';
+
+  // Detail Lines tags resolution
+  const configuredDetailLines = locale === 'th'
+    ? (cinematicConfig?.detailLines_thai || cinematicConfig?.detailLines)
+    : (cinematicConfig?.detailLines || cinematicConfig?.detailLines_thai);
+  const detailLines = configuredDetailLines
+    ? configuredDetailLines.split(',').map((s) => s.trim()).filter(Boolean)
+    : ['ACTING', 'MUSIC', 'SERIES', 'FASHION', 'EVENTS'];
+
+  // Text layer settings
+  const showTitle1 = cinematicConfig?.title1_enabled !== false;
+  const showTitle2 = cinematicConfig?.title2_enabled !== false;
+  const showSubtitle = cinematicConfig?.subtitle_enabled !== false;
+  const showDetailLines = cinematicConfig?.detail_lines_enabled !== false;
+
+  const title1Pos = cinematicConfig?.title1_position || 'bottom-left';
+  const title2Pos = cinematicConfig?.title2_position || 'bottom-right';
+  const subtitlePos = cinematicConfig?.subtitle_position || 'bottom-right';
+  const detailLinesPos = cinematicConfig?.detail_lines_position || 'bottom-left';
+
+  const title1Size = cinematicConfig?.title1_size || 'xl';
+  const title2Size = cinematicConfig?.title2_size || 'xl';
+  const subtitleSize = cinematicConfig?.subtitle_size || 'md';
+  const detailLinesSize = cinematicConfig?.detail_lines_size || 'md';
+
+  const getTitle1SizeClass = (size: 'sm' | 'md' | 'lg' | 'xl') => {
+    switch (size) {
+      case 'sm': return 'text-3xl md:text-5xl';
+      case 'md': return 'text-5xl md:text-7xl';
+      case 'lg': return 'text-[12vw] md:text-[6vw]';
+      case 'xl':
+      default:
+        return 'text-[19vw] md:text-[9.8vw]';
+    }
+  };
+
+  const getTitle2SizeClass = (size: 'sm' | 'md' | 'lg' | 'xl') => {
+    switch (size) {
+      case 'sm': return 'text-3xl md:text-5xl';
+      case 'md': return 'text-5xl md:text-7xl';
+      case 'lg': return 'text-[10vw] md:text-[5.5vw]';
+      case 'xl':
+      default:
+        return 'text-[15vw] md:text-[8vw]';
+    }
+  };
+
+  const getSubtitleSizeClass = (size: 'sm' | 'md' | 'lg') => {
+    switch (size) {
+      case 'sm': return 'text-xs leading-relaxed max-w-sm';
+      case 'lg': return 'text-base md:text-lg leading-relaxed max-w-lg';
+      case 'md':
+      default:
+        return 'text-sm md:text-base leading-relaxed max-w-md';
+    }
+  };
+
+  const getDetailLinesSizeClass = (size: 'sm' | 'md' | 'lg') => {
+    switch (size) {
+      case 'sm': return 'text-[4.5vw] md:text-[1.8vw] space-y-0.5';
+      case 'lg': return 'text-[7.5vw] md:text-[3.2vw] space-y-1.5';
+      case 'md':
+      default:
+        return 'text-[6vw] md:text-[2.5vw] space-y-0.5';
+    }
+  };
+
+  // CTA button configs
+  const showCta1 = cinematicConfig?.cta1_enabled !== false;
+  const cta1Label = locale === 'th'
+    ? (cinematicConfig?.cta1_label_th || t('hero.exploreWorks'))
+    : (cinematicConfig?.cta1_label_en || t('hero.exploreWorks'));
+  const cta1Href = cinematicConfig?.cta1_link || '/works';
+
+  const showCta2 = cinematicConfig?.cta2_enabled !== false;
+  const cta2Label = locale === 'th'
+    ? (cinematicConfig?.cta2_label_th || t('hero.latestHighlight'))
+    : (cinematicConfig?.cta2_label_en || t('hero.latestHighlight'));
+  const cta2Href = cinematicConfig?.cta2_link || mainSlide?.link || '/works';
 
   if (type === 'slide') {
     return (
-      <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
+      <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center" data-testid="hero-runtime-root" data-hero-mode="slide">
         <AnimatePresence initial={false}>
-          {slides.map((slide, idx) => {
+          {activeSlides.map((slide, idx) => {
             if (idx !== currentSlideIndex) return null;
             return (
               <motion.div
@@ -122,12 +222,12 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
                 transition={{ duration: 1.5, ease: "easeInOut" }}
                 className="absolute inset-0"
               >
-                <Image 
-                  src={resolveImageSrc(slide.image)}
+                <Image
+                  src={slide.image}
                   alt={slide.title || 'Slide'}
                   fill
                   priority={idx === 0}
-                  quality={95}
+                  quality={90}
                   sizes="100vw"
                   className="object-cover"
                 />
@@ -156,9 +256,9 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
           })}
         </AnimatePresence>
         
-        {slides.length > 1 && (
+        {activeSlides.length > 1 && slideConfig?.showIndicators !== false && (
           <div className="absolute bottom-32 z-30 flex gap-2">
-            {slides.map((_, idx) => (
+            {activeSlides.map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentSlideIndex(idx)}
@@ -171,17 +271,20 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
           </div>
         )}
 
-        {config?.showScrollHint !== false && <ScrollHint />}
+        {normalizedConfig.showScrollHint !== false && <ScrollHint />}
       </section>
     );
   }
 
   if (type === 'video') {
+    const videoUrl = renderState.videoUrl;
+    const posterUrl = renderState.posterUrl || renderState.cinematicImageUrl;
     return (
-      <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
-        {config?.videoUrl ? (
+      <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center" data-testid="hero-runtime-root" data-hero-mode="video">
+        {videoUrl ? (
           <video 
-            src={config.videoUrl} 
+            src={videoUrl} 
+            poster={posterUrl}
             autoPlay 
             muted 
             loop 
@@ -189,30 +292,43 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <div className="text-white/50 text-sm tracking-widest font-mono">VIDEO URL NOT CONFIGURED</div>
+          <>
+            <Image
+              src={posterUrl}
+              alt="Video fallback"
+              fill
+              priority
+              quality={90}
+              sizes="100vw"
+              className="object-cover opacity-70"
+            />
+            <div className="absolute inset-0 bg-black/45" />
+            <div className="z-10 text-white/70 text-xs tracking-[0.2em] font-mono" data-testid="hero-runtime-video-fallback">VIDEO SOURCE UNAVAILABLE</div>
+          </>
         )}
-        {config?.showScrollHint !== false && <ScrollHint />}
+        {normalizedConfig.showScrollHint !== false && <ScrollHint />}
       </section>
     );
   }
 
   if (type === 'image') {
-    const imageUrl = resolveImageSrc(config?.imageUrl || mainSlide?.image || '/images/banners/banner.png');
+    const imageUrl = renderState.imageModeImageUrl;
+    const clickUrl = renderState.clickUrl;
     return (
-      <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center">
+      <section className="relative h-[88vh] md:h-[110vh] w-full overflow-hidden bg-black flex items-center justify-center" data-testid="hero-runtime-root" data-hero-mode="image">
         <Image 
           src={imageUrl}
           alt="Hero Banner"
           fill
           priority
-          quality={95}
+          quality={90}
           sizes="100vw"
           className="object-cover"
         />
-        {config?.clickUrl && (
-          <Link href={config.clickUrl} className="absolute inset-0 z-50" target={config.clickUrl.startsWith('http') ? '_blank' : undefined} />
+        {clickUrl && (
+          <Link href={clickUrl} className="absolute inset-0 z-50" target={clickUrl.startsWith('http') ? '_blank' : undefined} />
         )}
-        {config?.showScrollHint !== false && <ScrollHint />}
+        {normalizedConfig.showScrollHint !== false && <ScrollHint />}
       </section>
     );
   }
@@ -220,120 +336,162 @@ export function CinematicHero({ slides = [], profiles = {}, config }: CinematicH
   return (
     <section 
       ref={containerRef}
-      className="relative h-[96vh] md:h-[110vh] w-full overflow-hidden bg-deep-dark flex items-center justify-center"
+      className="relative h-[90vh] md:h-[100vh] w-full overflow-hidden bg-deep-dark"
+      data-testid="hero-runtime-root"
+      data-hero-mode="cinematic"
     >
-      {/* Layer 1: Background Atmospheric Image */}
+      {/* Layer 1: Background atmosphere — willChange promotes to GPU compositor layer for smooth transforms */}
       <motion.div 
         style={{ 
           scale: scaleBg, 
-          x: springBgX,
-          y: springBgY
+          x: bgX,
+          y: bgYCombined,
+          willChange: 'transform',
         }}
         className="absolute inset-0 z-0"
       >
         <Image
-          src={resolveImageSrc(mainSlide?.image || '/images/banners/banner.png')}
+          src={cinematicImageUrl}
           alt="NamtanFilm Atmosphere"
           fill
           priority
           quality={90}
           sizes="100vw"
-          className="object-cover brightness-[0.45] contrast-125 scale-105"
+          className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-deep-dark/40 via-transparent to-deep-dark" />
       </motion.div>
 
-      {/* Layer 2: Giant Typography */}
-      <motion.div 
-        style={{ y: yText, opacity: opacityText }}
-        className="relative z-10 text-center pointer-events-none select-none"
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, filter: 'blur(20px)' }}
-          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-        >
-          <h1 className="flex flex-col items-center">
-            <span className="font-display text-[18vw] md:text-[14vw] leading-[0.8] text-white/10 uppercase tracking-tighter">
-              {mainSlide?.title?.split(' ')[0] || 'Namtan'}
-            </span>
-            <span className="nf-gradient-text font-display text-[12vw] md:text-[8vw] leading-none italic my-[-2vw]">
-              ×
-            </span>
-            <span className="font-display text-[18vw] md:text-[14vw] leading-[0.8] text-white/10 uppercase tracking-tighter">
-              {mainSlide?.title?.split(' ').pop() || 'Film'}
-            </span>
-          </h1>
-        </motion.div>
-      </motion.div>
+      {/* Layer 2: Dynamic typography and copy */}
+      {(() => {
+        const elTitle1 = showTitle1 ? (
+          <motion.h1
+            key="title1"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className={`font-display leading-[0.86] tracking-[-0.03em] text-white ${getTitle1SizeClass(title1Size)}`}
+          >
+            {leftHeadline}
+          </motion.h1>
+        ) : null;
 
-      {/* Layer 3: The Artists (Foreground Parallax) */}
-      <div className="absolute inset-0 z-20 pointer-events-none flex items-end justify-center overflow-hidden">
-        <motion.div 
-          style={{ x: springX, y: springY }}
-          initial={{ y: 200, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.8 }}
-          className="relative w-full h-full"
-        >
-           {/* Namtan Foreground */}
-           <div className="absolute bottom-0 left-[5%] md:left-[15%] w-[60%] md:w-[45%] h-[90%] flex items-end">
-              <Image 
-                src={ntPhoto} 
-                alt="Namtan" 
-                width={800} height={1200}
-                priority
-                quality={100}
-                sizes="(max-width: 768px) 60vw, 45vw"
-                className="object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
-              />
-           </div>
-           
-           {/* Film Foreground */}
-           <motion.div 
-             style={{ x: springFilmX, y: springFilmY }}
-             className="absolute bottom-0 right-[5%] md:right-[15%] w-[60%] md:w-[45%] h-[85%] flex items-end"
-           >
-              <Image 
-                src={flPhoto} 
-                alt="Film" 
-                width={800} height={1200}
-                priority
-                quality={100}
-                sizes="(max-width: 768px) 60vw, 45vw"
-                className="object-contain object-bottom drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
-              />
-           </motion.div>
-        </motion.div>
-      </div>
+        const elTitle2 = showTitle2 ? (
+          <motion.h2
+            key="title2"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
+            className={`font-display leading-[0.9] tracking-[-0.03em] text-white ${getTitle2SizeClass(title2Size)}`}
+          >
+            {rightHeadline}
+          </motion.h2>
+        ) : null;
 
-      {/* Layer 4: Cinematic Overlays */}
-      <div className="absolute inset-0 z-30 pointer-events-none">
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+        const elSubtitle = showSubtitle ? (
+          <motion.p
+            key="subtitle"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
+            className={`text-white/84 ${getSubtitleSizeClass(subtitleSize)}`}
+          >
+            {supportingCopy}
+          </motion.p>
+        ) : null;
+
+        const elDetailLines = showDetailLines ? (
+          <motion.ul
+            key="detail_lines"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
+            className={`font-semibold uppercase tracking-[-0.01em] text-white/92 ${getDetailLinesSizeClass(detailLinesSize)}`}
+          >
+            {detailLines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </motion.ul>
+        ) : null;
+
+        const itemsByPosition: Record<
+          'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center',
+          ReactNode[]
+        > = {
+          'top-left': [],
+          'top-right': [],
+          'bottom-left': [],
+          'bottom-right': [],
+          'center': [],
+        };
+
+        if (elTitle1) itemsByPosition[title1Pos].push(elTitle1);
+        if (elTitle2) itemsByPosition[title2Pos].push(elTitle2);
+        if (elSubtitle) itemsByPosition[subtitlePos].push(elSubtitle);
+        if (elDetailLines) itemsByPosition[detailLinesPos].push(elDetailLines);
+
+        const positionClasses: Record<string, string> = {
+          'top-left': 'absolute top-[12vh] left-6 md:top-[16vh] md:left-12 flex flex-col gap-4 text-left items-start z-20 max-w-[85vw] md:max-w-[45vw]',
+          'top-right': 'absolute top-[12vh] right-6 md:top-[16vh] md:right-12 flex flex-col gap-4 text-right items-end z-20 max-w-[85vw] md:max-w-[45vw]',
+          'center': 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-5 text-center items-center z-20 w-full max-w-[90vw]',
+          'bottom-left': 'absolute bottom-[16vh] left-6 md:bottom-[20vh] md:left-12 flex flex-col gap-4 text-left items-start z-20 max-w-[85vw] md:max-w-[45vw]',
+          'bottom-right': 'absolute bottom-[16vh] right-6 md:bottom-[20vh] md:right-12 flex flex-col gap-4 text-right items-end z-20 max-w-[85vw] md:max-w-[45vw]',
+        };
+
+        return (
+          <motion.div
+            style={{ y: yText, opacity: opacityText }}
+            className="absolute inset-0 z-20 pointer-events-none"
+          >
+            <div className="mx-auto h-full max-w-[1300px] relative">
+              {Object.entries(itemsByPosition).map(([pos, elements]) => {
+                if (elements.length === 0) return null;
+                return (
+                  <div key={pos} className={`${positionClasses[pos]} pointer-events-auto`}>
+                    {elements}
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        );
+      })()}
+
+      {/* Layer 3: cinematic overlays — z-10 keeps overlays BELOW text layer (z-20) */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E')] mix-blend-overlay" />
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-namtan-primary/10 blur-[120px] rounded-full mix-blend-screen" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-film-primary/10 blur-[100px] rounded-full mix-blend-screen" />
+        {/* Bottom fade reduced to 14vh to avoid covering bottom-positioned text layers */}
+        <div className="absolute inset-x-0 bottom-0 h-[14vh] bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)]/8 to-transparent" />
       </div>
 
-      {/* Scroll Call-to-Action */}
-      <div className="absolute bottom-28 md:bottom-32 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3">
-        <Link
-          href="/works"
-          aria-label={t('hero.exploreWorks')}
-          className="rounded-full border border-white/25 bg-white/10 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white backdrop-blur transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-        >
-          {t('hero.exploreWorks')}
-        </Link>
-        <Link
-          href={primaryCtaHref}
-          target={primaryCtaHref.startsWith('http') ? '_blank' : undefined}
-          aria-label={t('hero.latestHighlight')}
-          className="rounded-full border border-white/40 bg-white px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-deep-dark transition hover:bg-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-        >
-          {t('hero.latestHighlight')}
-        </Link>
-      </div>
+      {/* CTA row */}
+      {(showCta1 || showCta2) && (
+        <div className="absolute bottom-28 md:bottom-32 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3">
+          {showCta1 && (
+            <Link
+              href={cta1Href}
+              target={cta1Href.startsWith('http') ? '_blank' : undefined}
+              aria-label={cta1Label}
+              className="rounded-full border border-white/25 bg-white/10 px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white backdrop-blur transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            >
+              {cta1Label}
+            </Link>
+          )}
+          {showCta2 && (
+            <Link
+              href={cta2Href}
+              target={cta2Href.startsWith('http') ? '_blank' : undefined}
+              aria-label={cta2Label}
+              className="rounded-full border border-white/40 bg-white px-5 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-deep-dark transition hover:bg-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            >
+              {cta2Label}
+            </Link>
+          )}
+        </div>
+      )}
 
-      {config?.showScrollHint !== false && <ScrollHint />}
+      {normalizedConfig.showScrollHint !== false && <ScrollHint />}
     </section>
   );
 }

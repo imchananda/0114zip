@@ -5,7 +5,7 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig = {
   images: {
-    qualities: [75, 90, 95, 100],
+    qualities: [75, 90],
     localPatterns: [
       { pathname: '/**' },
       { pathname: '/api/proxy-image' },
@@ -23,6 +23,9 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.supabase.co' },
       { protocol: 'https', hostname: '*.supabase.in' },
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
+      { protocol: 'https', hostname: 'img.youtube.com' },
+      { protocol: 'https', hostname: 'image.onehd.net' },
+      { protocol: 'https', hostname: 'cms.dmpcdn.com' },
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000,

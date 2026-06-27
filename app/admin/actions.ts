@@ -21,6 +21,7 @@ export async function clearGlobalCacheAction() {
     }
 
     // ล้าง Cache ทั้งเว็บ
+    revalidateTag('settings');
     revalidatePath('/', 'layout');
     
     return { success: true, timestamp: Date.now() };

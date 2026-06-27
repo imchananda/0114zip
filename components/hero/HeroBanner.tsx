@@ -27,9 +27,6 @@ export function HeroBanner() {
 
   // Custom slow scroll function
   // ── Theme-aware values ──────────────────────────────────────
-  const overlayL  = isLight ? 'rgba(245,244,237,0.15)' : 'rgba(0,0,0,0.40)';
-  const overlayB  = isLight ? 'rgba(245,244,237,0.20)' : 'rgba(0,0,0,0.60)';
-  const overlayT  = isLight ? 'rgba(245,244,237,0.10)' : 'rgba(0,0,0,0.30)';
   
   const nameClass  = isLight ? 'text-primary' : 'text-white';
   const valueCls   = isLight ? 'text-charcoal-warm' : 'text-white/90';
@@ -61,6 +58,7 @@ export function HeroBanner() {
           alt="Namtan and Film together"
           fill
           priority
+          quality={90}
           sizes="100vw"
           className="object-cover object-center landscape:object-top md:object-top"
           style={{ filter: isLight ? 'brightness(1.05) saturate(1.05)' : 'none' }}
@@ -77,6 +75,7 @@ export function HeroBanner() {
             src="/images/banners/nt.png"
             alt="Namtan"
             fill
+            quality={90}
             sizes="100vw"
             className="object-cover object-center landscape:object-top md:object-top"
             style={{ filter: isLight ? 'brightness(1.05) saturate(1.05)' : 'none' }}
@@ -94,6 +93,7 @@ export function HeroBanner() {
             src="/images/banners/f.png"
             alt="Film"
             fill
+            quality={90}
             sizes="100vw"
             className="object-cover object-center landscape:object-top md:object-top"
             style={{ filter: isLight ? 'brightness(1.05) saturate(1.05)' : 'none' }}
@@ -101,18 +101,9 @@ export function HeroBanner() {
         </motion.div>
 
         {/* Persistent Gradient Overlays */}
-        <div
-          className="absolute inset-0"
-          style={{ background: `linear-gradient(to right, ${overlayL}, transparent 40%, transparent 60%, ${overlayL})` }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: `linear-gradient(to top, ${overlayB}, transparent 70%)` }}
-        />
-        <div
-          className="absolute inset-0 h-40"
-          style={{ background: `linear-gradient(to bottom, ${overlayT}, transparent)` }}
-        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-bg)]/15 via-transparent to-[var(--color-bg)]/15 dark:from-[var(--color-bg)]/40 dark:to-[var(--color-bg)]/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)]/25 to-transparent dark:from-[var(--color-bg)]/60" />
+        <div className="absolute inset-0 h-40 bg-gradient-to-b from-[var(--color-bg)]/10 to-transparent dark:from-[var(--color-bg)]/30" />
       </div>
 
       {/* Interactive Actor Zones */}

@@ -235,19 +235,29 @@ function EditProfileModal({ profile, onClose, onSave, saving, supabase }: {
     }
     setUploading(true);
     setUploadMsg('');
-    const fileExt = photoFile.name.split('.').pop();
-    const filePath = `artists/${form.id}/photo-${Date.now()}.${fileExt}`;
-    const { error: uploadError } = await supabase.storage
-      .from('profiles')
-      .upload(filePath, photoFile, { upsert: true });
-    if (uploadError) {
-      setUploadMsg(`อัปโหลดล้มเหลว: ${uploadError.message}`);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', photoFile);
+      formData.append('artistId', form.id);
+
+      const res = await fetch('/api/admin/profile', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'อัปโหลดรูปภาพล้มเหลว');
+      }
+
+      const result = await res.json();
       setUploading(false);
-      return;
+      onSave({ ...form, photo_url: result.url });
+    } catch (err: any) {
+      setUploadMsg(err.message || 'เกิดข้อผิดพลาดในการอัปโหลด');
+      setUploading(false);
     }
-    const { data } = supabase.storage.from('profiles').getPublicUrl(filePath);
-    setUploading(false);
-    onSave({ ...form, photo_url: data.publicUrl });
   };
 
   return (

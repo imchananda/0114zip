@@ -143,34 +143,17 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] } = 
             alt={slide.title ?? ''}
             fill
             priority={current === 0}
-            quality={100}
+            quality={90}
             sizes="100vw"
             className="object-cover object-center landscape:object-top md:object-top"
           />
 
           {/* Brightness overlay (avoid CSS filter on <img> which causes blur on mobile) */}
-          <div
-            className="absolute inset-0"
-            style={{ background: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.10)' }}
-          />
+          <div className="absolute inset-0 bg-black/[0.08] dark:bg-black/10" />
 
           {/* Gradient overlays */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: isLight
-                ? 'linear-gradient(to top, rgba(245,244,237,0.65), transparent 60%)'
-                : 'linear-gradient(to top, rgba(0,0,0,0.55), transparent 60%)',
-            }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background: isLight
-                ? 'linear-gradient(to right, rgba(245,244,237,0.10), transparent, rgba(245,244,237,0.10))'
-                : 'linear-gradient(to right, rgba(0,0,0,0.20), transparent, rgba(0,0,0,0.20))',
-            }}
-          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-bg)]/65 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-bg)]/10 via-transparent to-[var(--color-bg)]/10" />
         </motion.div>
       </AnimatePresence>
 

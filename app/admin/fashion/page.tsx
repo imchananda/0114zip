@@ -295,11 +295,12 @@ export default function AdminFashionPage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="text-xs text-[var(--color-muted)]">ศิลปิน</label>
-              <div className="flex flex-wrap gap-3 mt-1">
-                <label className="inline-flex items-center gap-2 text-sm">
+              <label className="text-xs text-[var(--color-muted)] font-medium">ศิลปิน (แสดงผลตามแท็กนักแสดง)</label>
+              <div className="flex flex-wrap gap-4 mt-2 bg-black/20 border border-white/5 px-4 py-3 rounded-lg w-fit">
+                <label className="inline-flex items-center gap-2 text-sm cursor-pointer hover:text-white transition-colors">
                   <input
                     type="checkbox"
+                    className="rounded border-white/10 text-cyan-600 focus:ring-cyan-500 bg-black/40"
                     checked={checks.namtan}
                     onChange={() => {
                       const n = !checks.namtan;
@@ -311,9 +312,10 @@ export default function AdminFashionPage() {
                   />
                   Namtan
                 </label>
-                <label className="inline-flex items-center gap-2 text-sm">
+                <label className="inline-flex items-center gap-2 text-sm cursor-pointer hover:text-white transition-colors">
                   <input
                     type="checkbox"
+                    className="rounded border-white/10 text-cyan-600 focus:ring-cyan-500 bg-black/40"
                     checked={checks.film}
                     onChange={() => {
                       const f = !checks.film;
@@ -325,9 +327,10 @@ export default function AdminFashionPage() {
                   />
                   Film
                 </label>
-                <label className="inline-flex items-center gap-2 text-sm">
+                <label className="inline-flex items-center gap-2 text-sm cursor-pointer hover:text-white transition-colors">
                   <input
                     type="checkbox"
+                    className="rounded border-white/10 text-cyan-600 focus:ring-cyan-500 bg-black/40"
                     checked={checks.together}
                     onChange={() => {
                       const t = !checks.together;
@@ -406,19 +409,34 @@ export default function AdminFashionPage() {
               />
             </div>
             <div className="md:col-span-2">
-              <label className="text-xs text-[var(--color-muted)]">URL รูปปก (หรืออัปโหลด)</label>
+              <label className="text-xs text-[var(--color-muted)] font-medium">URL รูปปก (หรืออัปโหลด)</label>
               <input
                 className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm mb-2"
+                placeholder="https://example.com/image.jpg"
                 value={editing.image_url ?? ''}
                 onChange={(e) => setEditing({ ...editing, image_url: e.target.value })}
               />
               <input
                 type="file"
                 accept="image/*"
-                className="text-xs"
+                className="text-xs text-[var(--color-text-muted)] hover:text-white"
                 disabled={uploading}
                 onChange={(e) => onFile(e.target.files?.[0] ?? null)}
               />
+              
+              {editing.image_url && (
+                <div className="mt-3 relative w-32 aspect-[3/4] rounded-lg overflow-hidden border border-white/10 bg-black/20 shadow-inner group">
+                  <img
+                    src={editing.image_url}
+                    alt="Cover preview"
+                    className="object-cover w-full h-full transition duration-300 group-hover:scale-105"
+                    onError={(e) => {
+                      // fallback representation if link is broken
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
             </div>
             <label className="inline-flex items-center gap-2 text-sm">
               <input

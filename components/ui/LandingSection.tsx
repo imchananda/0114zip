@@ -51,7 +51,7 @@ export function LandingSection({
       id={id}
       initial={initialAnimation}
       whileInView={revealAnimation}
-      viewport={{ once: true, margin: "-10% 0px -10% 0px" }}
+      viewport={{ once: true, margin: "-15% 0px -15% 0px" }}
       className={cn(
         "relative w-full transition-colors duration-500",
         isAlternate ? "bg-surface" : "bg-[var(--color-bg)]"

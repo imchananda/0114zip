@@ -40,7 +40,7 @@ export function getBrandsStyles({ layout, theme }: BrandsStyleOptions) {
       'relative w-full overflow-hidden border-t border-theme',
       isDark ? 'bg-[var(--color-brands-bg)]' : 'bg-surface text-deep-dark',
     ),
-    shellClass: cn('max-w-screen-2xl mx-auto flex flex-col md:flex-row min-h-[600px]'),
+    shellClass: cn('max-w-[1600px] mx-auto flex flex-col md:flex-row min-h-[600px]'),
     portraitPanelClass: cn(
       'relative w-full md:w-[45%] lg:w-[40%] flex-shrink-0 flex items-center justify-center bg-panel/30',
     ),

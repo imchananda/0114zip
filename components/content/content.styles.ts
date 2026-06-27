@@ -28,7 +28,7 @@ export function getContentStyles() {
       'bg-[var(--color-bg)] text-primary',
     ),
     headerContainerClass: cn(
-      'container mx-auto px-6 md:px-12 lg:px-20 max-w-7xl mb-16 md:mb-24',
+      'w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 mb-16 md:mb-24',
     ),
     headerRowClass: cn(
       'flex flex-col md:flex-row items-baseline justify-between gap-8 border-b border-theme/40 pb-8',

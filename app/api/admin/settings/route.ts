@@ -3,12 +3,14 @@ import { revalidateTag } from 'next/cache';
 import { getAdminClient, supabase } from '@/lib/supabase';
 import { verifyAdmin } from '@/lib/auth';
 import { normalizeHomepageConfig, serializeHomepageBuilderConfig } from '@/lib/homepage-sections';
+import { normalizeHeroBannerConfig } from '@/lib/hero-banner';
 
 type SiteSettingRow = { key: string; value: unknown };
 
 export const revalidate = 300;
 
 const HOME_SECTIONS_KEY = 'homeSections';
+const HERO_BANNER_KEY = 'heroBanner';
 
 /** Re-normalize raw JSONB before persist (Phase 7 — unified normalize + version bump). */
 function normalizeHomeSectionsForStorage(value: unknown): unknown {
@@ -19,6 +21,9 @@ function normalizeHomeSectionsForStorage(value: unknown): unknown {
 function normalizeSettingValue(key: string, value: unknown): unknown {
   if (key === HOME_SECTIONS_KEY) {
     return normalizeHomeSectionsForStorage(value);
+  }
+  if (key === HERO_BANNER_KEY) {
+    return normalizeHeroBannerConfig(value);
   }
   return value;
 }
@@ -32,7 +37,9 @@ export async function GET() {
 
   const settings: Record<string, unknown> = {};
   for (const row of (data as SiteSettingRow[]) ?? []) {
-    settings[row.key] = row.value;
+    settings[row.key] = row.key === HERO_BANNER_KEY
+      ? normalizeHeroBannerConfig(row.value)
+      : row.value;
   }
   return NextResponse.json(settings);
 }
@@ -67,6 +74,9 @@ export async function PUT(req: NextRequest) {
     .upsert(rows, { onConflict: 'key' });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Invalidate settings caches instantly
+  revalidateTag('settings');
 
   if ('scheduleSources' in body) {
     revalidateTag('schedule');

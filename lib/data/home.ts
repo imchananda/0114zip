@@ -1,9 +1,10 @@
 import { unstable_cache } from 'next/cache';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../database.types';
-import { HeroBannerConfig, HomeArtistProfile, HomeAwardItem, HomeHeroSlide } from '../homepage-data';
+import { HomeArtistProfile, HomeAwardItem, HomeHeroSlide } from '../homepage-data';
 import { resolveImageSrc } from '../resolve-image-src';
 import { normalizeHomepageConfig } from '../homepage-sections';
+import { normalizeHeroBannerConfig } from '../hero-banner';
 import { LEGACY_CONTENT_TYPES } from '../content-constants';
 import { aggregateSchedule } from '../schedule/aggregate';
 import { fetchScheduleSourceToggles } from '../schedule/settings';
@@ -15,7 +16,7 @@ const supabaseKey =
 
 const db = createClient<Database>(supabaseUrl, supabaseKey);
 
-const REVALIDATE_TIME = 300; // 5 minutes
+const REVALIDATE_TIME = 86400; // 24 hours (Long-term caching, revalidated on-demand by tags)
 
 export const fetchCoreSettings = unstable_cache(
   async () => {
@@ -25,8 +26,7 @@ export const fetchCoreSettings = unstable_cache(
       siteSettingsRes.data.forEach((r) => { settings[r.key] = r.value; });
     }
 
-    const defaultHeroConfig: HeroBannerConfig = { type: 'cinematic', showScrollHint: true };
-    const heroBannerConfig = (settings.heroBanner as HeroBannerConfig) || defaultHeroConfig;
+    const heroBannerConfig = normalizeHeroBannerConfig(settings.heroBanner);
     
     const builderConfig = normalizeHomepageConfig(settings.homeSections);
 
@@ -35,7 +35,8 @@ export const fetchCoreSettings = unstable_cache(
       pageMotion: builderConfig.pageMotion,
       pageTheme: builderConfig.pageTheme,
       heroBannerConfig,
-      brandSectionImages: (settings.brands_section_images as Record<string, string>) || {}
+      brandSectionImages: (settings.brands_section_images as Record<string, string>) || {},
+      aboutCustomSettings: (settings.aboutSection as Record<string, string>) || null
     };
   },
   ['home-core-settings'],

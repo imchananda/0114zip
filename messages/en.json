@@ -88,7 +88,8 @@
     "titleLine2": "Challenges",
     "viewAll": "View All Games",
     "joined": "joined",
-    "daysLeft": "days left"
+    "daysLeft": "days left",
+    "empty": "No active challenges at the moment"
   },
   "schedule": {
     "noEvents": "No upcoming events scheduled"
@@ -187,9 +188,9 @@
     }
   },
   "profile": {
-    "title": "Profile Split",
+    "title": "Profile",
     "sub": "Meet The Stars",
-    "subThai": "ทำความรู้จักกับน้ำตาลและฟิล์ม",
+    "subThai": "get to know Namtan & Film",
     "viewProfile": "View Full Profile",
     "viewWorks": "View Works",
     "viewStats": "View Stats",
@@ -197,7 +198,7 @@
     "followers": "Followers",
     "works": "Works",
     "artist": "Artist",
-    "orbit": "Orbit",
+    "orbit": "Color",
     "igFollowers": "Instagram Followers",
     "xFollowers": "X Followers",
     "totalWorks": "Total Works",
@@ -221,7 +222,17 @@
     "fans": "Fans",
     "description": "This website was created with love and admiration from fans, to collect the works and memorable stories of the beloved couple, Namtan Tipnaree and Film Rachanun.",
     "disclaimer": "🎬 This website is fan-made and is not officially affiliated with the agency.",
-    "imageRights": "All images belong to their respective owners"
+    "imageRights": "All images belong to their respective owners",
+    "masthead_label": "ESTABLISHED 2024",
+    "masthead_sub": "NamtanFilm Fansite",
+    "statement": "We capture the raw emotions, the subtle moments, and the untold stories that make their journey so beautiful.",
+    "stats_works_desc": "Joint series, variety, and releases",
+    "stats_awards_desc": "Accolades, honors, and trophies won",
+    "stats_fans_desc": "Orbit global community connections",
+    "card_badge": "Verified Fan-Project",
+    "card_title": "Ready to see their complete journey?",
+    "card_sub": "Explore our massive database of works.",
+    "cta": "View Filmography"
   },
   "preview": {
     "engage": {
@@ -303,5 +314,15 @@
     "welcomeHomeHighlight": "Home",
     "membershipEstablished": "Your membership has been established. You are now part of the NamtanFilm family.",
     "redirecting": "Directing to Portal..."
+  },
+  "header": {
+    "officialSite": "Official Site",
+    "onScreen": "On Screen",
+    "location": "Location",
+    "officialSiteVal": "namtanfilm.com",
+    "onScreenVal": "PLUTO Series",
+    "locationVal": "Bangkok, TH",
+    "menu": "Menu",
+    "close": "Close"
   }
 }

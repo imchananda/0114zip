@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { createSupabaseBrowser } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Database, Json } from '@/lib/database.types';
 
 // ── Share Result Component ────────────────────────────────────
 function ShareResult({
@@ -151,7 +152,30 @@ export default function ChallengeDetailPage() {
         .single();
 
       if (!data) { router.push('/challenges'); return; }
-      setChallenge(data as Challenge);
+      
+      // Parse questions JSON into concrete Question[] interface safely to resolve TS compiler errors
+      const normalizedChallenge: Challenge = {
+        id: data.id,
+        slug: data.slug,
+        title: data.title,
+        description: data.description,
+        type: data.type,
+        reward_points: data.reward_points,
+        questions: Array.isArray(data.questions)
+          ? (data.questions as unknown[]).map((rawQ) => {
+              const q = rawQ as Record<string, unknown>;
+              return {
+                id: String(q.id || ''),
+                question: String(q.question || ''),
+                options: Array.isArray(q.options) ? (q.options as unknown[]).map(String) : undefined,
+                answer: typeof q.answer === 'number' ? q.answer : undefined,
+                option: typeof q.option === 'string' ? q.option : undefined,
+              };
+            })
+          : [],
+      };
+      
+      setChallenge(normalizedChallenge);
 
       if (user) {
         const { data: entry } = await supabase
@@ -249,12 +273,17 @@ export default function ChallengeDetailPage() {
 
     if (user) {
       // Logged-in: save entry and award points
-      await supabase.from('challenge_entries').upsert({
+      // Explicitly cast using the exact Database type definition to satisfy postgrest payload validations
+      // Import/Use type definition for Json to avoid eslint explicitly disabled any
+      const entryPayload: Database['public']['Tables']['challenge_entries']['Insert'] = {
         challenge_id: challenge.id,
         user_id: user.id,
-        answers: { answers },
+        answers: { answers } as unknown as Json,
         score: finalScore,
-      });
+      };
+
+      // Wrap in explicit array or cast to avoid any Postgrest overload ambiguity
+      await supabase.from('challenge_entries').upsert(entryPayload);
 
       const { data: profileData } = await supabase
         .from('users')

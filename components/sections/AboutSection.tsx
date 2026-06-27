@@ -1,18 +1,31 @@
 'use client';
 
-/**
- * Phase 6 — cross-layer section (pattern from Profile/Awards pilots):
- *   • Visual: getAboutStyles (aboutSection.styles.ts)
- *   • Motion: useSectionMotion + toWhileInViewBinding
- *   • Theme: SectionThemeWrapper → CSS vars
- */
 import { motion } from 'framer-motion';
-import { useTranslations } from 'next-intl';
-import { actors } from '@/data/actors';
+import { useTranslations, useLocale } from 'next-intl';
+import Image from 'next/image';
+import { ArrowUpRight } from 'lucide-react';
 import type { HomepageSectionConfig, PageMotionConfig, PageThemeConfig } from '@/lib/homepage-sections';
 import { SectionThemeWrapper } from '@/components/ui/SectionThemeWrapper';
 import { toWhileInViewBinding, useSectionMotion } from '@/lib/visual';
 import { getAboutStyles } from './aboutSection.styles';
+import { Link } from '@/i18n/routing';
+
+interface CustomAboutSettings {
+  statement_en?: string;
+  statement_th?: string;
+  description_en?: string;
+  description_th?: string;
+  bwImage?: string;
+  colorImage?: string;
+  cardBadge_en?: string;
+  cardBadge_th?: string;
+  cardTitle_en?: string;
+  cardTitle_th?: string;
+  cardSub_en?: string;
+  cardSub_th?: string;
+  cta_en?: string;
+  cta_th?: string;
+}
 
 export function AboutSection({
   ntWorks = 0,
@@ -21,6 +34,7 @@ export function AboutSection({
   config,
   pageMotion,
   pageTheme,
+  customSettings,
 }: {
   ntWorks?: number;
   flWorks?: number;
@@ -28,20 +42,65 @@ export function AboutSection({
   config?: Pick<HomepageSectionConfig, 'layout' | 'theme' | 'motion' | 'themeTokens'>;
   pageMotion?: PageMotionConfig;
   pageTheme?: PageThemeConfig;
+  customSettings?: CustomAboutSettings;
 } = {}) {
   const t = useTranslations();
+  const locale = useLocale();
   const styles = getAboutStyles({ layout: config?.layout, theme: config?.theme });
   const sectionMotion = useSectionMotion(pageMotion, config?.motion, { allowCinematic: true });
-  const headerMotion = toWhileInViewBinding(sectionMotion);
-  const coupleCardMotion = toWhileInViewBinding(sectionMotion, 1);
-  const namtanCardMotion = toWhileInViewBinding(sectionMotion, 4);
-  const filmCardMotion = toWhileInViewBinding(sectionMotion, 5);
+
+  // Resolve dynamic database settings with static local i18n overrides
+  const statement = locale === 'th'
+    ? customSettings?.statement_th || t('about.statement')
+    : customSettings?.statement_en || t('about.statement');
+
+  const description = locale === 'th'
+    ? customSettings?.description_th || t('about.description')
+    : customSettings?.description_en || t('about.description');
+
+  const bwImage = customSettings?.bwImage || '/images/banners/banner_bw.png';
+  const colorImage = customSettings?.colorImage || '/images/banners/banner.png';
+
+  const cardBadge = locale === 'th'
+    ? customSettings?.cardBadge_th || t('about.card_badge')
+    : customSettings?.cardBadge_en || t('about.card_badge');
+
+  const cardTitle = locale === 'th'
+    ? customSettings?.cardTitle_th || t('about.card_title')
+    : customSettings?.cardTitle_en || t('about.card_title');
+
+  const cardSub = locale === 'th'
+    ? customSettings?.cardSub_th || t('about.card_sub')
+    : customSettings?.cardSub_en || t('about.card_sub');
+
+  const cardCta = locale === 'th'
+    ? customSettings?.cta_th || t('about.cta')
+    : customSettings?.cta_en || t('about.cta');
+
+  // Motion bindings for staggered entrances
+  const mastheadLeftMotion = toWhileInViewBinding(sectionMotion, 0);
+  const statementMotion = toWhileInViewBinding(sectionMotion, 1);
+  const descMotion = toWhileInViewBinding(sectionMotion, 2);
+  const bwImageMotion = toWhileInViewBinding(sectionMotion, 3);
+  const cardMotion = toWhileInViewBinding(sectionMotion, 5);
   const disclaimerMotion = toWhileInViewBinding(sectionMotion, 6);
 
   const stats = [
-    { labelKey: 'about.worksCount', value: (ntWorks + flWorks) || '20+', icon: '🎬' },
-    { labelKey: 'about.awards', value: totalAwards || '15+', icon: '🏆' },
-    { labelKey: 'about.fans', value: '1.2M+', icon: '💕' },
+    { 
+      labelKey: 'about.worksCount', 
+      value: (ntWorks + flWorks) || '20+', 
+      descKey: 'about.stats_works_desc' 
+    },
+    { 
+      labelKey: 'about.awards', 
+      value: totalAwards || '15+', 
+      descKey: 'about.stats_awards_desc' 
+    },
+    { 
+      labelKey: 'about.fans', 
+      value: '1.2M+', 
+      descKey: 'about.stats_fans_desc' 
+    },
   ];
 
   return (
@@ -52,169 +111,149 @@ export function AboutSection({
       pageTheme={pageTheme}
       sectionTheme={config?.themeTokens}
     >
+      {/* Editorial Watermark Backdrop */}
       <div className={styles.bgDecorationClass}>LUNA</div>
 
       <div className={styles.containerClass}>
-        <motion.div
-          initial={headerMotion.initial}
-          whileInView={headerMotion.whileInView}
-          viewport={headerMotion.viewport}
-          transition={headerMotion.transition}
-          className={styles.headerWrapClass}
-        >
-          <p className={styles.sublineClass}>{t('about.sub')}</p>
-          <h2 className={styles.titleClass}>{t('about.title')}</h2>
-        </motion.div>
-
-        <div className={styles.contentWrapClass}>
-          {styles.showCoupleCard && (
-            <motion.div
-              initial={coupleCardMotion.initial}
-              whileInView={coupleCardMotion.whileInView}
-              viewport={coupleCardMotion.viewport}
-              transition={coupleCardMotion.transition}
-              className={styles.coupleCardClass}
-            >
-              <div className={styles.coupleGradientClass}>
-                <div className="absolute top-0 left-0 w-full h-full bg-nf-gradient" />
-              </div>
-
-              <div className="relative z-10">
-                <h3 className={styles.coupleTitleClass}>
-                  Namtan <span className="nf-gradient-text opacity-70">×</span> Film
-                </h3>
-                <p className={styles.coupleSubtitleClass}>{t('about.couple')}</p>
-
-                <div className={styles.statsGridClass}>
-                  {stats.map((stat, index) => {
-                    const statMotion = toWhileInViewBinding(sectionMotion, 2 + index);
-                    return (
-                      <motion.div
-                        key={stat.labelKey}
-                        initial={statMotion.initial}
-                        whileInView={statMotion.whileInView}
-                        viewport={statMotion.viewport}
-                        transition={statMotion.transition}
-                        className={styles.statItemClass}
-                      >
-                        <div className={styles.statIconClass}>{stat.icon}</div>
-                        <div className={styles.statValueClass}>{stat.value}</div>
-                        <div className={styles.statLabelClass}>{t(stat.labelKey)}</div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                <div className={styles.quoteWrapClass}>
-                  <div className={`${styles.quoteMarkClass} ${styles.quoteMarkLeftClass}`}>“</div>
-                  <p className={styles.descriptionClass}>{t('about.description')}</p>
-                  <div className={`${styles.quoteMarkClass} ${styles.quoteMarkRightClass}`}>“</div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {styles.showActorCards && (
-            <div className={styles.actorGridClass}>
-              <motion.div
-                initial={namtanCardMotion.initial}
-                whileInView={namtanCardMotion.whileInView}
-                viewport={namtanCardMotion.viewport}
-                transition={namtanCardMotion.transition}
-                className={styles.actorCardClass()}
-              >
-                <div className={styles.actorTopBarClass('namtan')} />
-                <div className={styles.actorHeaderRowClass}>
-                  <div className={styles.actorAvatarClass('namtan')}>🦋</div>
-                  <div>
-                    <h4 className={styles.actorNameClass('namtan')}>{actors.namtan.nickname}</h4>
-                    <p className={styles.actorNameThClass}>{actors.namtan.nameThai}</p>
-                  </div>
-                </div>
-                <p className={styles.actorTaglineClass('namtan')}>{actors.namtan.taglineThai}</p>
-                {actors.namtan.social && (
-                  <div className={styles.socialLinksClass}>
-                    {actors.namtan.social.instagram && (
-                      <a
-                        href={`https://instagram.com/${actors.namtan.social.instagram}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={styles.socialLinkClass('namtan')}
-                      >
-                        Instagram
-                      </a>
-                    )}
-                    {actors.namtan.social.twitter && (
-                      <a
-                        href={`https://x.com/${actors.namtan.social.twitter}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={styles.socialLinkClass('namtan')}
-                      >
-                        X (Twitter)
-                      </a>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-
-              <motion.div
-                initial={filmCardMotion.initial}
-                whileInView={filmCardMotion.whileInView}
-                viewport={filmCardMotion.viewport}
-                transition={filmCardMotion.transition}
-                className={styles.actorCardClass()}
-              >
-                <div className={styles.actorTopBarClass('film')} />
-                <div className={styles.actorHeaderRowClass}>
-                  <div className={styles.actorAvatarClass('film')}>✨</div>
-                  <div>
-                    <h4 className={styles.actorNameClass('film')}>{actors.film.nickname}</h4>
-                    <p className={styles.actorNameThClass}>{actors.film.nameThai}</p>
-                  </div>
-                </div>
-                <p className={styles.actorTaglineClass('film')}>{actors.film.taglineThai}</p>
-                {actors.film.social && (
-                  <div className={styles.socialLinksClass}>
-                    {actors.film.social.instagram && (
-                      <a
-                        href={`https://instagram.com/${actors.film.social.instagram}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={styles.socialLinkClass('film')}
-                      >
-                        Instagram
-                      </a>
-                    )}
-                    {actors.film.social.twitter && (
-                      <a
-                        href={`https://x.com/${actors.film.social.twitter}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={styles.socialLinkClass('film')}
-                      >
-                        X (Twitter)
-                      </a>
-                    )}
-                  </div>
-                )}
-              </motion.div>
-            </div>
-          )}
-
+        
+        {/* ── 1. Top Masthead Statement ────────────────────────────── */}
+        <div className={styles.mastheadRowClass}>
+          
           <motion.div
-            initial={disclaimerMotion.initial}
-            whileInView={disclaimerMotion.whileInView}
-            viewport={disclaimerMotion.viewport}
-            transition={disclaimerMotion.transition}
-            className={styles.disclaimerWrapClass}
+            initial={mastheadLeftMotion.initial}
+            whileInView={mastheadLeftMotion.whileInView}
+            viewport={mastheadLeftMotion.viewport}
+            transition={mastheadLeftMotion.transition}
+            className={styles.mastheadLeftClass}
           >
-            <div className={styles.disclaimerBoxClass}>
-              <p className={styles.disclaimerTextClass}>{t('about.disclaimer')}</p>
-              <p className={styles.imageRightsClass}>{t('about.imageRights')}</p>
-            </div>
+            <span className={styles.mastheadLabelClass}>{t('about.masthead_label')}</span>
+            <span className={styles.mastheadSubClass}>{t('about.masthead_sub')}</span>
           </motion.div>
+
+          <motion.h2
+            initial={statementMotion.initial}
+            whileInView={statementMotion.whileInView}
+            viewport={statementMotion.viewport}
+            transition={statementMotion.transition}
+            className={styles.statementClass}
+          >
+            <span className={styles.statementQuoteMarkClass}>“</span>
+            {statement}
+          </motion.h2>
+
         </div>
+
+        {/* ── 2. Asymmetric 3-Column Content Grid ───────────────────── */}
+        <div className={styles.asymmetricGridClass}>
+          
+          {/* Column A: Description & Massive Landscape B&W Image */}
+          <div className={styles.leftColClass}>
+            
+            <motion.p
+              initial={descMotion.initial}
+              whileInView={descMotion.whileInView}
+              viewport={descMotion.viewport}
+              transition={descMotion.transition}
+              className={styles.descriptionClass}
+            >
+              {description}
+            </motion.p>
+
+            <motion.div
+              initial={bwImageMotion.initial}
+              whileInView={bwImageMotion.whileInView}
+              viewport={bwImageMotion.viewport}
+              transition={bwImageMotion.transition}
+              className={styles.bwImageWrapClass}
+            >
+              <Image
+                src={bwImage}
+                alt="NamtanFilm Classic Portrait"
+                fill
+                priority
+                quality={90}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className={styles.bwImageClass}
+              />
+            </motion.div>
+
+          </div>
+
+          {/* Column B: Infographic Testimonial Stats Stack */}
+          <div className={styles.centerColClass}>
+            {stats.map((stat, index) => {
+              const itemMotion = toWhileInViewBinding(sectionMotion, 4 + index * 0.15);
+              return (
+                <motion.div
+                  key={stat.labelKey}
+                  initial={itemMotion.initial}
+                  whileInView={itemMotion.whileInView}
+                  viewport={itemMotion.viewport}
+                  transition={itemMotion.transition}
+                  className={styles.statItemClass}
+                >
+                  <span className={styles.statValueClass}>{stat.value}</span>
+                  <span className={styles.statLabelClass}>{t(stat.labelKey)}</span>
+                  <span className={styles.statDescClass}>{t(stat.descKey)}</span>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Column C: Floating Boutique Visual Card & CTA */}
+          <div className={styles.rightColClass}>
+            
+            <motion.div
+              initial={cardMotion.initial}
+              whileInView={cardMotion.whileInView}
+              viewport={cardMotion.viewport}
+              transition={cardMotion.transition}
+              className="w-full flex flex-col items-end"
+            >
+              <Link href="/works" className={styles.boutiqueCardClass}>
+                
+                {/* Badge status bubble */}
+                <div className={styles.cardBadgeClass}>
+                  <span className={styles.cardBadgeDotClass} />
+                  <span>{cardBadge}</span>
+                </div>
+
+                {/* Color couple fashion shot */}
+                <div className={styles.cardImageWrapClass}>
+                  <Image
+                    src={colorImage}
+                    alt="NamtanFilm Color Visual"
+                    fill
+                    quality={90}
+                    sizes="(max-width: 768px) 100vw, 30vw"
+                    className={styles.cardImageClass}
+                  />
+                </div>
+
+                {/* Card footer description and circular arrow button */}
+                <div className={styles.cardFooterClass}>
+                  <div className={styles.cardFooterTextClass}>
+                    <h3 className={styles.cardTitleClass}>{cardTitle}</h3>
+                    <p className={styles.cardSubClass}>{cardSub}</p>
+                  </div>
+                  <div className={styles.circleBtnClass}>
+                    <ArrowUpRight className="w-5 h-5 shrink-0" />
+                  </div>
+                </div>
+
+              </Link>
+              
+              {/* Secondary underlined link below the card */}
+              <Link href="/works" className={styles.underlinedCtaClass}>
+                {cardCta} ↗
+              </Link>
+
+            </motion.div>
+
+          </div>
+
+        </div>
+
       </div>
     </SectionThemeWrapper>
   );

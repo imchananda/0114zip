@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   DEFAULT_SCHEDULE_SOURCE_TOGGLES,
@@ -9,17 +9,35 @@ import {
   type ScheduleSourceToggles,
 } from '@/lib/schedule/types';
 import { SCHEDULE_SOURCE_LABELS } from '@/lib/schedule/settings';
+import type { HeroBannerConfig } from '@/lib/homepage-data';
+import { normalizeHeroBannerConfig } from '@/lib/hero-banner';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+interface HeroAsset {
+  id: string;
+  url: string;
+  title: string | null;
+  createdAt: string | null;
+  width?: number | null;
+  height?: number | null;
+}
 
-
-interface HeroBannerConfig {
-  type: 'cinematic' | 'video' | 'image' | 'slide';
-  videoUrl?: string;
-  imageUrl?: string;
-  clickUrl?: string;
-  showScrollHint?: boolean;
+interface AboutSectionSettings {
+  statement_en: string;
+  statement_th: string;
+  description_en: string;
+  description_th: string;
+  bwImage: string;
+  colorImage: string;
+  cardBadge_en: string;
+  cardBadge_th: string;
+  cardTitle_en: string;
+  cardTitle_th: string;
+  cardSub_en: string;
+  cardSub_th: string;
+  cta_en: string;
+  cta_th: string;
 }
 
 interface SiteSettings {
@@ -46,9 +64,25 @@ interface SiteSettings {
   maintenance: boolean;
   maintenanceMessage: string;
   scheduleSources: ScheduleSourceToggles;
+  aboutSection: AboutSectionSettings;
 }
 
-
+const DEFAULT_ABOUT_SETTINGS: AboutSectionSettings = {
+  statement_en: '',
+  statement_th: '',
+  description_en: '',
+  description_th: '',
+  bwImage: '',
+  colorImage: '',
+  cardBadge_en: '',
+  cardBadge_th: '',
+  cardTitle_en: '',
+  cardTitle_th: '',
+  cardSub_en: '',
+  cardSub_th: '',
+  cta_en: '',
+  cta_th: '',
+};
 
 const DEFAULT_SETTINGS: SiteSettings = {
   siteName: 'NamtanFilm',
@@ -74,12 +108,140 @@ const DEFAULT_SETTINGS: SiteSettings = {
   maintenance: false,
   maintenanceMessage: 'เว็บไซต์กำลังปรับปรุง กรุณากลับมาใหม่ภายหลัง',
   scheduleSources: { ...DEFAULT_SCHEDULE_SOURCE_TOGGLES },
+  aboutSection: DEFAULT_ABOUT_SETTINGS,
 };
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [saveMsg, setSaveMsg] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // About Section Media management state
+  const [heroAssets, setHeroAssets] = useState<HeroAsset[]>([]);
+  const [heroAssetsLoading, setHeroAssetsLoading] = useState(false);
+  const [bwUploadPct, setBwUploadPct] = useState<number | null>(null);
+  const [colorUploadPct, setColorUploadPct] = useState<number | null>(null);
+  const [previewLanguage, setPreviewLanguage] = useState<'en' | 'th'>('th');
+
+  const bwFileRef = useRef<HTMLInputElement>(null);
+  const colorFileRef = useRef<HTMLInputElement>(null);
+
+  const loadHeroAssets = async () => {
+    setHeroAssetsLoading(true);
+    try {
+      const res = await fetch('/api/admin/hero-assets?limit=50', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setHeroAssets(Array.isArray(data?.items) ? data.items : []);
+      }
+    } catch (e) {
+      console.error('Failed to load assets', e);
+    } finally {
+      setHeroAssetsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadHeroAssets();
+  }, []);
+
+  const handleBwUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setBwUploadPct(0);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/admin/upload');
+      xhr.upload.onprogress = (ev) => {
+        if (ev.lengthComputable) {
+          setBwUploadPct(Math.round((ev.loaded / ev.total) * 100));
+        }
+      };
+
+      const url = await new Promise<string>((resolve, reject) => {
+        xhr.onload = () => {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300 && data.url) {
+              resolve(data.url);
+            } else {
+              reject(new Error(data.error ?? `HTTP ${xhr.status}`));
+            }
+          } catch {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(form);
+      });
+
+      setSettings(s => ({
+        ...s,
+        aboutSection: { ...s.aboutSection, bwImage: url }
+      }));
+      setSaveMsg('อัปโหลดรูปขาวดำสำเร็จ!');
+      setTimeout(() => setSaveMsg(''), 3000);
+      loadHeroAssets(); // Refresh library
+    } catch (err) {
+      alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${err instanceof Error ? err.message : 'unknown'}`);
+    } finally {
+      setBwUploadPct(null);
+    }
+  };
+
+  const handleColorUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setColorUploadPct(0);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/admin/upload');
+      xhr.upload.onprogress = (ev) => {
+        if (ev.lengthComputable) {
+          setColorUploadPct(Math.round((ev.loaded / ev.total) * 100));
+        }
+      };
+
+      const url = await new Promise<string>((resolve, reject) => {
+        xhr.onload = () => {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300 && data.url) {
+              resolve(data.url);
+            } else {
+              reject(new Error(data.error ?? `HTTP ${xhr.status}`));
+            }
+          } catch {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(form);
+      });
+
+      setSettings(s => ({
+        ...s,
+        aboutSection: { ...s.aboutSection, colorImage: url }
+      }));
+      setSaveMsg('อัปโหลดรูปภาพสีสำเร็จ!');
+      setTimeout(() => setSaveMsg(''), 3000);
+      loadHeroAssets(); // Refresh library
+    } catch (err) {
+      alert(`อัปโหลดรูปภาพไม่สำเร็จ: ${err instanceof Error ? err.message : 'unknown'}`);
+    } finally {
+      setColorUploadPct(null);
+    }
+  };
 
   useEffect(() => {
     fetch('/api/admin/settings')
@@ -89,12 +251,13 @@ export default function SettingsPage() {
           siteName:           data.general?.siteName           ?? DEFAULT_SETTINGS.siteName,
           siteDescription:    data.general?.siteDescription    ?? DEFAULT_SETTINGS.siteDescription,
           ogImage:            data.general?.ogImage            ?? DEFAULT_SETTINGS.ogImage,
-          heroBanner:         data.heroBanner ?? DEFAULT_SETTINGS.heroBanner,
+          heroBanner:         normalizeHeroBannerConfig(data.heroBanner),
           features:           { ...DEFAULT_SETTINGS.features, ...data.features },
           social:             { ...DEFAULT_SETTINGS.social,   ...data.social },
           maintenance:        data.maintenance?.enabled        ?? false,
           maintenanceMessage: data.maintenance?.message        ?? DEFAULT_SETTINGS.maintenanceMessage,
           scheduleSources:    normalizeScheduleSourcesFromApi(data.scheduleSources),
+          aboutSection:       { ...DEFAULT_ABOUT_SETTINGS,     ...data.aboutSection },
         });
       })
       .catch(console.error);
@@ -110,6 +273,7 @@ export default function SettingsPage() {
         social:       settings.social,
         maintenance:  { enabled: settings.maintenance, message: settings.maintenanceMessage },
         scheduleSources: settings.scheduleSources,
+        aboutSection: settings.aboutSection,
       };
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
@@ -194,6 +358,446 @@ export default function SettingsPage() {
               placeholder="/images/og-image.jpg"
             />
           </Field>
+        </Section>
+
+        {/* ── About Section Content Config ──────────────────────────────── */}
+        <Section 
+          title="📝 ข้อมูลในส่วนแนะนำ (About Section Content)" 
+          description="ปรับเปลี่ยนข้อความและรูปภาพสำหรับส่วนแนะนำหน้าแรก (About Section) สไตล์นิตยสารแฟชั่น"
+        >
+          <div className="border-b border-[var(--color-border)]/40 pb-6 mb-6">
+            <h3 className="text-xs font-semibold text-[#6cbfd0] uppercase tracking-wider mb-3">🖼️ รูปภาพ (Images)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Left B&W Image */}
+              <div className="space-y-3 rounded-xl border border-[var(--color-border)]/30 bg-[var(--color-panel)] p-4 text-left">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider">ภาพฝั่งซ้าย (ขาวดำ - Left B&W Image)</p>
+                  <button
+                    type="button"
+                    onClick={() => bwFileRef.current?.click()}
+                    disabled={bwUploadPct !== null}
+                    className="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50 hover:opacity-90 transition-opacity"
+                  >
+                    {bwUploadPct !== null ? `อัปโหลด ${bwUploadPct}%` : '📤 Upload ใหม่'}
+                  </button>
+                </div>
+                
+                <input
+                  ref={bwFileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleBwUpload}
+                />
+
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] text-[var(--color-text-muted)] uppercase font-semibold">เลือกจากคลังรูปภาพ</label>
+                  <select
+                    value={heroAssets.some(a => a.url === settings.aboutSection.bwImage) ? heroAssets.find(a => a.url === settings.aboutSection.bwImage)?.id : ''}
+                    onChange={(e) => {
+                      const selected = heroAssets.find(a => a.id === e.target.value);
+                      if (selected) {
+                        setSettings(s => ({
+                          ...s,
+                          aboutSection: { ...s.aboutSection, bwImage: selected.url }
+                        }));
+                      }
+                    }}
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)]"
+                  >
+                    <option value="">-- เลือกจากคลังรูปภาพ --</option>
+                    {heroAssets.map((asset) => (
+                      <option key={asset.id} value={asset.id}>
+                        {asset.title || 'Untitled asset'} ({asset.width}x{asset.height})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] text-[var(--color-text-muted)] uppercase font-semibold">URL รูปภาพขาวดำตรง</label>
+                  <input
+                    value={settings.aboutSection.bwImage}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, bwImage: e.target.value }
+                    }))}
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)]"
+                    placeholder="/images/banners/banner_bw.png"
+                  />
+                </div>
+
+                {settings.aboutSection.bwImage && (
+                  <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden border border-[var(--color-border)]/50 bg-black/10 mt-2">
+                    <img
+                      src={settings.aboutSection.bwImage}
+                      alt="B&W visual preview"
+                      className="object-cover w-full h-full grayscale brightness-95"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Right Color Image */}
+              <div className="space-y-3 rounded-xl border border-[var(--color-border)]/30 bg-[var(--color-panel)] p-4 text-left">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-bold text-[var(--color-text-primary)] uppercase tracking-wider">ภาพฝั่งขวา (รูปสี - Right Color Image)</p>
+                  <button
+                    type="button"
+                    onClick={() => colorFileRef.current?.click()}
+                    disabled={colorUploadPct !== null}
+                    className="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50 hover:opacity-90 transition-opacity"
+                  >
+                    {colorUploadPct !== null ? `อัปโหลด ${colorUploadPct}%` : '📤 Upload ใหม่'}
+                  </button>
+                </div>
+                
+                <input
+                  ref={colorFileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleColorUpload}
+                />
+
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] text-[var(--color-text-muted)] uppercase font-semibold">เลือกจากคลังรูปภาพ</label>
+                  <select
+                    value={heroAssets.some(a => a.url === settings.aboutSection.colorImage) ? heroAssets.find(a => a.url === settings.aboutSection.colorImage)?.id : ''}
+                    onChange={(e) => {
+                      const selected = heroAssets.find(a => a.id === e.target.value);
+                      if (selected) {
+                        setSettings(s => ({
+                          ...s,
+                          aboutSection: { ...s.aboutSection, colorImage: selected.url }
+                        }));
+                      }
+                    }}
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)]"
+                  >
+                    <option value="">-- เลือกจากคลังรูปภาพ --</option>
+                    {heroAssets.map((asset) => (
+                      <option key={asset.id} value={asset.id}>
+                        {asset.title || 'Untitled asset'} ({asset.width}x{asset.height})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] text-[var(--color-text-muted)] uppercase font-semibold">URL รูปภาพสีตรง</label>
+                  <input
+                    value={settings.aboutSection.colorImage}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, colorImage: e.target.value }
+                    }))}
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text-primary)]"
+                    placeholder="/images/banners/banner.png"
+                  />
+                </div>
+
+                {settings.aboutSection.colorImage && (
+                  <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden border border-[var(--color-border)]/50 bg-black/10 mt-2">
+                    <img
+                      src={settings.aboutSection.colorImage}
+                      alt="Color visual preview"
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+
+          <div className="border-b border-[var(--color-border)]/40 pb-4 mb-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-xs font-semibold text-[#6cbfd0] uppercase tracking-wider mb-3">🇬🇧 ภาษาอังกฤษ (English)</h3>
+              <div className="space-y-4">
+                <Field label="ประโยคแถลงใหญ่ (Statement)">
+                  <textarea
+                    value={settings.aboutSection.statement_en}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, statement_en: e.target.value }
+                    }))}
+                    className="input-field min-h-[80px]"
+                    placeholder="We capture the raw emotions, the subtle moments..."
+                  />
+                </Field>
+                <Field label="คำอธิบายทั่วไป (Description)">
+                  <textarea
+                    value={settings.aboutSection.description_en}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, description_en: e.target.value }
+                    }))}
+                    className="input-field min-h-[100px]"
+                    placeholder="This website was created with love and admiration..."
+                  />
+                </Field>
+                <Field label="ป้ายบูทิกการ์ด (Card Badge)">
+                  <input
+                    value={settings.aboutSection.cardBadge_en}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, cardBadge_en: e.target.value }
+                    }))}
+                    className="input-field"
+                    placeholder="Verified Fan-Project"
+                  />
+                </Field>
+                <Field label="หัวข้อบูทิกการ์ด (Card Title)">
+                  <input
+                    value={settings.aboutSection.cardTitle_en}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, cardTitle_en: e.target.value }
+                    }))}
+                    className="input-field"
+                    placeholder="Ready to see their complete journey?"
+                  />
+                </Field>
+                <Field label="คำอธิบายบูทิกการ์ด (Card Subtext)">
+                  <input
+                    value={settings.aboutSection.cardSub_en}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, cardSub_en: e.target.value }
+                    }))}
+                    className="input-field"
+                    placeholder="Explore our massive database of works."
+                  />
+                </Field>
+                <Field label="ป้ายปุ่มนำทาง (CTA Text)">
+                  <input
+                    value={settings.aboutSection.cta_en}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, cta_en: e.target.value }
+                    }))}
+                    className="input-field"
+                    placeholder="View Filmography"
+                  />
+                </Field>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-xs font-semibold text-[#6cbfd0] uppercase tracking-wider mb-3">🇹🇭 ภาษาไทย (Thai)</h3>
+              <div className="space-y-4">
+                <Field label="ประโยคแถลงใหญ่ (Statement)">
+                  <textarea
+                    value={settings.aboutSection.statement_th}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, statement_th: e.target.value }
+                    }))}
+                    className="input-field min-h-[80px]"
+                    placeholder="เราบันทึกทุกห้วงอารมณ์ที่แท้จริง ช่วงเวลาที่แสนละเอียดอ่อน..."
+                  />
+                </Field>
+                <Field label="คำอธิบายทั่วไป (Description)">
+                  <textarea
+                    value={settings.aboutSection.description_th}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, description_th: e.target.value }
+                    }))}
+                    className="input-field min-h-[100px]"
+                    placeholder="เว็บไซต์นี้สร้างขึ้นด้วยความรักและความชื่นชมจากแฟนคลับ..."
+                  />
+                </Field>
+                <Field label="ป้ายบูทิกการ์ด (Card Badge)">
+                  <input
+                    value={settings.aboutSection.cardBadge_th}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, cardBadge_th: e.target.value }
+                    }))}
+                    className="input-field"
+                    placeholder="โปรเจกต์แฟนคลับทางการ"
+                  />
+                </Field>
+                <Field label="หัวข้อบูทิกการ์ด (Card Title)">
+                  <input
+                    value={settings.aboutSection.cardTitle_th}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, cardTitle_th: e.target.value }
+                    }))}
+                    className="input-field"
+                    placeholder="พร้อมจะร่วมย้อนดูการเดินทางทั้งหมดหรือยัง?"
+                  />
+                </Field>
+                <Field label="คำอธิบายบูทิกการ์ด (Card Subtext)">
+                  <input
+                    value={settings.aboutSection.cardSub_th}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, cardSub_th: e.target.value }
+                    }))}
+                    className="input-field"
+                    placeholder="เข้าสำรวจคลังรวบรวมผลงานทุกชิ้นที่นี่"
+                  />
+                </Field>
+                <Field label="ป้ายปุ่มนำทาง (CTA Text)">
+                  <input
+                    value={settings.aboutSection.cta_th}
+                    onChange={(e) => setSettings(s => ({
+                      ...s,
+                      aboutSection: { ...s.aboutSection, cta_th: e.target.value }
+                    }))}
+                    className="input-field"
+                    placeholder="เปิดคลังผลงานทั้งหมด"
+                  />
+                </Field>
+              </div>
+            </div>
+          </div>
+
+          {/* 🔮 Real-Time Live Preview */}
+          <div className="border-t border-[var(--color-border)]/40 pt-6 mt-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5 text-left">
+                <h3 className="text-xs font-semibold text-[#6cbfd0] uppercase tracking-wider flex items-center gap-2">
+                  <span>🔮 ส่วนแสดงผลจริง (Real-Time Live Preview)</span>
+                </h3>
+                <p className="text-[11px] text-[var(--color-text-muted)] font-normal leading-relaxed">จำลองการจัดหน้าอสมมาตร (Asymmetric Layout) ทันทีบนหน้าแรกเมื่อแสดงผล</p>
+              </div>
+
+              {/* Language Selector for Preview */}
+              <div className="flex gap-1 rounded-lg border border-[var(--color-border)] p-0.5 bg-[var(--color-panel)] shrink-0 self-start">
+                <button
+                  type="button"
+                  onClick={() => setPreviewLanguage('en')}
+                  className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-all ${previewLanguage === 'en' ? 'bg-[var(--color-accent)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}
+                >
+                  EN View
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewLanguage('th')}
+                  className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-all ${previewLanguage === 'th' ? 'bg-[var(--color-accent)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]'}`}
+                >
+                  TH View
+                </button>
+              </div>
+            </div>
+
+            {/* The Simulation Frame */}
+            <div className="rounded-[1.5rem] border border-[var(--color-border)] bg-[var(--color-bg)] p-6 md:p-8 overflow-hidden relative shadow-sm max-w-full text-left">
+              {/* Background watermark */}
+              <div className="absolute top-0 right-0 w-1/2 h-full opacity-[0.015] pointer-events-none select-none font-display text-[8vw] italic tracking-tight font-semibold whitespace-nowrap overflow-hidden translate-x-1/4 leading-none text-[var(--color-text-primary)]">
+                About
+              </div>
+
+              <div className="relative z-10 space-y-8">
+                {/* 1. Masthead mock row */}
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_2.5fr] gap-4 pb-6 border-b border-[var(--color-border)]/30">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--color-accent)] font-body">ESTABLISHED 2024</span>
+                    <span className="text-[9px] tracking-[0.05em] text-[var(--color-text-muted)] font-body uppercase">NamtanFilm Fansite</span>
+                  </div>
+                  <div className="font-display font-medium text-lg md:text-xl text-[var(--color-text-primary)] leading-[1.25] italic">
+                    "{previewLanguage === 'en' 
+                      ? (settings.aboutSection.statement_en || 'We capture the raw emotions, the subtle moments...') 
+                      : (settings.aboutSection.statement_th || 'เราบันทึกทุกห้วงอารมณ์ที่แท้จริง ช่วงเวลาที่แสนละเอียดอ่อน...')}"
+                  </div>
+                </div>
+
+                {/* 2. Three columns mock layout */}
+                <div className="grid grid-cols-1 md:grid-cols-[1.2fr_0.9fr_1.1fr] gap-6 items-start">
+                  
+                  {/* Left Mock */}
+                  <div className="space-y-4">
+                    <p className="text-[var(--color-text-muted)] text-xs leading-relaxed font-body font-normal">
+                      {previewLanguage === 'en' 
+                        ? (settings.aboutSection.description_en || 'This website was created with love...') 
+                        : (settings.aboutSection.description_th || 'เว็บไซต์นี้สร้างขึ้นด้วยความรัก...') }
+                    </p>
+                    {settings.aboutSection.bwImage && (
+                      <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden border border-[var(--color-border)]/30 bg-neutral-200 dark:bg-neutral-800">
+                        <img 
+                          src={settings.aboutSection.bwImage} 
+                          alt="Left B&W preview" 
+                          className="object-cover w-full h-full grayscale brightness-95" 
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Center Mock */}
+                  <div className="space-y-6 pt-2">
+                    <div className="pb-4 border-b border-[var(--color-border)]/20">
+                      <div className="text-[var(--color-text-primary)] text-2xl font-display font-light">20+</div>
+                      <div className="text-[var(--color-text-primary)] text-[9px] font-bold uppercase tracking-[0.15em] font-body mt-1">Works</div>
+                      <div className="text-[var(--color-text-muted)] text-[10px] font-body mt-0.5">Joint series & variety</div>
+                    </div>
+                    <div className="pb-4 border-b border-[var(--color-border)]/20">
+                      <div className="text-[var(--color-text-primary)] text-2xl font-display font-light">15+</div>
+                      <div className="text-[var(--color-text-primary)] text-[9px] font-bold uppercase tracking-[0.15em] font-body mt-1">Awards</div>
+                      <div className="text-[var(--color-text-muted)] text-[10px] font-body mt-0.5">Accolades & nominations</div>
+                    </div>
+                    <div>
+                      <div className="text-[var(--color-text-primary)] text-2xl font-display font-light">1.2M+</div>
+                      <div className="text-[var(--color-text-primary)] text-[9px] font-bold uppercase tracking-[0.15em] font-body mt-1">Orbit Fans</div>
+                      <div className="text-[var(--color-text-muted)] text-[10px] font-body mt-0.5">Global fan connections</div>
+                    </div>
+                  </div>
+
+                  {/* Right Mock */}
+                  <div className="flex flex-col items-end gap-3 pt-2">
+                    <div className="relative w-full rounded-2xl bg-[var(--color-surface)] p-4 border border-[var(--color-border)]/30 shadow-sm flex flex-col gap-3">
+                      <div className="inline-flex items-center gap-1.5 self-start bg-[var(--color-bg)]/80 px-2.5 py-1 rounded-full border border-[var(--color-border)]/40 text-[8px] font-bold uppercase tracking-wider text-[var(--color-text-primary)]">
+                        <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                        {previewLanguage === 'en' 
+                          ? (settings.aboutSection.cardBadge_en || 'Verified Fan-Project') 
+                          : (settings.aboutSection.cardBadge_th || 'โปรเจกต์แฟนคลับทางการ')}
+                      </div>
+                      
+                      {settings.aboutSection.colorImage && (
+                        <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-black/5">
+                          <img 
+                            src={settings.aboutSection.colorImage} 
+                            alt="Color boutique card preview" 
+                            className="object-cover w-full h-full" 
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-end gap-2 mt-1">
+                        <div className="flex flex-col gap-0.5 max-w-[80%]">
+                          <h4 className="font-display font-medium text-sm text-[var(--color-text-primary)] leading-snug">
+                            {previewLanguage === 'en' 
+                              ? (settings.aboutSection.cardTitle_en || 'Ready to see their complete journey?') 
+                              : (settings.aboutSection.cardTitle_th || 'พร้อมจะร่วมย้อนดูการเดินทางทั้งหมดหรือยัง?')}
+                          </h4>
+                          <p className="text-[10px] text-[var(--color-text-muted)] font-body leading-normal">
+                            {previewLanguage === 'en' 
+                              ? (settings.aboutSection.cardSub_en || 'Explore our massive database of works.') 
+                              : (settings.aboutSection.cardSub_th || 'เข้าสำรวจคลังรวบรวมผลงานทุกชิ้นที่นี่')}
+                          </p>
+                        </div>
+                        <div className="w-7 h-7 rounded-full bg-[var(--color-text-primary)] text-[var(--color-bg)] flex items-center justify-center text-xs shrink-0 font-body">
+                          ↗
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className="text-[var(--color-text-primary)] text-xs tracking-wider uppercase font-bold border-b border-[var(--color-text-primary)] pb-0.5 cursor-pointer mt-1">
+                      {previewLanguage === 'en' 
+                        ? (settings.aboutSection.cta_en || 'View Filmography') 
+                        : (settings.aboutSection.cta_th || 'เปิดคลังผลงานทั้งหมด')} ↗
+                    </span>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
         </Section>
 
         {/* ── Homepage Sections → Redirect to Page Builder ─────────────── */}

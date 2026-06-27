@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { RealtimePostgresInsertPayload } from '@supabase/supabase-js';
+import type { RealtimePostgresInsertPayload, RealtimeChannel } from '@supabase/supabase-js';
 import { useAuth } from '@/context/AuthContext';
 import { createSupabaseBrowser } from '@/lib/supabase';
 
@@ -37,39 +37,65 @@ export function NotificationBell() {
   useEffect(() => {
     if (!user) return;
     const supabase = createSupabaseBrowser();
+    let channel: RealtimeChannel | null = null;
 
     const fetchNotifications = async () => {
-      const { data } = await supabase
-        .from('user_notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      try {
+        const { data, error } = await supabase
+          .from('user_notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20);
 
-      if (data) {
-        setNotifications(data);
-        setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
+        if (error) {
+          console.warn('[NotificationBell] Failed to load notifications:', error.message);
+          return;
+        }
+
+        if (data) {
+          setNotifications(data);
+          setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
+        }
+      } catch (err) {
+        console.warn('[NotificationBell] Try-catch error fetching notifications:', err);
       }
     };
 
     fetchNotifications();
 
-    // Realtime subscription
-    const channel = supabase
-      .channel('notifications')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'user_notifications',
-        filter: `user_id=eq.${user.id}`,
-      }, (payload: RealtimePostgresInsertPayload<Notification>) => {
-        const newNotif = payload.new as Notification;
-        setNotifications((prev) => [newNotif, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-      })
-      .subscribe();
+    try {
+      // Realtime subscription wrapped in try-catch to avoid websocket connection crashes
+      channel = supabase
+        .channel('notifications')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'user_notifications',
+          filter: `user_id=eq.${user.id}`,
+        }, (payload: RealtimePostgresInsertPayload<Notification>) => {
+          try {
+            const newNotif = payload.new as Notification;
+            setNotifications((prev) => [newNotif, ...prev]);
+            setUnreadCount((prev) => prev + 1);
+          } catch (innerErr) {
+            console.error('[NotificationBell] Error processing realtime notification payload:', innerErr);
+          }
+        })
+        .subscribe();
+    } catch (subErr) {
+      console.warn('[NotificationBell] Realtime subscription failed:', subErr);
+    }
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { 
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (removeErr) {
+          console.warn('[NotificationBell] Error cleanup of realtime channel:', removeErr);
+        }
+      }
+    };
   }, [user]);
 
   // Close on outside click
@@ -91,25 +117,43 @@ export function NotificationBell() {
   // Mark all as read
   const markAllRead = async () => {
     if (!user) return;
-    const supabase = createSupabaseBrowser();
-    await supabase
-      .from('user_notifications')
-      .update({ is_read: true })
-      .eq('user_id', user.id)
-      .eq('is_read', false);
+    try {
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase
+        .from('user_notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
 
+      if (error) {
+        console.warn('[NotificationBell] Failed to mark all as read:', error.message);
+      }
+    } catch (err) {
+      console.error('[NotificationBell] Error marking all as read:', err);
+    }
+
+    // Proactively update UI state anyway for seamless UX
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     setUnreadCount(0);
   };
 
   // Mark single as read
   const markRead = async (id: string) => {
-    const supabase = createSupabaseBrowser();
-    await supabase
-      .from('user_notifications')
-      .update({ is_read: true })
-      .eq('id', id);
+    try {
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase
+        .from('user_notifications')
+        .update({ is_read: true })
+        .eq('id', id);
 
+      if (error) {
+        console.warn('[NotificationBell] Failed to mark single notification as read:', error.message);
+      }
+    } catch (err) {
+      console.error('[NotificationBell] Error marking notification as read:', err);
+    }
+
+    // Proactively update UI state anyway for seamless UX
     setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n));
     setUnreadCount((prev) => Math.max(0, prev - 1));
   };

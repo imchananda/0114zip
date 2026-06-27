@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -688,34 +688,46 @@ export type Database = {
           actors: string[] | null
           category: string | null
           created_at: string | null
+          height: number | null
           id: string
           image: string
+          mime_type: string | null
           sort_order: number | null
+          storage_path: string | null
           title: string | null
           title_thai: string | null
           visible: boolean | null
+          width: number | null
         }
         Insert: {
           actors?: string[] | null
           category?: string | null
           created_at?: string | null
+          height?: number | null
           id?: string
           image: string
+          mime_type?: string | null
           sort_order?: number | null
+          storage_path?: string | null
           title?: string | null
           title_thai?: string | null
           visible?: boolean | null
+          width?: number | null
         }
         Update: {
           actors?: string[] | null
           category?: string | null
           created_at?: string | null
+          height?: number | null
           id?: string
           image?: string
+          mime_type?: string | null
           sort_order?: number | null
+          storage_path?: string | null
           title?: string | null
           title_thai?: string | null
           visible?: boolean | null
+          width?: number | null
         }
         Relationships: []
       }
@@ -805,6 +817,47 @@ export type Database = {
           view_state?: string
         }
         Relationships: []
+      }
+      user_notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: "event" | "community" | "badge" | "system" | "welcome"
+          title: string
+          body: string | null
+          link: string | null
+          is_read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: "event" | "community" | "badge" | "system" | "welcome"
+          title: string
+          body?: string | null
+          link?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: "event" | "community" | "badge" | "system" | "welcome"
+          title?: string
+          body?: string | null
+          link?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       ig_posts: {
         Row: {

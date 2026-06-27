@@ -23,17 +23,23 @@ export const supabase = new Proxy({} as SupabaseClient, {
 });
 
 // ── Browser client (client-side auth + reads) ──
-let _browserClient: ReturnType<typeof createBrowserClient> | null = null;
+declare global {
+  interface Window {
+    __supabaseBrowserClient?: ReturnType<typeof createBrowserClient<Database>>;
+  }
+}
 
 export function createSupabaseBrowser() {
   if (typeof window === 'undefined') {
     // SSR needs a fresh instance
     return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
   }
-  if (!_browserClient) {
-    _browserClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
+  
+  // Cache on window to avoid duplication across simultaneous imports/renders
+  if (!window.__supabaseBrowserClient) {
+    window.__supabaseBrowserClient = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey);
   }
-  return _browserClient;
+  return window.__supabaseBrowserClient;
 }
 
 // ── Server client (server-side route handlers with cookie support) ──

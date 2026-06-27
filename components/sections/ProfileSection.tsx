@@ -6,11 +6,13 @@
  *   • Motion: useSectionMotion + toWhileInViewBinding
  *   • Theme: SectionThemeWrapper → CSS vars
  */
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import { useViewState } from '@/context/ViewStateContext';
 import { Link } from '@/i18n/routing';
+import { cn } from '@/lib/utils';
 import type { HomepageSectionConfig, PageMotionConfig, PageThemeConfig } from '@/lib/homepage-sections';
 import { SectionThemeWrapper } from '@/components/ui/SectionThemeWrapper';
 import { toWhileInViewBinding, useSectionMotion } from '@/lib/visual';
@@ -18,7 +20,6 @@ import {
   HomeArtistProfile,
   HomeEngData,
   HomeContentItem,
-  HomeIgPost,
 } from '@/lib/homepage-data';
 import {
   getArtistPanelContentClass,
@@ -50,18 +51,6 @@ function fmt(n: number): string {
   return n.toString();
 }
 
-function fmtDollar(n: number): string {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(2)}K`;
-  if (n > 0) return `$${n.toFixed(0)}`;
-  return '—';
-}
-
-function sumEmv(posts: HomeIgPost[] | undefined): number {
-  if (!posts?.length) return 0;
-  return posts.reduce((s, p) => s + (p.emv ?? 0), 0);
-}
-
 function shouldUnoptimizedImage(url: string | null | undefined): boolean {
   if (!url || !url.startsWith('http')) return false;
   if (url.includes('supabase.co') || url.includes('supabase.in')) return false;
@@ -71,19 +60,6 @@ function shouldUnoptimizedImage(url: string | null | undefined): boolean {
 const CONTENT_TYPE_LABEL: Record<string, Record<string, string>> = {
   en: { series: 'Series', variety: 'Variety', music: 'Music', magazine: 'Magazine', event: 'Event', award: 'Award' },
   th: { series: 'ซีรีส์', variety: 'วาไรตี้', music: 'เพลง', magazine: 'นิตยสาร', event: 'อีเวนต์', award: 'รางวัล' },
-};
-
-/* ── Starfield (CSS) ──────────────────────────────────────────────── */
-
-const STARFIELD_STYLE: import('react').CSSProperties = {
-  backgroundImage: [
-    'radial-gradient(1px 1px at 8% 12%, rgba(255,255,255,0.5), transparent)',
-    'radial-gradient(1.5px 1.5px at 22% 38%, rgba(255,255,255,0.25), transparent)',
-    'radial-gradient(1px 1px at 45% 8%, rgba(255,255,255,0.4), transparent)',
-    'radial-gradient(1px 1px at 78% 22%, rgba(255,255,255,0.3), transparent)',
-    'radial-gradient(1.5px 1.5px at 92% 60%, rgba(255,255,255,0.45), transparent)',
-  ].join(', '),
-  backgroundSize: '100% 100%',
 };
 
 /* ── Icons (compact) ─────────────────────────────────────────────── */
@@ -112,14 +88,6 @@ function FilmIcon({ className }: { className?: string }) {
   );
 }
 
-function UsersIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-    </svg>
-  );
-}
-
 /* ── Half-panel (single artist column, mockup-accurate structure) ───── */
 
 function ArtistSplitPanel({
@@ -134,6 +102,7 @@ function ArtistSplitPanel({
   lang,
   t,
   splitMode = 'pair',
+  theme,
 }: {
   side: 'left' | 'right';
   profile: HomeArtistProfile | undefined;
@@ -147,11 +116,12 @@ function ArtistSplitPanel({
   t: ReturnType<typeof useTranslations>;
   /** pair = left/right in split; single = นับเป็นคนเดียว มุมโค้งรอบการ์ด */
   splitMode?: 'pair' | 'single';
+  theme?: string;
 }) {
   const id = side === 'left' ? 'namtan' : 'film';
-  const textAlign = side === 'right' ? 'items-end text-right' : 'items-start text-left';
   const unopt = shouldUnoptimizedImage(profile?.photo_url);
-  const radius = getArtistPanelRadius(side, splitMode);
+  const styles = getProfileStyles({ theme });
+  const isLight = styles.resolvedTheme === 'light';
 
   const loc = (enK: keyof HomeArtistProfile, thK: keyof HomeArtistProfile) => {
     if (!profile) return '';
@@ -166,87 +136,123 @@ function ArtistSplitPanel({
   const ig = snap.instagram ?? 0;
   const x = snap.x ?? snap.twitter ?? 0;
 
+  const starfieldStyle = useMemo(() => {
+    const particleColor = isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.45)';
+    return {
+      backgroundImage: [
+        `radial-gradient(1px 1px at 8% 12%, ${particleColor}, transparent)`,
+        `radial-gradient(1.5px 1.5px at 22% 38%, ${particleColor}, transparent)`,
+        `radial-gradient(1px 1px at 45% 8%, ${particleColor}, transparent)`,
+        `radial-gradient(1px 1px at 78% 22%, ${particleColor}, transparent)`,
+        `radial-gradient(1.5px 1.5px at 92% 60%, ${particleColor}, transparent)`,
+      ].join(', '),
+      backgroundSize: '100% 100%',
+    };
+  }, [isLight]);
+
   return (
-    <div
-      className={getArtistPanelShellClass()}
-      style={{
-        borderTopLeftRadius: radius.tl,
-        borderBottomLeftRadius: radius.bl,
-        borderTopRightRadius: radius.tr,
-        borderBottomRightRadius: radius.br,
+    <motion.div
+      className={getArtistPanelShellClass(side, isLight)}
+      whileHover={{ 
+        boxShadow: isLight
+          ? `0 0 60px -15px ${accentHex}20`
+          : `0 0 60px -15px ${accentHex}25`, 
+        borderColor: `${accentHex}20` 
       }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
     >
       {/* Cinematic base + side tint (mockup: blue left / gold right wash) */}
       <div
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 transition-all duration-700"
         style={{
-          background: side === 'left'
-            ? 'linear-gradient(180deg, #030a18 0%, #050c1a 40%, #060d1c 100%)'
-            : 'linear-gradient(180deg, #120c02 0%, #0f0a00 50%, #0a0800 100%)',
+          background: isLight
+            ? (side === 'left'
+                ? 'linear-gradient(180deg, #f3f8fa 0%, #eaf3f6 40%, #deeef2 100%)'
+                : 'linear-gradient(180deg, #fdfbf5 0%, #faf5e6 50%, #f6edd0 100%)')
+            : (side === 'left'
+                ? 'linear-gradient(180deg, #030a18 0%, #050c1a 40%, #060d1c 100%)'
+                : 'linear-gradient(180deg, #120c02 0%, #0f0a00 50%, #0a0800 100%)'),
         }}
       />
       {profile?.photo_url && (
-        <div className="absolute inset-0 z-[1]">
+        <motion.div 
+          className="absolute inset-0 z-[1] overflow-hidden"
+          whileHover={{ scale: 1.03 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        >
           <Image
             src={profile.photo_url}
             alt={profile.nickname || id}
             fill
             unoptimized={unopt}
-            className={
-              side === 'left'
-                ? 'object-cover object-top object-right opacity-90'
-                : 'object-cover object-top object-left opacity-90'
-            }
+            className={cn(
+              'object-cover object-top transition-all duration-700',
+              side === 'left' ? 'object-right' : 'object-left',
+              isLight ? 'opacity-[0.85]' : 'opacity-80'
+            )}
             sizes="(max-width: 1024px) 100vw, 50vw"
             priority={side === 'left'}
           />
-        </div>
+        </motion.div>
       )}
 
       {/* Orbit / glow + starfield + vignette */}
-      <div className="absolute inset-0 z-[2] pointer-events-none" style={STARFIELD_STYLE} />
+      <div className="absolute inset-0 z-[2] pointer-events-none" style={starfieldStyle} />
       <div
-        className="absolute inset-0 z-[2] pointer-events-none"
+        className="absolute inset-0 z-[2] pointer-events-none transition-all duration-700"
         style={{
           background: side === 'left'
-            ? 'radial-gradient(ellipse 90% 70% at 20% 30%, rgba(105,188,220,0.2), transparent 55%)'
-            : 'radial-gradient(ellipse 90% 70% at 80% 30%, rgba(248,232,95,0.12), transparent 55%)',
+            ? `radial-gradient(ellipse 90% 70% at 20% 30%, ${isLight ? 'rgba(105,188,220,0.22)' : 'rgba(105,188,220,0.2)'}, transparent 55%)`
+            : `radial-gradient(ellipse 90% 70% at 80% 30%, ${isLight ? 'rgba(248,232,95,0.2)' : 'rgba(248,232,95,0.12)'}, transparent 55%)`,
         }}
       />
       <div
-        className="absolute inset-0 z-[2] pointer-events-none mix-blend-multiply"
+        className="absolute inset-0 z-[2] pointer-events-none transition-all duration-700"
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.75) 100%)',
-        }}
+          background: isLight
+            ? 'radial-gradient(ellipse at center, transparent 40%, rgba(255,255,255,0.25) 100%)'
+            : 'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.75) 100%)',
+          mixBlendMode: isLight ? 'normal' : 'multiply'
+        } as import('react').CSSProperties}
       />
       <div
-        className="absolute inset-0 z-[2] pointer-events-none"
+        className="absolute inset-0 z-[2] pointer-events-none transition-all duration-700"
         style={{
-          background: 'linear-gradient(to top, #03050c 0%, rgba(3,5,12,0.4) 45%, rgba(3,5,12,0.2) 100%)',
+          background: isLight
+            ? (side === 'left'
+                ? 'linear-gradient(to top, #deeef2 0%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.1) 100%)'
+                : 'linear-gradient(to top, #f6edd0 0%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.1) 100%)')
+            : 'linear-gradient(to top, #03050c 0%, rgba(3,5,12,0.4) 45%, rgba(3,5,12,0.2) 100%)',
         }}
       />
-      <div
-        className={`absolute z-[2] pointer-events-none opacity-30 ${
-          side === 'left' ? '-left-[20%] top-[10%] w-[70%] aspect-square' : '-right-[20%] top-[10%] w-[70%] aspect-square'
+
+      {/* Rotating Astronomical Symmetrical Orbit Ring */}
+      <motion.div
+        className={`absolute z-[2] pointer-events-none opacity-20 transition-all duration-700 ${
+          side === 'left' ? '-left-[25%] top-[15%] w-[80%] aspect-square' : '-right-[25%] top-[15%] w-[80%] aspect-square'
         }`}
         style={{
           border: `1px solid ${accentHex}`,
           borderRadius: '50%',
-          filter: 'blur(0.5px)',
         }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 45, repeat: Infinity, ease: 'linear' }}
       />
 
       {/* Foreground: content at bottom, mockup layout */}
       <div className={getArtistPanelContentClass(side)}>
         <div className="max-w-md w-full" style={side === 'right' ? { marginLeft: 'auto' } : undefined}>
           <h3
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold tracking-tight text-white leading-[0.95] drop-shadow-2xl"
-            style={{ fontFeatureSettings: '"ss02"', textShadow: `0 0 40px ${accentHex}33` }}
+            className={cn(
+              "text-4xl sm:text-6xl md:text-7xl lg:text-5xl xl:text-7xl 2xl:text-8xl font-display font-bold tracking-tight leading-[0.95] transition-all duration-500",
+              isLight ? "text-slate-900 drop-shadow-sm" : "text-white drop-shadow-2xl"
+            )}
+            style={{ fontFeatureSettings: '"ss02"', textShadow: isLight ? 'none' : `0 0 40px ${accentHex}33` }}
           >
             {profile?.nickname?.toUpperCase() || id.toUpperCase()}
           </h3>
           <div
-            className={`mt-2 flex items-center gap-2 ${side === 'right' ? 'justify-end' : 'justify-start'}`}
+            className={`mt-3.5 flex items-center gap-2 ${side === 'right' ? 'justify-end' : 'justify-start'}`}
           >
             <span
               className="h-2 w-2 rounded-full shadow-lg"
@@ -261,111 +267,109 @@ function ArtistSplitPanel({
           </div>
 
           {desc && (
-            <p className="text-white/75 text-sm sm:text-base leading-relaxed mt-4 font-thai line-clamp-4">
+            <p className={cn(
+              "text-sm sm:text-base leading-relaxed mt-4 font-thai line-clamp-4 font-medium transition-colors duration-500",
+              isLight ? "text-slate-800" : "text-white/75"
+            )}>
               {desc}
             </p>
           )}
 
+          {/* Symmetrical mirrored button */}
           <Link
             href={`/artist/${id}`}
-            className="mt-6 inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white/95 backdrop-blur-sm transition-all hover:brightness-110"
-            style={{ borderColor: `${accentHex}99`, backgroundColor: 'rgba(255,255,255,0.04)' }}
+            className={cn(
+              "mt-6 inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] backdrop-blur-sm transition-all hover:brightness-110",
+              isLight ? "text-slate-900 hover:bg-black/5" : "text-white/95 hover:bg-white/5"
+            )}
+            style={{ 
+              borderColor: isLight ? `${accentHex}aa` : `${accentHex}88`, 
+              backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)' 
+            }}
           >
+            {side === 'right' && <span className="text-sm leading-none" aria-hidden>←</span>}
             {t('profile.viewProfile')}
-            <span className="text-lg leading-none" aria-hidden>
-              →
-            </span>
+            {side === 'left' && <span className="text-sm leading-none" aria-hidden>→</span>}
           </Link>
 
-          {/* Social stats: compact row (closer to mockup vertical list → we use 3 clear rows) */}
-          <ul className={`mt-8 space-y-2.5 ${side === 'right' ? 'ml-auto' : ''}`}>
+          {/* Floating Glassmorphic Symmetrical Stats Module */}
+          <div className={styles.statsContainerClass(side)}>
             {ig > 0 && (
-              <li className="flex items-center gap-3 w-fit">
+              <div className={styles.statItemClass(side)}>
                 <span className="shrink-0" style={{ color: accentHex }}>
                   <IgIcon className="h-5 w-5" />
                 </span>
-                <div className="text-left">
-                  <span className="text-xl sm:text-2xl font-display font-semibold text-white tabular-nums">
-                    {fmt(ig)}
-                  </span>
-                  <span className="block text-[9px] uppercase tracking-widest text-white/45">Instagram</span>
+                <div>
+                  <span className={styles.statValueClass}>{fmt(ig)}</span>
+                  <span className={styles.statLabelClass}>Instagram</span>
                 </div>
-              </li>
+              </div>
             )}
             {x > 0 && (
-              <li className="flex items-center gap-3 w-fit">
+              <div className={styles.statItemClass(side)}>
                 <span className="shrink-0" style={{ color: accentHex }}>
                   <XIcon className="h-5 w-5" />
                 </span>
-                <div className="text-left">
-                  <span className="text-xl sm:text-2xl font-display font-semibold text-white tabular-nums">
-                    {fmt(x)}
-                  </span>
-                  <span className="block text-[9px] uppercase tracking-widest text-white/45">X</span>
+                <div>
+                  <span className={styles.statValueClass}>{fmt(x)}</span>
+                  <span className={styles.statLabelClass}>X</span>
                 </div>
-              </li>
+              </div>
             )}
             {works != null && works > 0 && (
-              <li className="flex items-center gap-3 w-fit">
+              <div className={styles.statItemClass(side)}>
                 <span className="shrink-0" style={{ color: accentHex }}>
                   <FilmIcon className="h-5 w-5" />
                 </span>
-                <div className="text-left">
-                  <span className="text-xl sm:text-2xl font-display font-semibold text-white tabular-nums">
-                    {works}
-                  </span>
-                  <span className="block text-[9px] uppercase tracking-widest text-white/45">
-                    {t('profile.totalWorks')}
-                  </span>
+                <div>
+                  <span className={styles.statValueClass}>{works}</span>
+                  <span className={styles.statLabelClass}>{t('profile.totalWorks')}</span>
                 </div>
-              </li>
+              </div>
             )}
-          </ul>
+          </div>
         </div>
 
-        {/* Latest Works — อยู่ในคอลัมน์เดียวกับฮีโร่ (รูป mockup) */}
+        {/* Latest Works — Glass floating cards (mirrored) */}
         {latestWorks.length > 0 && (
-          <div className="mt-8 w-full max-w-md border-t border-white/10 pt-5">
-            <div className={`flex items-center justify-between mb-3 ${textAlign} flex-wrap gap-2`}>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
-                {t('profile.latestWorks')}
-              </span>
-              <Link
-                href={`/artist/${id}?tab=works`}
-                className="text-[10px] font-bold uppercase tracking-[0.15em] hover:opacity-80"
-                style={{ color: accentHex }}
-              >
-                {t('profile.viewAll')}
-              </Link>
+          <div className={styles.worksWrapperClass(side)}>
+            <div className={styles.worksTitleClass}>
+              {t('profile.latestWorks')}
             </div>
-            <div className="flex gap-2 sm:gap-3">
+            <div className={styles.worksGridClass(side)}>
               {latestWorks.map((work) => (
-                <div key={work.id} className="flex-1 min-w-0 group/work">
-                  <div className="relative aspect-[3/4] rounded-md overflow-hidden bg-black/30 ring-1 ring-white/10">
+                <Link
+                  href={`/artist/${id}?tab=works`}
+                  key={work.id}
+                  className={styles.workCardClass}
+                >
+                  <div className={styles.workImageWrapClass}>
                     {work.image && (
                       <Image
                         src={work.image}
                         alt={lang === 'th' ? work.title_thai || work.title : work.title}
                         fill
                         unoptimized
-                        className="object-cover transition-transform duration-500 group-hover/work:scale-105"
+                        className="object-cover transition-transform duration-700 group-hover/work:scale-110"
                         sizes="120px"
                       />
                     )}
                   </div>
-                  <p className="text-[10px] sm:text-xs text-white/90 font-medium truncate mt-1.5">
-                    {lang === 'th' ? work.title_thai || work.title : work.title}
-                  </p>
-                  <p className="text-[8px] uppercase tracking-wider text-white/40">
-                    {getTypeLabel(work.content_type)}
-                  </p>
-                </div>
+                  <div className={styles.workInfoClass(side)}>
+                    <span className={styles.workTextClass}>
+                      {lang === 'th' ? work.title_thai || work.title : work.title}
+                    </span>
+                    <span className={styles.workSubClass}>
+                      {getTypeLabel(work.content_type)}
+                    </span>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -386,10 +390,7 @@ export function ProfileSection({
   const lang = useLocale();
   const styles = getProfileStyles({ theme: config?.theme, layout: config?.layout });
   const sectionMotion = useSectionMotion(pageMotion, config?.motion);
-  const headerKickerMotion = toWhileInViewBinding(sectionMotion);
-  const headerSubMotion = toWhileInViewBinding(sectionMotion, 1);
   const headerTitleMotion = toWhileInViewBinding(sectionMotion, 2);
-  const togetherBarMotion = toWhileInViewBinding(sectionMotion, 3);
 
   const showNamtan = state === 'both' || state === 'namtan' || state === 'lunar';
   const showFilm = state === 'both' || state === 'film' || state === 'lunar';
@@ -406,11 +407,6 @@ export function ProfileSection({
     .filter((c) => c.actors?.includes('film') && c.image)
     .slice(0, 3);
 
-  const combinedFollowers =
-    Object.values(ntSnap).reduce((s, v) => s + v, 0) + Object.values(flSnap).reduce((s, v) => s + v, 0);
-  const emvNt = sumEmv(engData?.igPosts?.namtan);
-  const emvFl = sumEmv(engData?.igPosts?.film);
-  const emvTotal = emvNt + emvFl;
   const splitMode: 'pair' | 'single' = showNamtan && showFilm ? 'pair' : 'single';
 
   return (
@@ -422,25 +418,8 @@ export function ProfileSection({
       sectionTheme={config?.themeTokens}
     >
       <div className={styles.outerWrapClass}>
+        {/* Magazine-style Centered Header */}
         <div className={styles.headerWrapClass}>
-          <motion.p
-            initial={headerKickerMotion.initial}
-            whileInView={headerKickerMotion.whileInView}
-            viewport={headerKickerMotion.viewport}
-            transition={headerKickerMotion.transition}
-            className={styles.kickerClass}
-          >
-            {t('profile.sectionKicker')}
-          </motion.p>
-          <motion.p
-            initial={headerSubMotion.initial}
-            whileInView={headerSubMotion.whileInView}
-            viewport={headerSubMotion.viewport}
-            transition={headerSubMotion.transition}
-            className={styles.sublineClass}
-          >
-            {t('profile.sub')}
-          </motion.p>
           <motion.h2
             initial={headerTitleMotion.initial}
             whileInView={headerTitleMotion.whileInView}
@@ -451,9 +430,15 @@ export function ProfileSection({
             {t('profile.title')}
           </motion.h2>
           <p className={styles.subThaiClass}>{t('profile.subThai')}</p>
+          <div className={styles.headerDividerClass} />
         </div>
 
         <div className={getSplitGridClass(showNamtan && showFilm)}>
+          {/* Symmetrical desktop vertical divider line */}
+          {showNamtan && showFilm && (
+            <div className={styles.centerDividerClass} />
+          )}
+
           {showNamtan && (
             <ArtistSplitPanel
               side="left"
@@ -467,6 +452,7 @@ export function ProfileSection({
               lang={lang}
               t={t}
               splitMode={splitMode}
+              theme={config?.theme}
             />
           )}
 
@@ -483,64 +469,10 @@ export function ProfileSection({
               lang={lang}
               t={t}
               splitMode={splitMode}
+              theme={config?.theme}
             />
           )}
         </div>
-
-        {showNamtan && showFilm && <div className={styles.mobileDividerClass} />}
-
-        {showNamtan && showFilm && styles.showTogetherBar && (
-          <motion.div
-            initial={togetherBarMotion.initial}
-            whileInView={togetherBarMotion.whileInView}
-            viewport={togetherBarMotion.viewport}
-            transition={togetherBarMotion.transition}
-            className={styles.togetherBarClass}
-          >
-            <div className={styles.togetherRowClass}>
-              <div className={styles.togetherHeadingWrapClass}>
-                <h4 className={styles.togetherTitleClass}>{t('profile.together')}</h4>
-                <p className={styles.togetherSubClass}>{t('profile.togetherSub')}</p>
-              </div>
-              <div className={styles.statsGridClass}>
-                {combinedFollowers > 0 && (
-                  <div className={styles.statCardClass}>
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-500 dark:text-cyan-300">
-                      <UsersIcon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <div className={styles.statValueClass}>{fmt(combinedFollowers)}</div>
-                      <div className={styles.statLabelClass}>{t('profile.totalFollowers')}</div>
-                    </div>
-                  </div>
-                )}
-                {emvTotal > 0 && (
-                  <div className={styles.statCardClass}>
-                    <div className="h-9 w-9 shrink-0 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300/90 flex items-center justify-center text-[10px] font-bold">
-                      E
-                    </div>
-                    <div>
-                      <div className={styles.statValueClass}>{fmtDollar(emvTotal)}</div>
-                      <div className={styles.statLabelClampClass}>{t('profile.emv')}</div>
-                    </div>
-                  </div>
-                )}
-                {(ntWorksCount ?? 0) + (flWorksCount ?? 0) > 0 && (
-                  <div className={styles.statCardClass}>
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-yellow-500/10 text-yellow-600 dark:text-yellow-200">
-                      <FilmIcon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <div className={styles.statValueClass}>{(ntWorksCount ?? 0) + (flWorksCount ?? 0)}</div>
-                      <div className={styles.statLabelClass}>{t('profile.totalWorks')}</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <p className={styles.dataRangeClass}>{t('profile.dataRange')}</p>
-          </motion.div>
-        )}
       </div>
     </SectionThemeWrapper>
   );

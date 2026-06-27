@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
  * Profile section visual styles (Phase 6 — token-aware surfaces).
  * Artist accent colors and cinematic panel gradients stay inline — identity, not admin tokens.
  */
-export type ProfileTheme = 'cinematic' | 'clean';
+export type ProfileTheme = 'dark' | 'light';
 export type ProfileStatsLayout = 'show' | 'hide';
 
 export const PROFILE_ARTIST_ACCENTS = {
@@ -18,7 +18,8 @@ type ProfileStyleOptions = {
 };
 
 export function resolveProfileTheme(theme?: string): ProfileTheme {
-  return theme === 'clean' ? 'clean' : 'cinematic';
+  if (theme === 'light' || theme === 'clean') return 'light';
+  return 'dark';
 }
 
 export function resolveProfileStatsLayout(layout?: string): ProfileStatsLayout {
@@ -26,75 +27,101 @@ export function resolveProfileStatsLayout(layout?: string): ProfileStatsLayout {
 }
 
 export function getSplitGridClass(isDual: boolean): string {
-  return cn('grid w-full', isDual ? 'lg:grid-cols-2 gap-0' : 'grid-cols-1');
+  return cn('grid w-full relative', isDual ? 'lg:grid-cols-2 gap-0' : 'grid-cols-1');
 }
 
 export function getProfileStyles({ theme, layout }: ProfileStyleOptions) {
   const resolvedTheme = resolveProfileTheme(theme);
   const resolvedLayout = resolveProfileStatsLayout(layout);
-  const isClean = resolvedTheme === 'clean';
+  const isLight = resolvedTheme === 'light';
 
   return {
     resolvedTheme,
     resolvedLayout,
     showTogetherBar: resolvedLayout === 'show',
     sectionClass: cn(
-      'relative z-0 scroll-mt-24',
-      isClean ? 'bg-[var(--color-bg)] text-primary' : 'bg-[#03050c] text-white',
+      'relative z-0 scroll-mt-24 py-24 md:py-32 overflow-hidden transition-colors duration-500',
+      isLight ? 'bg-[var(--color-bg)] text-primary' : 'bg-[#03050c] text-white',
     ),
-    outerWrapClass: cn('w-full max-w-[100vw] overflow-x-hidden'),
-    headerWrapClass: cn('mx-auto max-w-[1800px] px-4 sm:px-6 md:px-8 pt-14 pb-4'),
-    kickerClass: cn(
-      'text-[10px] uppercase tracking-[0.3em] mb-1',
-      isClean ? 'text-muted/60' : 'text-white/40',
-    ),
-    sublineClass: cn(
-      'text-[10px] sm:text-xs uppercase tracking-[0.2em] mb-2',
-      isClean ? 'text-[var(--color-accent)]' : 'text-cyan-300/80',
-    ),
+    outerWrapClass: cn('w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 relative'),
+    
+    // Magazine-style centered header
+    headerWrapClass: cn('text-center max-w-3xl mx-auto mb-16 relative flex flex-col items-center'),
     titleClass: cn(
-      'font-display text-3xl sm:text-4xl md:text-5xl font-bold uppercase tracking-tight',
-      isClean ? 'text-primary' : 'text-white',
+      'font-display text-4xl sm:text-5xl md:text-6xl font-extrabold uppercase tracking-[0.12em] mb-4 transition-colors duration-500',
+      isLight ? 'text-primary' : 'text-white drop-shadow-[0_4px_12px_rgba(255,255,255,0.1)]',
     ),
-    subThaiClass: cn('text-sm mt-1 font-thai max-w-2xl', isClean ? 'text-muted' : 'text-white/50'),
-    mobileDividerClass: cn('lg:hidden h-px w-full', isClean ? 'bg-theme/40' : 'bg-white/10'),
-    togetherBarClass: cn(
-      'mx-4 sm:mx-6 md:mx-8 max-w-[1800px] md:mx-auto mt-2 mb-12 rounded-2xl border p-5 sm:p-6 md:p-8 backdrop-blur-md',
-      isClean
-        ? 'border-theme/40 bg-surface shadow-sm'
-        : 'border-white/10 bg-[#060912]/95 shadow-[0_0_0_1px_rgba(255,255,255,0.04)_inset]',
+    subThaiClass: cn(
+      'text-xs sm:text-sm uppercase tracking-[0.32em] font-thai max-w-2xl font-medium transition-colors duration-500',
+      isLight ? 'text-muted' : 'text-white/50',
     ),
-    togetherHeadingWrapClass: cn(
-      'shrink-0 md:border-r md:pr-8',
-      isClean ? 'md:border-theme/40' : 'md:border-white/10',
+    headerDividerClass: cn(
+      'w-16 h-[2px] mt-6 bg-gradient-to-r transition-all duration-500',
+      isLight ? 'from-transparent via-primary/30 to-transparent' : 'from-transparent via-cyan-500/50 to-transparent'
     ),
-    togetherTitleClass: cn(
-      'font-display text-xl sm:text-2xl font-bold uppercase tracking-tight',
-      isClean ? 'text-primary' : 'text-white',
+
+    // Symmetrical desktop vertical divider
+    centerDividerClass: cn(
+      'hidden lg:block absolute left-1/2 top-10 bottom-10 w-[1px] -translate-x-1/2 z-20 pointer-events-none transition-all duration-500',
+      isLight ? 'bg-gradient-to-b from-transparent via-black/10 to-transparent' : 'bg-gradient-to-b from-transparent via-white/10 to-transparent'
     ),
-    togetherSubClass: cn('text-xs mt-0.5', isClean ? 'text-muted' : 'text-white/45'),
-    statCardClass: cn(
-      'flex items-center gap-2 sm:gap-3 rounded-xl p-2.5 sm:p-3 ring-1',
-      isClean ? 'bg-panel ring-theme/40' : 'bg-white/[0.04] ring-white/5',
+
+    mobileDividerClass: cn('lg:hidden h-px w-full my-8 transition-colors duration-500', isLight ? 'bg-black/10' : 'bg-white/10'),
+    
+    // Glassmorphic Social & Stats Symmetrical Modules
+    statsContainerClass: (side: 'left' | 'right') => cn(
+      'flex gap-4 sm:gap-6 mt-8 w-full flex-wrap',
+      side === 'right' ? 'justify-end flex-row-reverse' : 'justify-start'
+    ),
+    statItemClass: (side: 'left' | 'right') => cn(
+      'flex items-center gap-3 backdrop-blur-md rounded-2xl px-4 py-3 transition-all duration-500 shadow-sm hover:shadow-md cursor-default',
+      isLight 
+        ? 'bg-black/[0.02] border-black/[0.05] hover:bg-black/[0.04] hover:border-black/10'
+        : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.06] hover:border-white/10',
+      side === 'right' ? 'flex-row-reverse text-right' : 'text-left'
     ),
     statValueClass: cn(
-      'text-base sm:text-lg font-display font-semibold tabular-nums',
-      isClean ? 'text-primary' : 'text-white',
+      'text-xl sm:text-2xl font-display font-bold tabular-nums tracking-tight transition-colors duration-500',
+      isLight ? 'text-slate-900' : 'text-white'
     ),
     statLabelClass: cn(
-      'text-[8px] uppercase tracking-wider leading-tight',
-      isClean ? 'text-muted' : 'text-white/40',
+      'block text-[9px] uppercase tracking-[0.18em] font-medium mt-0.5 transition-colors duration-500',
+      isLight ? 'text-slate-500' : 'text-white/45'
     ),
-    statLabelClampClass: cn(
-      'text-[8px] uppercase tracking-wider leading-tight line-clamp-2',
-      isClean ? 'text-muted' : 'text-white/40',
+
+    // Latest Works glass cards (mirrored)
+    worksWrapperClass: (side: 'left' | 'right') => cn(
+      'mt-10 w-full border-t pt-6 flex flex-col transition-colors duration-500',
+      isLight ? 'border-black/10' : 'border-white/10',
+      side === 'right' ? 'items-end' : 'items-start'
     ),
-    dataRangeClass: cn(
-      'text-center text-[9px] uppercase tracking-[0.2em] mt-4',
-      isClean ? 'text-muted/50' : 'text-white/30',
+    worksTitleClass: cn(
+      'text-[10px] font-bold uppercase tracking-[0.2em] mb-4 transition-colors duration-500',
+      isLight ? 'text-slate-500' : 'text-white/40'
     ),
-    statsGridClass: cn('grid flex-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4'),
-    togetherRowClass: cn('flex flex-col gap-5 md:flex-row md:items-center md:gap-8'),
+    worksGridClass: (side: 'left' | 'right') => cn(
+      'flex gap-3 sm:gap-4 w-full',
+      side === 'right' ? 'flex-row-reverse' : 'flex-row'
+    ),
+    workCardClass: cn(
+      'group/work relative flex-1 min-w-0 max-w-[125px] transition-all duration-500 hover:-translate-y-1.5'
+    ),
+    workImageWrapClass: cn(
+      'relative aspect-[3/4] rounded-2xl overflow-hidden bg-black/40 border transition-all duration-500 shadow-lg group-hover/work:shadow-2xl',
+      isLight ? 'border-black/10 group-hover/work:border-black/20' : 'border-white/10 group-hover/work:border-white/20'
+    ),
+    workInfoClass: (side: 'left' | 'right') => cn(
+      'mt-2.5 truncate w-full',
+      side === 'right' ? 'text-right' : 'text-left'
+    ),
+    workTextClass: cn(
+      'text-[11px] font-semibold truncate font-thai block leading-snug transition-colors duration-500',
+      isLight ? 'text-slate-800' : 'text-white/90'
+    ),
+    workSubClass: cn(
+      'text-[8px] uppercase tracking-[0.12em] block mt-0.5 font-medium transition-colors duration-500',
+      isLight ? 'text-slate-500' : 'text-white/40'
+    ),
   };
 }
 
@@ -102,20 +129,24 @@ export function getArtistPanelRadius(
   side: 'left' | 'right',
   splitMode: 'pair' | 'single',
 ): { tl: string | number; tr: string | number; bl: string | number; br: string | number } {
-  if (splitMode === 'single') {
-    return { tl: '1.25rem', tr: '1.25rem', bl: '1.25rem', br: '1.25rem' };
-  }
-  if (side === 'left') {
-    return { tl: '1.25rem', tr: 0, bl: '1.25rem', br: 0 };
-  }
-  return { tl: 0, tr: '1.25rem', bl: 0, br: '1.25rem' };
+  // We handle rounding responsive styles entirely in Tailwind classes now to prevent layout shifts
+  return { tl: 0, tr: 0, bl: 0, br: 0 };
 }
 
-export function getArtistPanelShellClass(): string {
+export function getArtistPanelShellClass(side: 'left' | 'right', isLight?: boolean): string {
   return cn(
-    'relative min-h-[100svh] lg:min-h-[min(100svh,920px)] flex flex-col w-full overflow-hidden',
+    'relative min-h-[95svh] lg:min-h-[min(95svh,860px)] flex flex-col w-full overflow-hidden transition-all duration-700 border',
+    isLight 
+      ? 'border-black/5 shadow-[0_20px_50px_rgba(0,0,0,0.08)]' 
+      : 'border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.3)]',
+    // Mobile/Tablet: Stacked vertically. Namtan (top) is rounded-t, Film (bottom) is rounded-b.
+    // Desktop (lg): Side-by-side. Namtan (left) is rounded-l, Film (right) is rounded-r. Symmetrical straight vertical line in the middle.
+    side === 'left'
+      ? 'rounded-t-[2rem] rounded-b-none lg:rounded-l-[2rem] lg:rounded-r-none lg:border-r-0'
+      : 'rounded-t-none rounded-b-[2rem] lg:rounded-r-[2rem] lg:rounded-l-none lg:border-l-0',
   );
 }
+
 
 export function getArtistPanelContentClass(side: 'left' | 'right'): string {
   return cn(
@@ -123,3 +154,4 @@ export function getArtistPanelContentClass(side: 'left' | 'right'): string {
     side === 'right' ? 'items-end text-right' : 'items-start text-left',
   );
 }
+

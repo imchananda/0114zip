@@ -60,11 +60,15 @@ type SnapshotRow = { artist: string; platform: string; followers: number; record
 type BrandMediaItem = { type?: unknown; title?: unknown; url?: unknown };
 type ProfileImageRow = { photo_url?: string | null };
 
-async function AboutServer() {
-  const [stats, awardCount, settings] = await Promise.all([
+interface SharedProps {
+  settings: Awaited<ReturnType<typeof fetchCoreSettings>>;
+  profiles: Awaited<ReturnType<typeof fetchProfiles>>;
+}
+
+async function AboutServer({ settings }: { settings: SharedProps['settings'] }) {
+  const [stats, awardCount] = await Promise.all([
     fetchLiveDashboardStats(),
-    fetchAwardCount(),
-    fetchCoreSettings(),
+    fetchAwardCount()
   ]);
   return (
     <AboutSection
@@ -74,17 +78,22 @@ async function AboutServer() {
       config={settings.homepageConfig.about}
       pageMotion={settings.pageMotion}
       pageTheme={settings.pageTheme}
+      customSettings={settings.aboutCustomSettings}
     />
   );
 }
 
-async function StatsServer() {
-  const [stats, profiles, settings] = await Promise.all([
+async function StatsServer({
+  settings,
+  profiles,
+}: {
+  settings: SharedProps['settings'];
+  profiles: SharedProps['profiles'];
+}) {
+  const [stats, brands] = await Promise.all([
     fetchLiveDashboardStats(),
-    fetchProfiles(),
-    fetchCoreSettings(),
+    fetchBrands()
   ]);
-  const brands = await fetchBrands();
   const engData: HomeEngData = {
     latestSnapshots: {},
     snapshotHistory: [],
@@ -132,8 +141,14 @@ async function StatsServer() {
   );
 }
 
-async function BrandsServer() {
-  const [brandsRaw, settings, profiles] = await Promise.all([fetchBrands(), fetchCoreSettings(), fetchProfiles()]);
+async function BrandsServer({
+  settings,
+  profiles,
+}: {
+  settings: SharedProps['settings'];
+  profiles: SharedProps['profiles'];
+}) {
+  const brandsRaw = await fetchBrands();
   const brands = brandsRaw as HomeBrand[];
   
   const brandYears = Array.from(new Set(brands.filter((b) => b.start_date).map((b) => new Date(b.start_date!).getFullYear()))).sort((a, b) => b - a);
@@ -169,8 +184,8 @@ async function BrandsServer() {
   );
 }
 
-async function ScheduleServer() {
-  const [schedule, settings] = await Promise.all([fetchSchedule(), fetchCoreSettings()]);
+async function ScheduleServer({ settings }: { settings: SharedProps['settings'] }) {
+  const schedule = await fetchSchedule();
   return (
     <SchedulePreview
       config={settings.homepageConfig.schedule}
@@ -181,8 +196,8 @@ async function ScheduleServer() {
   );
 }
 
-async function ContentServer() {
-  const [content, settings] = await Promise.all([fetchContent(), fetchCoreSettings()]);
+async function ContentServer({ settings }: { settings: SharedProps['settings'] }) {
+  const content = await fetchContent();
   return (
     <ContentSection
       initialContent={normalizeContentItems(content as unknown as HomeContentItem[])}
@@ -193,21 +208,42 @@ async function ContentServer() {
   );
 }
 
-async function FashionServer() {
-  const [fashion, brands, settings] = await Promise.all([fetchFashion(), fetchBrands(), fetchCoreSettings()]);
+async function FashionHighlightServer({ settings }: { settings: SharedProps['settings'] }) {
+  const [fashion, brandsRaw] = await Promise.all([
+    fetchFashion(),
+    fetchBrands()
+  ]);
   return (
     <FashionSection
       events={fashion as HomeFashionEvent[]}
-      brandLookup={brands as HomeBrand[]}
-      config={settings.homepageConfig.fashion}
+      brandLookup={brandsRaw as HomeBrand[]}
+      config={settings.homepageConfig.fashionHighlight}
       pageMotion={settings.pageMotion}
       pageTheme={settings.pageTheme}
+      mode="highlight"
     />
   );
 }
 
-async function AwardsServer() {
-  const [awards, settings] = await Promise.all([fetchAwards(), fetchCoreSettings()]);
+async function FashionServer({ settings }: { settings: SharedProps['settings'] }) {
+  const [fashion, brandsRaw] = await Promise.all([
+    fetchFashion(),
+    fetchBrands()
+  ]);
+  return (
+    <FashionSection
+      events={fashion as HomeFashionEvent[]}
+      brandLookup={brandsRaw as HomeBrand[]}
+      config={settings.homepageConfig.fashion}
+      pageMotion={settings.pageMotion}
+      pageTheme={settings.pageTheme}
+      mode="main"
+    />
+  );
+}
+
+async function AwardsServer({ settings }: { settings: SharedProps['settings'] }) {
+  const awards = await fetchAwards();
   return (
     <AwardsPreview
       initialAwards={normalizeHomeAwards(awards)}
@@ -218,8 +254,8 @@ async function AwardsServer() {
   );
 }
 
-async function TimelineServer() {
-  const [timeline, settings] = await Promise.all([fetchTimeline(), fetchCoreSettings()]);
+async function TimelineServer({ settings }: { settings: SharedProps['settings'] }) {
+  const timeline = await fetchTimeline();
   const timelineRows = (timeline as unknown as Array<HomeTimelineItem & { actors?: string[] }>).map((r) => ({
     id: r.id, year: r.year, title: r.title, title_thai: r.title_thai, description: r.description ?? '',
     category: r.category, actor: r.actors?.[0] ?? 'both', icon: r.icon ?? '✨', image: r.image
@@ -234,8 +270,8 @@ async function TimelineServer() {
   );
 }
 
-async function MediaTagsServer() {
-  const [mediaTags, settings] = await Promise.all([fetchMediaTags(), fetchCoreSettings()]);
+async function MediaTagsServer({ settings }: { settings: SharedProps['settings'] }) {
+  const mediaTags = await fetchMediaTags();
   return (
     <MediaTagsSection
       initialEvents={normalizeMediaEvents(mediaTags as HomeMediaEvent[])}
@@ -246,8 +282,8 @@ async function MediaTagsServer() {
   );
 }
 
-async function ChallengesServer() {
-  const [challenges, settings] = await Promise.all([fetchChallenges(), fetchCoreSettings()]);
+async function ChallengesServer({ settings }: { settings: SharedProps['settings'] }) {
+  const challenges = await fetchChallenges();
   return (
     <ChallengesSection
       initialChallenges={normalizeChallenges(challenges)}
@@ -258,8 +294,8 @@ async function ChallengesServer() {
   );
 }
 
-async function PrizesServer() {
-  const [prizes, settings] = await Promise.all([fetchPrizes(), fetchCoreSettings()]);
+async function PrizesServer({ settings }: { settings: SharedProps['settings'] }) {
+  const prizes = await fetchPrizes();
   return (
     <PrizeSection
       initialPrizes={normalizePrizes(prizes)}
@@ -270,13 +306,17 @@ async function PrizesServer() {
   );
 }
 
-async function ProfileServer() {
-  const [profiles, stats, brands, content, settings] = await Promise.all([
-    fetchProfiles(),
+async function ProfileServer({
+  settings,
+  profiles,
+}: {
+  settings: SharedProps['settings'];
+  profiles: SharedProps['profiles'];
+}) {
+  const [stats, brands, content] = await Promise.all([
     fetchLiveDashboardStats(),
     fetchBrands(),
-    fetchContent(),
-    fetchCoreSettings()
+    fetchContent()
   ]);
 
   const engData: HomeEngData = {
@@ -328,25 +368,27 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
+  // Prefetch globally shared above-the-fold entities in parallel (Fast path)
   const [settings, heroSlides, profiles] = await Promise.all([
     fetchCoreSettings(),
     fetchHeroSlides(),
-    fetchProfiles()
+    fetchProfiles(),
   ]);
 
   const sections: Record<string, React.ReactNode> = {
-    about: <Suspense fallback={<SectionSkeleton />}><AboutServer /></Suspense>,
-    stats: <Suspense fallback={<SectionSkeleton />}><StatsServer /></Suspense>,
-    brands: <Suspense fallback={<SectionSkeleton />}><BrandsServer /></Suspense>,
-    schedule: <Suspense fallback={<SectionSkeleton />}><ScheduleServer /></Suspense>,
-    content: <Suspense fallback={<SectionSkeleton />}><ContentServer /></Suspense>,
-    fashion: <Suspense fallback={<SectionSkeleton />}><FashionServer /></Suspense>,
-    awards: <Suspense fallback={<SectionSkeleton />}><AwardsServer /></Suspense>,
-    timeline: <Suspense fallback={<SectionSkeleton />}><TimelineServer /></Suspense>,
-    mediaTags: <Suspense fallback={<SectionSkeleton />}><MediaTagsServer /></Suspense>,
-    challenges: <Suspense fallback={<SectionSkeleton />}><ChallengesServer /></Suspense>,
-    prizes: <Suspense fallback={<SectionSkeleton />}><PrizesServer /></Suspense>,
-    profile: <Suspense fallback={<SectionSkeleton />}><ProfileServer /></Suspense>,
+    about: <Suspense fallback={<SectionSkeleton />}><AboutServer settings={settings} /></Suspense>,
+    stats: <Suspense fallback={<SectionSkeleton />}><StatsServer settings={settings} profiles={profiles} /></Suspense>,
+    brands: <Suspense fallback={<SectionSkeleton />}><BrandsServer settings={settings} profiles={profiles} /></Suspense>,
+    schedule: <Suspense fallback={<SectionSkeleton />}><ScheduleServer settings={settings} /></Suspense>,
+    content: <Suspense fallback={<SectionSkeleton />}><ContentServer settings={settings} /></Suspense>,
+    fashionHighlight: <Suspense fallback={<SectionSkeleton />}><FashionHighlightServer settings={settings} /></Suspense>,
+    fashion: <Suspense fallback={<SectionSkeleton />}><FashionServer settings={settings} /></Suspense>,
+    awards: <Suspense fallback={<SectionSkeleton />}><AwardsServer settings={settings} /></Suspense>,
+    timeline: <Suspense fallback={<SectionSkeleton />}><TimelineServer settings={settings} /></Suspense>,
+    mediaTags: <Suspense fallback={<SectionSkeleton />}><MediaTagsServer settings={settings} /></Suspense>,
+    challenges: <Suspense fallback={<SectionSkeleton />}><ChallengesServer settings={settings} /></Suspense>,
+    prizes: <Suspense fallback={<SectionSkeleton />}><PrizesServer settings={settings} /></Suspense>,
+    profile: <Suspense fallback={<SectionSkeleton />}><ProfileServer settings={settings} profiles={profiles} /></Suspense>,
   };
 
   return (
