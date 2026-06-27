@@ -202,12 +202,12 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function EditProfileModal({ profile, onClose, onSave, saving, supabase }: {
+function EditProfileModal({ profile, onClose, onSave, saving, _supabase }: {
   profile: ActorProfile;
   onClose: () => void;
   onSave: (p: ActorProfile) => void;
   saving: boolean;
-  supabase: ReturnType<typeof createSupabaseBrowser>;
+  _supabase?: ReturnType<typeof createSupabaseBrowser>;
 }) {
   const [form, setForm] = useState({ ...profile });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -254,8 +254,8 @@ function EditProfileModal({ profile, onClose, onSave, saving, supabase }: {
       const result = await res.json();
       setUploading(false);
       onSave({ ...form, photo_url: result.url });
-    } catch (err: any) {
-      setUploadMsg(err.message || 'เกิดข้อผิดพลาดในการอัปโหลด');
+    } catch (err: unknown) {
+      setUploadMsg((err instanceof Error ? err.message : "Error") || 'เกิดข้อผิดพลาดในการอัปโหลด');
       setUploading(false);
     }
   };

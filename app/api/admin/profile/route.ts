@@ -50,8 +50,8 @@ export async function PUT(req: NextRequest) {
     }
 
     return NextResponse.json(data);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Database update failed' }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: (err as Error).message || 'Database update failed' }, { status: 500 });
   }
 }
 
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       url: urlData.publicUrl,
       path: filePath,
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'File upload failed' }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: (err as Error).message || 'Upload failed' }, { status: 500 });
   }
 }

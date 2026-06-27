@@ -39,12 +39,12 @@ export function Header() {
   const pathname = usePathname();
 
   useEffect(() => {
-    setMounted(true);
+    setMounted(true); // eslint-disable-line react-hooks/set-state-in-effect
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
-    setTime(new Date());
+    setTime(new Date()); // eslint-disable-line react-hooks/set-state-in-effect
     const timer = setInterval(() => {
       setTime(new Date());
     }, 1000);

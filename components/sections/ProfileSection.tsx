@@ -23,7 +23,6 @@ import {
 } from '@/lib/homepage-data';
 import {
   getArtistPanelContentClass,
-  getArtistPanelRadius,
   getArtistPanelShellClass,
   getProfileStyles,
   getSplitGridClass,
@@ -101,7 +100,6 @@ function ArtistSplitPanel({
   getTypeLabel,
   lang,
   t,
-  splitMode = 'pair',
   theme,
 }: {
   side: 'left' | 'right';

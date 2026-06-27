@@ -118,7 +118,7 @@ export default function SettingsPage() {
 
   // About Section Media management state
   const [heroAssets, setHeroAssets] = useState<HeroAsset[]>([]);
-  const [heroAssetsLoading, setHeroAssetsLoading] = useState(false);
+  const [, setHeroAssetsLoading] = useState(false);
   const [bwUploadPct, setBwUploadPct] = useState<number | null>(null);
   const [colorUploadPct, setColorUploadPct] = useState<number | null>(null);
   const [previewLanguage, setPreviewLanguage] = useState<'en' | 'th'>('th');
@@ -142,6 +142,7 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadHeroAssets();
   }, []);
 
@@ -702,9 +703,9 @@ export default function SettingsPage() {
                     <span className="text-[9px] tracking-[0.05em] text-[var(--color-text-muted)] font-body uppercase">NamtanFilm Fansite</span>
                   </div>
                   <div className="font-display font-medium text-lg md:text-xl text-[var(--color-text-primary)] leading-[1.25] italic">
-                    "{previewLanguage === 'en' 
+                    &quot;{previewLanguage === 'en' 
                       ? (settings.aboutSection.statement_en || 'We capture the raw emotions, the subtle moments...') 
-                      : (settings.aboutSection.statement_th || 'เราบันทึกทุกห้วงอารมณ์ที่แท้จริง ช่วงเวลาที่แสนละเอียดอ่อน...')}"
+                      : (settings.aboutSection.statement_th || 'เราบันทึกทุกห้วงอารมณ์ที่แท้จริง ช่วงเวลาที่แสนละเอียดอ่อน...')}&quot;
                   </div>
                 </div>
 

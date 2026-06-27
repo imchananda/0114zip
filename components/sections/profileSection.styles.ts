@@ -69,9 +69,9 @@ export function getProfileStyles({ theme, layout }: ProfileStyleOptions) {
     mobileDividerClass: cn('lg:hidden h-px w-full my-8 transition-colors duration-500', isLight ? 'bg-black/10' : 'bg-white/10'),
     
     // Glassmorphic Social & Stats Symmetrical Modules
-    statsContainerClass: (side: 'left' | 'right') => cn(
+    statsContainerClass: (_side: 'left' | 'right') => cn(
       'flex gap-4 sm:gap-6 mt-8 w-full flex-wrap',
-      side === 'right' ? 'justify-end flex-row-reverse' : 'justify-start'
+      _side === 'right' ? 'justify-end flex-row-reverse' : 'justify-start'
     ),
     statItemClass: (side: 'left' | 'right') => cn(
       'flex items-center gap-3 backdrop-blur-md rounded-2xl px-4 py-3 transition-all duration-500 shadow-sm hover:shadow-md cursor-default',
@@ -125,13 +125,7 @@ export function getProfileStyles({ theme, layout }: ProfileStyleOptions) {
   };
 }
 
-export function getArtistPanelRadius(
-  side: 'left' | 'right',
-  splitMode: 'pair' | 'single',
-): { tl: string | number; tr: string | number; bl: string | number; br: string | number } {
-  // We handle rounding responsive styles entirely in Tailwind classes now to prevent layout shifts
-  return { tl: 0, tr: 0, bl: 0, br: 0 };
-}
+
 
 export function getArtistPanelShellClass(side: 'left' | 'right', isLight?: boolean): string {
   return cn(

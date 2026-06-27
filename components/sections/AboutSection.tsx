@@ -83,7 +83,7 @@ export function AboutSection({
   const descMotion = toWhileInViewBinding(sectionMotion, 2);
   const bwImageMotion = toWhileInViewBinding(sectionMotion, 3);
   const cardMotion = toWhileInViewBinding(sectionMotion, 5);
-  const disclaimerMotion = toWhileInViewBinding(sectionMotion, 6);
+
 
   const stats = [
     { 

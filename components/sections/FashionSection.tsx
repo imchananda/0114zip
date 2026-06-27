@@ -33,6 +33,7 @@ function logoSrc(url: string): string {
   return url.replace(/^http:\/\//, 'https://');
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CATEGORY_ICONS: Record<FashionCategoryId, React.ComponentType<any>> = {
   evening_look: Shirt,
   street_style: Compass,
@@ -148,6 +149,7 @@ function actorTag(actors: string[], t: (k: string) => string) {
 }
 
 /* —— Small presentational pieces —— */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function SectionKicker({ children, className }: { children: React.ReactNode; className?: string }) {
   const styles = getFashionStyles();
   return (

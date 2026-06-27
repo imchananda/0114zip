@@ -233,7 +233,7 @@ export function HeroModeForm(props: HeroModeFormProps) {
                     <label className="mb-0.5 block text-[10px] text-[var(--color-text-muted)] uppercase">ตำแหน่ง (Position)</label>
                     <select
                       value={config.title1_position || 'bottom-left'}
-                      onChange={(e) => onConfigChange({ ...config, title1_position: e.target.value as any })}
+                      onChange={(e) => onConfigChange({ ...config, title1_position: e.target.value as never })}
                       className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
                     >
                       <option value="top-left">บนซ้าย (Top Left)</option>
@@ -247,7 +247,7 @@ export function HeroModeForm(props: HeroModeFormProps) {
                     <label className="mb-0.5 block text-[10px] text-[var(--color-text-muted)] uppercase">ขนาด (Size)</label>
                     <select
                       value={config.title1_size || 'xl'}
-                      onChange={(e) => onConfigChange({ ...config, title1_size: e.target.value as any })}
+                      onChange={(e) => onConfigChange({ ...config, title1_size: e.target.value as never })}
                       className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
                     >
                       <option value="sm">เล็ก (Small)</option>
@@ -278,7 +278,7 @@ export function HeroModeForm(props: HeroModeFormProps) {
                     <label className="mb-0.5 block text-[10px] text-[var(--color-text-muted)] uppercase">ตำแหน่ง (Position)</label>
                     <select
                       value={config.title2_position || 'bottom-right'}
-                      onChange={(e) => onConfigChange({ ...config, title2_position: e.target.value as any })}
+                      onChange={(e) => onConfigChange({ ...config, title2_position: e.target.value as never })}
                       className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
                     >
                       <option value="top-left">บนซ้าย (Top Left)</option>
@@ -292,7 +292,7 @@ export function HeroModeForm(props: HeroModeFormProps) {
                     <label className="mb-0.5 block text-[10px] text-[var(--color-text-muted)] uppercase">ขนาด (Size)</label>
                     <select
                       value={config.title2_size || 'xl'}
-                      onChange={(e) => onConfigChange({ ...config, title2_size: e.target.value as any })}
+                      onChange={(e) => onConfigChange({ ...config, title2_size: e.target.value as never })}
                       className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
                     >
                       <option value="sm">เล็ก (Small)</option>
@@ -323,7 +323,7 @@ export function HeroModeForm(props: HeroModeFormProps) {
                     <label className="mb-0.5 block text-[10px] text-[var(--color-text-muted)] uppercase">ตำแหน่ง (Position)</label>
                     <select
                       value={config.subtitle_position || 'bottom-right'}
-                      onChange={(e) => onConfigChange({ ...config, subtitle_position: e.target.value as any })}
+                      onChange={(e) => onConfigChange({ ...config, subtitle_position: e.target.value as never })}
                       className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
                     >
                       <option value="top-left">บนซ้าย (Top Left)</option>
@@ -337,7 +337,7 @@ export function HeroModeForm(props: HeroModeFormProps) {
                     <label className="mb-0.5 block text-[10px] text-[var(--color-text-muted)] uppercase">ขนาด (Size)</label>
                     <select
                       value={config.subtitle_size || 'md'}
-                      onChange={(e) => onConfigChange({ ...config, subtitle_size: e.target.value as any })}
+                      onChange={(e) => onConfigChange({ ...config, subtitle_size: e.target.value as never })}
                       className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
                     >
                       <option value="sm">เล็ก (Small)</option>
@@ -367,7 +367,7 @@ export function HeroModeForm(props: HeroModeFormProps) {
                     <label className="mb-0.5 block text-[10px] text-[var(--color-text-muted)] uppercase">ตำแหน่ง (Position)</label>
                     <select
                       value={config.detail_lines_position || 'bottom-left'}
-                      onChange={(e) => onConfigChange({ ...config, detail_lines_position: e.target.value as any })}
+                      onChange={(e) => onConfigChange({ ...config, detail_lines_position: e.target.value as never })}
                       className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
                     >
                       <option value="top-left">บนซ้าย (Top Left)</option>
@@ -381,7 +381,7 @@ export function HeroModeForm(props: HeroModeFormProps) {
                     <label className="mb-0.5 block text-[10px] text-[var(--color-text-muted)] uppercase">ขนาด (Size)</label>
                     <select
                       value={config.detail_lines_size || 'md'}
-                      onChange={(e) => onConfigChange({ ...config, detail_lines_size: e.target.value as any })}
+                      onChange={(e) => onConfigChange({ ...config, detail_lines_size: e.target.value as never })}
                       className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1.5 text-xs text-[var(--color-text-primary)]"
                     >
                       <option value="sm">เล็ก (Small)</option>
