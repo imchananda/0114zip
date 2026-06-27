@@ -186,7 +186,6 @@ export default function AdminProfilePage() {
           onClose={() => setEditingId(null)}
           onSave={handleSave}
           saving={saving}
-          supabase={supabase}
         />
       )}
     </div>
