@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Mail, Lock, LogIn, ChevronRight } from 'lucide-react';
@@ -30,6 +30,7 @@ export default function LoginPage() {
       setError(result.error);
     } else {
       router.push('/');
+      router.refresh();
     }
     setLoading(false);
   };

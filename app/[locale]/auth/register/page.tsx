@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Link } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslations } from 'next-intl';
 import { ArrowLeft, Mail, Lock, User, UserPlus, ChevronRight, PartyPopper, ShieldCheck } from 'lucide-react';
@@ -38,7 +37,10 @@ export default function RegisterPage() {
       setError(result.error);
     } else {
       setSuccess(true);
-      setTimeout(() => router.push('/'), 2500);
+      setTimeout(() => {
+        router.push('/');
+        router.refresh();
+      }, 2500);
     }
     setLoading(false);
   };
