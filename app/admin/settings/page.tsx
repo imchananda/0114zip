@@ -53,6 +53,7 @@ interface SiteSettings {
     timeline: boolean;
     awards: boolean;
     stats: boolean;
+    splash: boolean;
   };
   social: {
     instagram: string;
@@ -97,6 +98,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     timeline: true,
     awards: true,
     stats: true,
+    splash: true,
   },
   social: {
     instagram: '',
@@ -921,6 +923,7 @@ const FEATURE_LABELS: Record<string, string> = {
   timeline:   '📖 Timeline',
   awards:     '🏆 Awards',
   stats:      '📊 Live Stats',
+  splash:     '✨ Splash Screen (หน้าต้อนรับเข้าเว็บ)',
 };
 
 function normalizeScheduleSourcesFromApi(value: unknown): ScheduleSourceToggles {

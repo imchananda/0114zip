@@ -36,7 +36,8 @@ export const fetchCoreSettings = unstable_cache(
       pageTheme: builderConfig.pageTheme,
       heroBannerConfig,
       brandSectionImages: (settings.brands_section_images as Record<string, string>) || {},
-      aboutCustomSettings: (settings.aboutSection as Record<string, string>) || null
+      aboutCustomSettings: (settings.aboutSection as Record<string, string>) || null,
+      features: (settings.features as Record<string, boolean>) || {}
     };
   },
   ['home-core-settings'],

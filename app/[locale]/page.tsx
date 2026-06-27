@@ -398,6 +398,7 @@ export default async function HomePage() {
       heroSlides={heroSlides}
       profiles={profiles}
       sections={sections}
+      features={settings.features}
     />
   );
 }

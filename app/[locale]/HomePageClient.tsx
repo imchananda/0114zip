@@ -109,23 +109,27 @@ interface HomePageClientProps {
   heroSlides: HomeHeroSlide[];
   profiles: Record<string, HomeArtistProfile>;
   sections: Record<string, ReactNode>;
+  features?: Record<string, boolean>;
 }
 
-export function HomePageClient({ config, heroConfig, heroSlides, profiles, sections }: HomePageClientProps) {
-  // Initial render must match SSR (always false). The session-aware skip is
+export function HomePageClient({ config, heroConfig, heroSlides, profiles, sections, features }: HomePageClientProps) {
+  const showSplash = features?.splash !== false;
+
+  // Initial render must match SSR. The session-aware skip is
   // applied in a post-mount effect to avoid hydration mismatches.
-  const [introComplete, setIntroComplete] = useState(false);
+  const [introComplete, setIntroComplete] = useState(!showSplash);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
   const floatingCfg = useFloatingArtistSelectorConfig();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!showSplash) return;
     if (window.sessionStorage.getItem('home_splash_seen') === '1') {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- post-mount sessionStorage sync
       setIntroComplete(true);
     }
-  }, []);
+  }, [showSplash]);
 
   const orderedSections = useMemo(() => {
     return Object.entries(config)
